@@ -4,7 +4,7 @@ QMV Master Demo
 
 Click on the Clone or Download button on the upper right of the page, then click on Download ZIP
 
-![Click on the Download Zip button on the upper right of the page](https://cloud.githubusercontent.com/assets/9346563/13860612/87321562-ec46-11e5-88f0-c0da7027c441.png)
+![Click on the Download Zip button on the upper right of the page](https://cloud.githubusercontent.com/assets/9346563/21583800/f2bd1ccc-d044-11e6-8730-8d6b3b183453.png)
 
 **Installing Demo:**
  * Open RPG Maker MV
