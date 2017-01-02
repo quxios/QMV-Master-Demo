@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QAudio = '2.0.1';
+Imported.QAudio = '2.0.2';
 
 if (!Imported.QPlus) {
   var msg = 'Error: QAudio requires QPlus to work.';
@@ -15,9 +15,17 @@ if (!Imported.QPlus) {
  /*:
  * @plugindesc <QAudio>
  * Few new audio features
- * @author Quxios  | Version 2.0.1
+ * @author Quxios  | Version 2.0.2
  *
  * @requires QPlus
+ *
+ * @param Default Radius
+ * @desc Default radius in tiles
+ * @default 5
+ *
+ * @param Default Max Volume
+ * @desc Default max volume
+ * @default 100
  *
  * @help
  * ============================================================================
@@ -40,7 +48,7 @@ if (!Imported.QPlus) {
  * Possible options:
  *
  *  - loop    - this audio will loop
- *  - pan     - this audio will update its pan
+ *  - noPan   - this audio will not update its pan
  *  - idX     - where X the ID for the audio (used for stopping)
  *  - type    - bgm, bgs, me, or se (Default: bgm)
  *  - maxV    - where V is the max volume for this audio, between 0-100
@@ -123,6 +131,10 @@ if (!Imported.QPlus) {
 // QAudio
 
 (function() {
+  var _params = QPlus.getParams('<QAudio>');
+  var _defaultRadius = Number(_params['Default Radius']) || 1;
+  var _defaultVolume = Number(_params['Default Max Volume']) || 100;
+
   //-----------------------------------------------------------------------------
   // Game_Interpreter
   //
@@ -145,14 +157,14 @@ if (!Imported.QPlus) {
       var name  = args[1];
       var args2 = args.slice(2);
       var loop     = !!QPlus.getArg(args2, /loop/i);
-      var needsPan = !!QPlus.getArg(args2, /pan/i);
+      var dontPan  = !!QPlus.getArg(args2, /noPan/i);
       var id = QPlus.getArg(args2, /id(.+)/i) || '*';
       id = id === '*' ? this.getUniqueQAudioId() : id;
       var type = QPlus.getArg(args2, /(bgm|bgs|me|se)/i) || 'bgm';
       type = type.toLowerCase();
-      var max = QPlus.getArg(args2, /(max)(\d+)/i) || 100;
+      var max = QPlus.getArg(args2, /(max)(\d+)/i) || _defaultVolume;
       max /= 100;
-      var radius = QPlus.getArg(args2, /(radius)(\d+)/i) || 1;
+      var radius = QPlus.getArg(args2, /(radius)(\d+)/i) || _defaultRadius;
       var bindTo = QPlus.getArg(args2, /(bindTo)(.+)/i);
       if (bindTo) {
         bindTo = QPlus.getCharacter(bindTo);
@@ -173,7 +185,7 @@ if (!Imported.QPlus) {
         x: x,
         y: y,
         bindTo: bindTo,
-        doPan: needsPan
+        doPan: !dontPan
       });
     }
     if (cmd === 'stop') {
