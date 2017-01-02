@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QSprite = '2.0.0';
+Imported.QSprite = '2.0.1';
 Imported.Quasi_Sprite = true; // backwards compatibility
 
 if (!Imported.QPlus) {
@@ -16,7 +16,7 @@ if (!Imported.QPlus) {
  /*:
  * @plugindesc <QSprite>
  * Lets you configure Spritesheets
- * @author Quxios  | Version 2.0.0
+ * @author Quxios  | Version 2.0.1
  *
  * @requires QPlus
  *
@@ -568,6 +568,8 @@ QSprite.json = null;
   Game_CharacterBase.prototype.setImage = function(characterName, characterIndex) {
     Alias_Game_CharacterBase_setImage.call(this, characterName, characterIndex);
     this._isQChara = undefined;
+    this._isIdle   = null;
+    this._posePlaying = null;
     this.getAvailableIdlePoses();
   };
 
