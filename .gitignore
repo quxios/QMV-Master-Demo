@@ -1,47 +1,16 @@
-# Windows image file caches
-Thumbs.db
-ehthumbs.db
+# Ignore unchanged MV folders
+audio/*
+img/*
+icon/
+fonts/
+movies/
 
-# Folder config file
-Desktop.ini
-
-# Recycle Bin used on file shares
-$RECYCLE.BIN/
-
-# Windows Installer files
-*.cab
-*.msi
-*.msm
-*.msp
-
-# Windows shortcuts
-*.lnk
-
-# =========================
-# Operating System Files
-# =========================
-
-# OSX
-# =========================
-
-.DS_Store
-.AppleDouble
-.LSOverride
-
-# Thumbnails
-._*
-
-# Files that might appear in the root of a volume
-.DocumentRevisions-V100
-.fseventsd
-.Spotlight-V100
-.TemporaryItems
-.Trashes
-.VolumeIcon.icns
-
-# Directories potentially created on remote AFP share
-.AppleDB
-.AppleDesktop
-Network Trash Folder
-Temporary Items
-.apdisk
+# Ignore default js
+js/libs/
+js/main.js
+js/rpg_core.js
+js/rpg_managers.js
+js/rpg_objects.js
+js/rpg_scenes.js
+js/rpg_sprites.js
+js/rpg_windows.js

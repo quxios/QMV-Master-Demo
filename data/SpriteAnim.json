@@ -1,0 +1,211 @@
+{
+  "test": {
+    "cols": 12,
+    "rows": 8,
+    "anchorX": 0.5,
+    "anchorY": 1,
+    "sampleImg": "E:\\GitHub\\QMV-Master-Demo\\img\\characters\\%test-Actor1.png",
+    "poses": {
+      "move2": {
+        "speed": 15,
+        "adjust": true,
+        "pattern": [
+          1,
+          0,
+          1,
+          2
+        ]
+      },
+      "move4": {
+        "speed": 15,
+        "adjust": true,
+        "pattern": [
+          13,
+          12,
+          13,
+          14
+        ]
+      },
+      "move6": {
+        "speed": 15,
+        "adjust": true,
+        "pattern": [
+          25,
+          24,
+          25,
+          26
+        ]
+      },
+      "move8": {
+        "speed": 15,
+        "adjust": true,
+        "pattern": [
+          37,
+          36,
+          37,
+          38
+        ]
+      },
+      "idle2": {
+        "speed": 15,
+        "adjust": true,
+        "pattern": [
+          4,
+          3,
+          4,
+          5
+        ]
+      },
+      "idle4": {
+        "speed": 15,
+        "adjust": true,
+        "pattern": [
+          16,
+          15,
+          16,
+          17
+        ]
+      },
+      "idle6": {
+        "speed": 15,
+        "adjust": true,
+        "pattern": [
+          28,
+          27,
+          28,
+          29
+        ]
+      },
+      "idle8": {
+        "speed": 15,
+        "adjust": true,
+        "pattern": [
+          40,
+          39,
+          40,
+          41
+        ]
+      },
+      "idleA2": {
+        "speed": 15,
+        "adjust": false,
+        "pattern": [
+          4,
+          7,
+          10
+        ]
+      },
+      "idleA4": {
+        "speed": 15,
+        "adjust": false,
+        "pattern": [
+          16,
+          19,
+          22
+        ]
+      },
+      "idleA6": {
+        "speed": 15,
+        "adjust": false,
+        "pattern": [
+          28,
+          31,
+          34
+        ]
+      },
+      "idleA8": {
+        "speed": 15,
+        "adjust": false,
+        "pattern": [
+          40,
+          43,
+          46
+        ]
+      },
+      "idleB4x4": {
+        "speed": 15,
+        "adjust": false,
+        "pattern": [
+          12,
+          13,
+          14
+        ]
+      },
+      "idleB4x2": {
+        "speed": 15,
+        "adjust": false,
+        "pattern": [
+          0,
+          1,
+          2
+        ]
+      },
+      "idleB4x6": {
+        "speed": 15,
+        "adjust": false,
+        "pattern": [
+          24,
+          25,
+          26
+        ]
+      },
+      "idleB4x8": {
+        "speed": 15,
+        "adjust": false,
+        "pattern": [
+          36,
+          37,
+          38
+        ]
+      },
+      "test2": {
+        "speed": 10,
+        "adjust": false,
+        "pattern": [
+          48,
+          49,
+          50,
+          51,
+          52,
+          53
+        ]
+      },
+      "test4": {
+        "speed": 10,
+        "adjust": false,
+        "pattern": [
+          60,
+          61,
+          62,
+          63,
+          64,
+          65
+        ]
+      },
+      "test6": {
+        "speed": 10,
+        "adjust": false,
+        "pattern": [
+          72,
+          73,
+          74,
+          75,
+          76,
+          77
+        ]
+      },
+      "test8": {
+        "speed": 10,
+        "adjust": false,
+        "pattern": [
+          84,
+          85,
+          86,
+          87,
+          88,
+          89
+        ]
+      }
+    }
+  }
+}
