@@ -36,10 +36,7 @@ if (!Imported.QPlus) {
  * @default true
  *
  * @help
- * ----------------------------------------------------------------------------
- * ** About
  * ============================================================================
-<<<<<<< HEAD
  * ## About
  * ============================================================================
  * This plugin lets you use sprites that are set up with Quasi Sprite Animator
@@ -216,17 +213,7 @@ if (!Imported.QPlus) {
  * Event 1 will run the hug pose. The event can't move until the pose is
  * complete, and the next event command will run once the pose is complete.
  * ============================================================================
- * ## Links
-=======
- * Testing about
- * next line
- * ----------------------------------------------------------------------------
- * ** Test section
- * ============================================================================
- * Testing another section
- * ----------------------------------------------------------------------------
  * ** Links
->>>>>>> origin/master
  * ============================================================================
  * RPGMakerWebs:
  *
@@ -238,11 +225,8 @@ if (!Imported.QPlus) {
  *
  * Terms of use:
  *
-<<<<<<< HEAD
  *   https://github.com/quxios/QMV-Master-Demo/blob/master/readme.md
  *
-=======
->>>>>>> origin/master
  * @tags character, sprite, animation
  */
 //=============================================================================

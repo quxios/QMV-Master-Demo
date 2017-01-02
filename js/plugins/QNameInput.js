@@ -44,7 +44,7 @@ if (!Imported.QInput) {
  * ============================================================================
  * RPGMakerWebs:
  *
- *   -rmwlink-
+ *   http://forums.rpgmakerweb.com/index.php?/topic/73023-qplugins/
  *
  * Terms of use:
  *

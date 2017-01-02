@@ -203,7 +203,7 @@ Imported.QInput = '2.0.0';
  * ============================================================================
  * RPGMakerWebs:
  *
- *   -rmwlink-
+ *   http://forums.rpgmakerweb.com/index.php?/topic/73023-qplugins/
  *
  * Terms of use:
  *

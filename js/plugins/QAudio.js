@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QAudio = '2.0.0';
+Imported.QAudio = '2.0.1';
 
 if (!Imported.QPlus) {
   var msg = 'Error: QAudio requires QPlus to work.';
@@ -15,7 +15,7 @@ if (!Imported.QPlus) {
  /*:
  * @plugindesc <QAudio>
  * Few new audio features
- * @author Quxios  | Version 2.0.0
+ * @author Quxios  | Version 2.0.1
  *
  * @requires QPlus
  *
@@ -109,7 +109,7 @@ if (!Imported.QPlus) {
  * ============================================================================
  * RPGMakerWebs:
  *
- *   -rmwlink-
+ *   http://forums.rpgmakerweb.com/index.php?/topic/73023-qplugins/
  *
  * Terms of use:
  *
@@ -173,7 +173,7 @@ if (!Imported.QPlus) {
         x: x,
         y: y,
         bindTo: bindTo,
-        needsPan: needsPan
+        doPan: needsPan
       });
     }
     if (cmd === 'stop') {
