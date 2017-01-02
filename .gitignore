@@ -1,6 +1,6 @@
 # Ignore unchanged MV folders
 audio/*
-img/*
+img/*/*
 icon/
 fonts/
 movies/
