@@ -3,13 +3,13 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QPlus = '1.0.0';
+Imported.QPlus = '1.0.1';
 
 //=============================================================================
  /*:
  * @plugindesc <QPlus> (Should go above all Q Plugins)
  * Some small changes to MV for easier plugin development.
- * @author Quxios  | Version 1.0.0
+ * @author Quxios  | Version 1.0.1
  *
  * @param Quick Test
  * @desc Enable quick testing.
@@ -135,11 +135,39 @@ QPlus.getParams = function(id) {
 
 QPlus.versionCheck = function(version, targetVersion) {
   version = version.split('.').map(Number);
-  targetVersion = version.split('.').map(Number);
+  targetVersion = targetVersion.split('.').map(Number);
   if (version[0] < targetVersion[0]) return false;
   if (version[1] < targetVersion[1]) return false;
   if (version[2] < targetVersion[2]) return false;
   return true;
+};
+
+QPlus.makeArgs = function(string) {
+  var inital = string.split(' ');
+  var final  = [];
+  var merging = false;
+  var j = 0;
+  for (var i = 0; i < inital.length; i++) {
+    var arg = inital[i];
+    if (merging) {
+      if (arg.contains('"')) {
+        final[j] += ` ${arg.replace('"', '')}`;
+        merging = false;
+        j++;
+      } else {
+        final[j] += ` ${arg}`;
+      }
+    } else {
+      if (arg.contains('"')) {
+        final[j] = arg.replace('"', '');
+        merging = true;
+      } else {
+        final[j] = arg;
+        j++
+      }
+    }
+  }
+  return final;
 };
 
 QPlus.getArg = function(args, regex) {

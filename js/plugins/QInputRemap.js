@@ -15,7 +15,7 @@ if (!Imported.QInput) {
  /*:
  * @plugindesc <QInputRemap>
  * Quasi Input Addon: Adds Key remapping to Options menu
- * @author Quxios  | Version 1.0.0
+ * @author Quxios  | Version 2.0.0
  *
  * @requires QInput
  *

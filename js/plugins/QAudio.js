@@ -3,10 +3,14 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QAudio = '2.0.2';
+Imported.QAudio = '2.0.3';
 
 if (!Imported.QPlus) {
   var msg = 'Error: QAudio requires QPlus to work.';
+  alert(msg);
+  throw new Error(msg);
+} else if (!QPlus.versionCheck(Imported.QPlus, '1.0.1')) {
+  var msg = 'Error: QAudio requires QPlus 1.0.1 or newer to work.';
   alert(msg);
   throw new Error(msg);
 }
@@ -15,7 +19,7 @@ if (!Imported.QPlus) {
  /*:
  * @plugindesc <QAudio>
  * Few new audio features
- * @author Quxios  | Version 2.0.2
+ * @author Quxios  | Version 2.0.3
  *
  * @requires QPlus
  *
@@ -43,7 +47,8 @@ if (!Imported.QPlus) {
  * ~~~
  *   qAudio start [AUDIONAME] [list of options]
  * ~~~
- * AUDIONAME - The name of the audio you want to play
+ * AUDIONAME - The name of the audio you want to play. If file has spaces in it
+ * wrap the name with "". Ex. If audio name was: Some File, then use "Some File"
  *
  * Possible options:
  *
@@ -149,6 +154,7 @@ if (!Imported.QPlus) {
   };
 
   Game_Interpreter.prototype.qAudioCommand = function(args) {
+    args = QPlus.makeArgs(args.join(' '));
     var cmd = args[0].toLowerCase();
     if (cmd === 'loop' || cmd === 'play') {
       this.qAudioCommandOld(cmd, args)
@@ -262,15 +268,15 @@ if (!Imported.QPlus) {
 
   AudioManager.playQAudio = function(id, audio, options) {
     if (audio.name) {
-      this._QAudioBuffers = this._QAudioBuffers.filter(function(audio) {
-        if (audio.uid === id) {
-          audio.stop();
-          audio.mapX = null;
-          audio.mapY = null;
-          audio = null;
+      this._QAudioBuffers = this._QAudioBuffers.filter(function(a) {
+        if (a.uid === id) {
+          a.stop();
+          a.mapX = null;
+          a.mapY = null;
+          a = null;
           return false;
         }
-        return audio._autoPlay || audio.isPlaying();
+        return a._autoPlay || a.isPlaying();
       })
       var buffer = this.createBuffer(options.type, audio.name);
       if (options.bindTo) {
@@ -294,6 +300,7 @@ if (!Imported.QPlus) {
       buffer.radius = options.radius;
       buffer.maxVolume = options.maxVolume;
       buffer.doPan = options.doPan;
+      this.updateQAudioParameters(buffer, audio);
       this.updateQAudioDistance(buffer);
       buffer.play(options.loop, 0);
       if (!options.loop) {
@@ -304,8 +311,13 @@ if (!Imported.QPlus) {
     }
   };
 
-  AudioManager.updateQAudioParameters = function(buffer, maxVolume, audio) {
-    this.updateBufferParameters(buffer, maxVolume, audio);
+  AudioManager.updateQAudioParameters = function(buffer, audio) {
+    var volume = 100;
+    if (buffer.type === 'bgm') volume = this._bgmVolume;
+    if (buffer.type === 'bgs') volume = this._bgsVolume;
+    if (buffer.type === 'me')  volume = this._meVolume;
+    if (buffer.type === 'se')  volume = this._seVolume;
+    this.updateBufferParameters(buffer, volume, audio);
   };
 
   AudioManager.updateQAudioDistance = function(buffer) {
