@@ -24,11 +24,13 @@ if (!Imported.QPlus) {
  * Note: Offset gets modified by the characters speed
  * @default 0.5
  *
+ * @video https://www.youtube.com/watch?v=MbdXrReYwFw
+ *
  * @help
  * ============================================================================
  * ## About
  * ============================================================================
- * Improved camaera control for RPG Maker MV. Lets you scroll diagonally,
+ * Improved camera control for RPG Maker MV. Lets you scroll diagonally,
  * towards a character, set the time it takes to scroll in frames, change who
  * the camera is following and smooth scrolling which makes the camera 'lag'
  * behind the player or target.
