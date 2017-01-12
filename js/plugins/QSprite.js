@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QSprite = '2.0.1';
+Imported.QSprite = '2.0.2';
 Imported.Quasi_Sprite = true; // backwards compatibility
 
 if (!Imported.QPlus) {
@@ -16,7 +16,7 @@ if (!Imported.QPlus) {
  /*:
  * @plugindesc <QSprite>
  * Lets you configure Spritesheets
- * @author Quxios  | Version 2.0.1
+ * @author Quxios  | Version 2.0.2
  *
  * @requires QPlus
  *
@@ -63,6 +63,7 @@ if (!Imported.QPlus) {
  *  - dashX
  *  - idleX
  *  - idle[A-Z]X ( more info for this below )
+ *  - default
  *
  * Where X is the direction:
  *
@@ -76,6 +77,10 @@ if (!Imported.QPlus) {
  *  - 9 - upper right
  *
  * (Diagonals only work if you are using this with Quasi Movement)
+ *
+ * Default pose is used when and idleX or moveX is not found. Note that default
+ * does not have an X at the end, it's just default. Has no directions tied to
+ * it.
  *
  * ----------------------------------------------------------------------------
  * **idle[A-Z]X**
@@ -438,6 +443,7 @@ QSprite.json = null;
       if (this._posePlaying) return;
       this.updateMovingPose(dir, diag, isMoving);
     }
+    if (this._pose === '') this._pose = 'default';
   };
 
   Game_CharacterBase.prototype.updateIdlePose = function(dir, diag) {
@@ -540,7 +546,8 @@ QSprite.json = null;
   var Alias_Game_CharacterBase_maxPattern = Game_CharacterBase.prototype.maxPattern;
   Game_CharacterBase.prototype.maxPattern = function() {
     if (this.qSprite()) {
-      return this.qSprite().poses[this._pose].pattern.length;
+      var pose = this.qSprite().poses[this._pose];
+      return pose ? pose.pattern.length : 0;
     }
     return Alias_Game_CharacterBase_maxPattern.call(this);
   };
