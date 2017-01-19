@@ -218,11 +218,11 @@ if (!Imported.QPlus) {
  * Event 1 will run the hug pose. The event can't move until the pose is
  * complete, and the next event command will run once the pose is complete.
  * ============================================================================
- * ** Links
+ * ## Links
  * ============================================================================
  * RPGMakerWebs:
  *
- *   http://forums.rpgmakerweb.com/----
+ *   http://forums.rpgmakerweb.com/index.php?/topic/73023-qplugins/
  *
  * Sprite App:
  *

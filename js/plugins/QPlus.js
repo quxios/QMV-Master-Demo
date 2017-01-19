@@ -3,13 +3,13 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QPlus = '1.0.1';
+Imported.QPlus = '1.0.2';
 
 //=============================================================================
  /*:
  * @plugindesc <QPlus> (Should go above all Q Plugins)
  * Some small changes to MV for easier plugin development.
- * @author Quxios  | Version 1.0.1
+ * @author Quxios  | Version 1.0.2
  *
  * @param Quick Test
  * @desc Enable quick testing.
@@ -127,10 +127,15 @@ function QPlus() {
  throw new Error('This is a static class');
 }
 
+QPlus._params  = {};
+
 QPlus.getParams = function(id) {
-  return $plugins.filter(function(p) {
-    return p.description.contains(id) && p.status
-  })[0].parameters;
+  if (!this._params[id]) {
+    this._params[id] = $plugins.filter(function(p) {
+      return p.description.contains(id) && p.status
+    })[0].parameters;
+  }
+  return this._params[id];
 };
 
 QPlus.versionCheck = function(version, targetVersion) {
@@ -344,14 +349,13 @@ QPlus.freeImgCache = function(files) {
   // Math
 
   Math.randomIntBetween = function(min, max) {
-    if (min.constructor === Array) {
-      max = Math.floor(min[1]);
-      min = Math.ceil(min[0]);
-    } else {
-      min = Math.ceil(min);
-      max = Math.floor(max);
-    }
+    min = Math.ceil(min);
+    max = Math.floor(max);
     return Math.floor(Math.random() * (max - min + 1)) + min;
+  };
+
+  Math.randomBetween = function(min, max) {
+    return Math.random() * (max - min) + min;
   };
 
   //-----------------------------------------------------------------------------
@@ -392,7 +396,6 @@ QPlus.freeImgCache = function(files) {
       SoundManager.preloadImportantSounds();
       this.checkPlayerLocation();
       DataManager.setupNewGame();
-
       SceneManager.goto(Scene_Map);
       this.updateDocumentTitle();
     } else {
@@ -492,6 +495,10 @@ QPlus.freeImgCache = function(files) {
     this._comments = '';
   };
 
+  Game_CharacterBase.prototype.charaId = function() {
+    return -1;
+  };
+
   var Alias_Game_CharacterBase_updateAnimation = Game_CharacterBase.prototype.updateAnimation;
   Game_CharacterBase.prototype.updateAnimation = function() {
     if (this._globalLocked >= 2) {
@@ -565,6 +572,10 @@ QPlus.freeImgCache = function(files) {
     return Alias_Game_Player_canMove.call(this) && this._globalLocked === 0;
   };
 
+  Game_Player.prototype.charaId = function() {
+    return 0;
+  };
+
   //-----------------------------------------------------------------------------
   // Game_Event
 
@@ -575,8 +586,16 @@ QPlus.freeImgCache = function(files) {
     this._prevDir  = null;
   };
 
-  Game_Event.prototype.comments = function() {
-    return this._comments;
+  Game_Event.prototype.charaId = function() {
+    return this.eventId();
+  };
+
+  Game_Event.prototype.comments = function(withNotes) {
+    var notes = '';
+    if (this.event()) {
+      notes = this.event().note;
+    }
+    return this._comments + (withNotes ? notes : '');
   };
 
   Game_Event.prototype.setupComments = function() {
@@ -589,9 +608,6 @@ QPlus.freeImgCache = function(files) {
         return list.parameters;
       }).join('\n')
     }
-    if (this.event()) {
-      this._comments += `\n${this.event().note}`;
-    }
   };
 
   var Alias_Game_Event_setupPage = Game_Event.prototype.setupPage;
@@ -599,7 +615,7 @@ QPlus.freeImgCache = function(files) {
     var firstTime = this._prevDir === null;
     this._prevDir = this.direction();
     Alias_Game_Event_setupPage.call(this);
-    var retainDir = /<retainDir>/i.test(this.comments());
+    var retainDir = /<retainDir>/i.test(this.comments(true));
     if (!firstTime && retainDir) {
       this.setDirection(this._prevDir);
     }
@@ -616,5 +632,4 @@ QPlus.freeImgCache = function(files) {
     Alias_Game_Event_setupPageSettings.call(this);
     this.setupComments();
   };
-
 })()

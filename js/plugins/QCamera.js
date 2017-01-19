@@ -3,10 +3,14 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QCamera = '1.0.0';
+Imported.QCamera = '1.0.1';
 
 if (!Imported.QPlus) {
   var msg = 'Error: QCamera requires QPlus to work.';
+  alert(msg);
+  throw new Error(msg);
+} else if (!QPlus.versionCheck(Imported.QPlus, '1.0.2')) {
+  var msg = 'Error: QCamera requires QPlus 1.0.2 or newer to work.';
   alert(msg);
   throw new Error(msg);
 }
@@ -15,7 +19,7 @@ if (!Imported.QPlus) {
  /*:
  * @plugindesc <QCamera>
  * Better Camera control
- * @author Quxios  | Version 1.0.0
+ * @author Quxios  | Version 1.0.1
  *
  * @requires QPlus
  *
@@ -193,7 +197,7 @@ function Sprite_Bars() {
   var Alias_Game_Map_setupScroll = Game_Map.prototype.setupScroll;
   Game_Map.prototype.setupScroll = function() {
     Alias_Game_Map_setupScroll.call(this);
-    this._scrollTarget = $gamePlayer;
+    this._scrollTarget = $gamePlayer.charaId();
     this._scrollFrames = null;
     this._scrollRadian = null;
   };
@@ -248,7 +252,7 @@ function Sprite_Bars() {
 
   Game_Map.prototype.focusOn = function(target, speed, frames) {
     this.scrollTo(target, speed, frames || 15);
-    this._scrollTarget = target;
+    this._scrollTarget = target.charaId();
   };
 
   var Alias_Game_Map_scrollDistance = Game_Map.prototype.scrollDistance;
@@ -326,7 +330,7 @@ function Sprite_Bars() {
     var lastScrolledX  = this.scrolledX();
     var lastScrolledY  = this.scrolledY();
     Alias_Game_CharacterBase_update.call(this);
-    if ($gameMap._scrollTarget === this) {
+    if ($gameMap._scrollTarget === this.charaId()) {
       if (_offset === 0) {
         this.updateNormalScroll(lastScrolledX, lastScrolledY)
       } else {
@@ -336,22 +340,20 @@ function Sprite_Bars() {
   };
 
   Game_CharacterBase.prototype.updateQScroll = function() {
-    if ($gameMap._scrollTarget === this) {
-      var x1 = this._lastX;
-      var y1 = this._lastY;
-      var x2 = this._realX;
-      var y2 = this._realY;
-      var dx = $gameMap.deltaX(x2, x1);
-      var dy = $gameMap.deltaY(y2, y1);
-      if (dx !== 0 || dy !== 0) {
-        if ($gameMap.isScrolling()) return;
-        this._lastX = x2;
-        this._lastY = y2;
-        var frames = _offset / 0.0625; // 0.0625 is the distance per frame at speed 4
-        $gameMap.scrollTo(this, null, Math.round(frames) || 1);
-      } else {
-        this._cameraCounter = 0;
-      }
+    var x1 = this._lastX;
+    var y1 = this._lastY;
+    var x2 = this._realX;
+    var y2 = this._realY;
+    var dx = $gameMap.deltaX(x2, x1);
+    var dy = $gameMap.deltaY(y2, y1);
+    if (dx !== 0 || dy !== 0) {
+      if ($gameMap.isScrolling()) return;
+      this._lastX = x2;
+      this._lastY = y2;
+      var frames = _offset / 0.0625; // 0.0625 is the distance per frame at speed 4
+      $gameMap.scrollTo(this, null, Math.round(frames) || 1);
+    } else {
+      this._cameraCounter = 0;
     }
   };
 
