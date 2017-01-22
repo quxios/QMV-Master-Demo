@@ -3,13 +3,13 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QPlus = '1.0.2';
+Imported.QPlus = '1.0.3';
 
 //=============================================================================
  /*:
  * @plugindesc <QPlus> (Should go above all Q Plugins)
  * Some small changes to MV for easier plugin development.
- * @author Quxios  | Version 1.0.2
+ * @author Quxios  | Version 1.0.3
  *
  * @param Quick Test
  * @desc Enable quick testing.
@@ -230,7 +230,9 @@ QPlus.stringToObj = function(string) {
           i++;
         }
       }
-      obj[newKey] = QPlus.stringToAry(match[2].trim())[0] || '';
+      var arr = QPlus.stringToAry(match[2].trim());
+      if (arr.length === 1) arr = arr[0];
+      obj[newKey] =  arr || '';
     }
   })
   return obj;

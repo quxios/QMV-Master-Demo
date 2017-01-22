@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QCamera = '1.0.1';
+Imported.QCamera = '1.0.2';
 
 if (!Imported.QPlus) {
   var msg = 'Error: QCamera requires QPlus to work.';
@@ -19,7 +19,7 @@ if (!Imported.QPlus) {
  /*:
  * @plugindesc <QCamera>
  * Better Camera control
- * @author Quxios  | Version 1.0.1
+ * @author Quxios  | Version 1.0.2
  *
  * @requires QPlus
  *
@@ -27,6 +27,16 @@ if (!Imported.QPlus) {
  * @desc Set the max distance the camera should be from the moving target.
  * Note: Offset gets modified by the characters speed
  * @default 0.5
+ *
+ * @param Shift Y
+ * @desc Shifts the center of the camera up or down by a set pixel amount
+ * Set to a negative value for up, positive value for down
+ * @default 0
+ *
+ * @param Shift X
+ * @desc Shifts the center of the camera left or right by a set pixel amount
+ * Set to a negative value for left, positive value for right
+ * @default 0
  *
  * @video https://www.youtube.com/watch?v=MbdXrReYwFw
  *
@@ -131,6 +141,8 @@ function Sprite_Bars() {
 (function() {
   var _params = QPlus.getParams('<QCamera>');
   var _offset = Number(_params['Offset']) || 0.5;
+  var _cameraOX = Number(_params['Shift X']) || 0;
+  var _cameraOY = Number(_params['Shift Y']) || 0;
 
   //-----------------------------------------------------------------------------
   // Game_Interpreter
@@ -180,7 +192,6 @@ function Sprite_Bars() {
       var height = QPlus.getArg(args2, /height(\d+)/i);
       var frames = QPlus.getArg(args2, /frames(\d+)/i);
       $gameMap.requestBars(height, frames);
-      console.log('ran', height, frames);
     }
   };
 
@@ -272,16 +283,78 @@ function Sprite_Bars() {
     return Math.abs(this.scrollDistance() * Math.sin(this._scrollRadian));
   };
 
+  var Alias_Game_Map_displayX = Game_Map.prototype.displayX;
+  Game_Map.prototype.displayX = function() {
+    var x = Alias_Game_Map_displayX.call(this);
+    return x + _cameraOX / this.tileWidth();
+  };
+
+  var Alias_Game_Map_displayY = Game_Map.prototype.displayY;
+  Game_Map.prototype.displayY = function() {
+    var y = Alias_Game_Map_displayY.call(this);
+    return y + _cameraOY / this.tileHeight();
+  };
+
   Game_Map.prototype.displayCenterX = function() {
     var half = this.screenTileX() / 2;
-    var x = this._displayX + half;
+    var x = this.displayX() + half;
+    x -= _cameraOX / this.tileWidth()
     return this.roundX(x);
   };
 
   Game_Map.prototype.displayCenterY = function() {
     var half = this.screenTileY() / 2;
-    var y = this._displayY + half;
+    var y = this.displayY() + half;
+    y -= _cameraOY / this.tileHeight()
     return this.roundY(y);
+  };
+
+  var Alias_Game_Map_parallaxOx = Game_Map.prototype.parallaxOx;
+  Game_Map.prototype.parallaxOx = function() {
+    var ox = Alias_Game_Map_parallaxOy.call(this);
+    return ox + _cameraOX;
+  };
+
+  var Alias_Game_Map_parallaxOy = Game_Map.prototype.parallaxOy;
+  Game_Map.prototype.parallaxOy = function() {
+    var oy = Alias_Game_Map_parallaxOy.call(this);
+    return oy + _cameraOY;
+  };
+
+  Game_Map.prototype._setDisplayPos = function(x, y) {
+    // leaving this here, since i need to fix this function
+  };
+
+  Game_Map.prototype.adjustX = function(x) {
+    if (this.isLoopHorizontal() && x < this.displayX() -
+    (this.width() - this.screenTileX()) / 2) {
+      return x - this.displayX() + $dataMap.width;
+    } else {
+      return x - this.displayX();
+    }
+  };
+
+  Game_Map.prototype.adjustY = function(y) {
+    if (this.isLoopVertical() && y < this.displayY() -
+    (this.height() - this.screenTileY()) / 2) {
+      return y - this.displayY() + $dataMap.height;
+    } else {
+      return y - this.displayY();
+    }
+  };
+
+  Game_Map.prototype.canvasToMapX = function(x) {
+    var tileWidth = this.tileWidth();
+    var originX = this.displayX() * tileWidth;
+    var mapX = Math.floor((originX + x) / tileWidth);
+    return this.roundX(mapX);
+  };
+
+  Game_Map.prototype.canvasToMapY = function(y) {
+    var tileHeight = this.tileHeight();
+    var originY = this.displayY() * tileHeight;
+    var mapY = Math.floor((originY + y) / tileHeight);
+    return this.roundY(mapY);
   };
 
   var Alias_Game_Map_doScroll = Game_Map.prototype.doScroll;
@@ -379,6 +452,10 @@ function Sprite_Bars() {
 
   Game_Player.prototype.updateScroll = function(lastScrolledX, lastScrolledY) {
     // removed
+  };
+
+  Game_Player.prototype.center = function(x, y) {
+    return $gameMap.scrollTo(this, null, 1);
   };
 
   //-----------------------------------------------------------------------------
