@@ -3,13 +3,13 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QPlus = '1.0.3';
+Imported.QPlus = '1.0.4';
 
 //=============================================================================
  /*:
  * @plugindesc <QPlus> (Should go above all Q Plugins)
  * Some small changes to MV for easier plugin development.
- * @author Quxios  | Version 1.0.3
+ * @author Quxios  | Version 1.0.4
  *
  * @param Quick Test
  * @desc Enable quick testing.
@@ -268,6 +268,8 @@ QPlus.stringToAry = function(string) {
 QPlus.pointToIndex = function(point, maxCols, maxRows) {
   if (point.x >= maxCols) return -1;
   if (maxRows && point.y >= maxRows) return -1;
+  if (!maxRows) maxRows = 0;
+  if (!point.z) point.z = 0;
   var index = (point.x + point.y * (maxCols));
   return index + ((maxCols * maxRows) * point.z);
 };
@@ -501,6 +503,10 @@ QPlus.freeImgCache = function(files) {
     return -1;
   };
 
+  Game_CharacterBase.prototype.notes = function() {
+    return '';
+  };
+
   var Alias_Game_CharacterBase_updateAnimation = Game_CharacterBase.prototype.updateAnimation;
   Game_CharacterBase.prototype.updateAnimation = function() {
     if (this._globalLocked >= 2) {
@@ -578,6 +584,10 @@ QPlus.freeImgCache = function(files) {
     return 0;
   };
 
+  Game_Player.prototype.notes = function() {
+    return this.actor() ? this.actor().actor().note : '';
+  };
+
   //-----------------------------------------------------------------------------
   // Game_Event
 
@@ -590,6 +600,11 @@ QPlus.freeImgCache = function(files) {
 
   Game_Event.prototype.charaId = function() {
     return this.eventId();
+  };
+
+  Game_Event.prototype.notes = function(withComments) {
+    var notes = this.event() ? this.event().note : '';
+    return notes + (withComments ? this.comments() : '');
   };
 
   Game_Event.prototype.comments = function(withNotes) {

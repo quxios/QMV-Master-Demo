@@ -9,6 +9,7 @@ var $plugins =
 {"name":"QInputRemap","status":true,"description":"<QInputRemap>\r\nQuasi Input Addon: Adds Key remapping to Options menu","parameters":{"Hide Keys":"","Disable Keys":"ok, escape","===========":"","Vocab: Ok":"Action","Vocab: Escape":"Cancel","Vocab: Shift":"Run","Vocab: Control":"Control","Vocab: Tab":"Tab","Vocab: Pageup":"Next","Vocab: Pagedown":"Prev","Vocab: Up":"Up","Vocab: Down":"Down","Vocab: Left":"Left","Vocab: Right":"Right"}},
 {"name":"QNameInput","status":true,"description":"<QNameInput>\r\nQuasi Input addon: Adds Keyboard Input to Name Input Scene","parameters":{"Show Window with Keys":"false","Window Width":"480"}},
 {"name":"========================","status":true,"description":"","parameters":{}},
+{"name":"QMap","status":true,"description":"<QMap>\r\nCreates maps made with QMap Editor","parameters":{}},
 {"name":"QSprite","status":true,"description":"<QSprite>\r\nLets you configure Spritesheets","parameters":{"File Name Identifier":"%{config}-","Random Idle Interval":"60 300","Use New Adjust":"true"}},
 {"name":"QAudio","status":true,"description":"<QAudio>\r\nFew new audio features","parameters":{"Default Radius":"5","Default Max Volume":"100"}},
 {"name":"QSpeed","status":true,"description":"<QSpeed>\r\nAllows for custom Move speeds and an acceleration effect","parameters":{"Acceleration":"true","Duration":"30"}},
