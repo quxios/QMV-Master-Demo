@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QSprite = '2.0.2';
+Imported.QSprite = '2.0.3';
 Imported.Quasi_Sprite = true; // backwards compatibility
 
 if (!Imported.QPlus) {
@@ -16,7 +16,7 @@ if (!Imported.QPlus) {
  /*:
  * @plugindesc <QSprite>
  * Lets you configure Spritesheets
- * @author Quxios  | Version 2.0.2
+ * @author Quxios  | Version 2.0.3
  *
  * @requires QPlus
  *
@@ -375,7 +375,7 @@ QSprite.json = null;
     this._idlePose = 'idle';
     this._availableIdlePoses = [];
     this._idleTimer = 0;
-    this._idleIntervalWait = Math.randomIntBetween(_idleInterval);
+    this._idleIntervalWait = Math.randomIntBetween(_idleInterval[0], _idleInterval[1]);
   };
 
   Game_CharacterBase.prototype.moveSpeedMultiplier = function() {
@@ -470,7 +470,7 @@ QSprite.json = null;
       this.updateIdleInterval();
     } else if (!this._isIdle) {
       this._idleTimer = 0;
-      this._idleIntervalWait = Math.randomIntBetween(_idleInterval);
+      this._idleIntervalWait = Math.randomIntBetween(_idleInterval[0], _idleInterval[1])
     }
   };
 
@@ -481,7 +481,7 @@ QSprite.json = null;
         var i = Math.randomInt(this._availableIdlePoses.length);
         var pose = this._availableIdlePoses[i];
         this.playPose(pose, false, false, false, true);
-        this._idleIntervalWait = Math.randomIntBetween(_idleInterval);
+        this._idleIntervalWait = Math.randomIntBetween(_idleInterval[0], _idleInterval[1])
         this._idleTimer = 0;
       }
     }
