@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QCamera = '1.0.2';
+Imported.QCamera = '1.0.3';
 
 if (!Imported.QPlus) {
   var msg = 'Error: QCamera requires QPlus to work.';
@@ -19,7 +19,7 @@ if (!Imported.QPlus) {
  /*:
  * @plugindesc <QCamera>
  * Better Camera control
- * @author Quxios  | Version 1.0.2
+ * @author Quxios  | Version 1.0.3
  *
  * @requires QPlus
  *
@@ -234,22 +234,6 @@ function Sprite_Bars() {
   Game_Map.prototype.scrollTo = function(chara, speed, frames) {
     var centerX = this.displayCenterX();
     var centerY = this.displayCenterY();
-    if (!this.isLoopHorizontal()) {
-      if (centerX < this.screenTileX() / 2) {
-        centerX = this.screenTileX() / 2;
-      }
-      if (centerX > this.width() - this.screenTileX() / 2) {
-        centerX = this.width() - this.screenTileX() / 2;
-      }
-    }
-    if (!this.isLoopVertical()) {
-      if (centerY < this.screenTileY() / 2) {
-        centerY = this.screenTileY() / 2;
-      }
-      if (centerY > this.height() - this.screenTileY() / 2) {
-        centerY = this.height() - this.screenTileY() / 2;
-      }
-    }
     var distanceX = (chara._realX + 0.5) - centerX;
     var distanceY = (chara._realY + 0.5) - centerY;
     if (Math.abs(distanceX) >= this.width() - 1) {
@@ -269,8 +253,7 @@ function Sprite_Bars() {
   var Alias_Game_Map_scrollDistance = Game_Map.prototype.scrollDistance;
   Game_Map.prototype.scrollDistance = function() {
     if (this._scrollFrames !== null) {
-      var dist = Math.abs(this._scrollDistance / this._scrollFrames);
-      return dist;
+      return Math.abs(this._scrollDistance / this._scrollFrames);
     }
     return Alias_Game_Map_scrollDistance.call(this);
   }
@@ -378,12 +361,6 @@ function Sprite_Bars() {
   //-----------------------------------------------------------------------------
   // Game_Character
 
-  var Alias_Game_CharacterBase_initMembers = Game_CharacterBase.prototype.initMembers;
-  Game_CharacterBase.prototype.initMembers = function() {
-    Alias_Game_CharacterBase_initMembers.call(this);
-    this._cameraCounter = 0;
-  };
-
   var Alias_Game_CharacterBase_setPosition = Game_CharacterBase.prototype.setPosition;
   Game_CharacterBase.prototype.setPosition = function(x, y) {
     Alias_Game_CharacterBase_setPosition.call(this, x, y);
@@ -425,8 +402,6 @@ function Sprite_Bars() {
       this._lastY = y2;
       var frames = _offset / 0.0625; // 0.0625 is the distance per frame at speed 4
       $gameMap.scrollTo(this, null, Math.round(frames) || 1);
-    } else {
-      this._cameraCounter = 0;
     }
   };
 

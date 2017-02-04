@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QMap = '1.0.0';
+Imported.QMap = '1.1.0';
 
 if (!Imported.QPlus) {
   var msg = 'Error: QMap requires QPlus to work.';
@@ -15,7 +15,7 @@ if (!Imported.QPlus) {
  /*:
  * @plugindesc <QMap>
  * Creates maps made with QMap Editor
- * @author Quxios  | Version 1.0.0
+ * @author Quxios  | Version 1.1.0
  *
  * @requires QPlus
  *
@@ -87,6 +87,31 @@ if (!Imported.QPlus) {
  * ~~~
  * Just add that note to the map object to have this feature, then include
  * a collider.
+ * ----------------------------------------------------------------------------
+ * **Breath**
+ * ----------------------------------------------------------------------------
+ * Adds a breathing effect to the map object. A breathing effect is where the
+ * the sprites scale is increased and decreased in a sin wave.
+ * ~~~
+ *  <breath:OFFSET,DURATION,INITIALTIME?>
+ * ~~~
+ * - OFFSET      - How much to scale. 1 is 100%, 0.5 is 50%. So 0.5 means its
+ *  scale will go between 0.5 and 1.5;
+ * - DURATION    - How long it takes for 1 cycle, in frames. 60 frames = 1 second
+ * - INITIALTIME - (Optional, Default: 0) Which frame should it start at. Ex;
+ *  if DURATION was 60 and this is set at 30, it'll start in the middle of the
+ *  cycle.
+ * ----------------------------------------------------------------------------
+ * **Tone**
+ * ----------------------------------------------------------------------------
+ * Change the tint of the map object. Similar to the Tint Screen event command.
+ * ~~~
+ *  <tint:RED,GREEN,BLUE,GRAY>
+ * ~~~
+ * RED   - Red value of tint, set between -255 to 255. Default: 0
+ * GREEN - Red value of tint, set between -255 to 255. Default: 0
+ * BLUE  - Red value of tint, set between -255 to 255. Default: 0
+ * GRAY  - Red value of tint, set between -255 to 255. Default: 0
  * ============================================================================
  * ## Links
  * ============================================================================
@@ -271,6 +296,27 @@ $dataQMap = null;
     this.x = this.pixelX / tw;
     this.y = this.pixelY / th;
     this.alpha = 1;
+    this.scale = new Point(1, 1);
+    this.setupBreath();
+    this.setupTone();
+  };
+
+  Game_MapObj.prototype.setupBreath = function() {
+    if (!this.meta.breath) return;
+    var args = this.meta.breath.split(',').map(Number);
+    this._breathS = args[0] === undefined ? 0 : args[0] / 100;
+    this._breathT = args[1] === undefined ? 60 : args[1];
+    this._breathTick = args[2] === undefined ? 60 : args[2];
+  };
+
+  Game_MapObj.prototype.setupTone = function() {
+    this.tone = [0, 0, 0, 0];
+    if (!this.meta.tint) return;
+    this.tone = this.meta.tint.split(',').map(Number);
+    this.tone[0] = this.tone[0] || 0;
+    this.tone[1] = this.tone[1] || 0;
+    this.tone[2] = this.tone[2] || 0;
+    this.tone[3] = this.tone[3] || 0;
   };
 
   Game_MapObj.prototype.getMeta = function() {
@@ -311,6 +357,59 @@ $dataQMap = null;
     var th = $gameMap.tileHeight();
     y = $gameMap.adjustY(this.y);
     return Math.round(y * th);
+  };
+
+  Game_MapObj.prototype.update = function() {
+    var playerX = $gamePlayer._realX;
+    var playerY = $gamePlayer._realY;
+    if (this._playerX !== playerX || this._playerY !== playerY) {
+      var dx = this._playerX - playerX;
+      var dy = this._playerY - playerY;
+      this.updatePlayerMoved(dx, dy);
+      this._playerX = playerX;
+      this._playerY = playerY;
+    }
+    if (this.meta.breath) this.updateBreath();
+  };
+
+  Game_MapObj.prototype.updatePlayerMoved = function(dx, dy) {
+    if (this.meta.onPlayer) this.updateOnPlayer();
+    // add more functions that are based off player here
+  };
+
+  Game_MapObj.prototype.updateOnPlayer = function() {
+    this.alpha = 1;
+    if ($gamePlayer.screenY() < this.screenY()) {
+      if (this.intersectsWith('interaction', $gamePlayer)) {
+        this.alpha = 0.5;
+      }
+    }
+  };
+
+  Game_MapObj.prototype.updateBreath = function() {
+    var t = this._breathTick % this._breathT;
+    var dt = t / this._breathT * Math.PI * 2;
+    var s = Math.sin(dt) * this._breathS;
+    this.scale = new Point(1 + s, 1 + s);
+    this._breathTick++;
+  };
+
+  Game_MapObj.prototype.intersectsWith = function(type, chara) {
+    if (!Imported.QMovement) {
+      return this.intersectsWithSimple(type, chara._realX, chara._realY);
+    }
+    return this.collider(type).intersects(chara.collider('collision'));
+  };
+
+  Game_MapObj.prototype.intersectsWithSimple = function(type, x1, y1) {
+    var bounds = this.getTileBounds(type);
+    var x2 = x1 + 0.9;
+    var y2 = y1 + 0.9;
+    var insideX1 = (x1 >= bounds.x1 && x1 <= bounds.x2) || (x2 >= bounds.x1 && x2 <= bounds.x2);
+    var insideY1 = (y1 >= bounds.y1 && y1 <= bounds.y2) || (y2 >= bounds.y1 && y2 <= bounds.y2);
+    var insideX2 = (bounds.x1 >= x1 && bounds.x1 <= x2) || (bounds.x2 >= x1 && bounds.x2 <= x2);
+    var insideY2 = (bounds.y1 >= y1 && bounds.y1 <= y2) || (bounds.y2 >= x1 && bounds.y2 <= y2);
+    return (insideX1 || insideX2) && (insideY1 || insideY2);
   };
 
   Game_MapObj.prototype.collider = function(type) {
@@ -408,50 +507,6 @@ $dataQMap = null;
     }
   };
 
-  Game_MapObj.prototype.update = function() {
-    var playerX = $gamePlayer._realX;
-    var playerY = $gamePlayer._realY;
-    if (this._playerX !== playerX || this._playerY !== playerY) {
-      var dx = this._playerX - playerX;
-      var dy = this._playerY - playerY;
-      this.updatePlayerMoved(dx, dy);
-      this._playerX = playerX;
-      this._playerY = playerY;
-    }
-  };
-
-  Game_MapObj.prototype.updatePlayerMoved = function(dx, dy) {
-    if (this.meta.onPlayer) this.updateOnPlayer();
-    // add more functions that are based off player here
-  };
-
-  Game_MapObj.prototype.updateOnPlayer = function() {
-    this.alpha = 1;
-    if ($gamePlayer.screenY() < this.screenY()) {
-      if (this.intersectsWith('interaction', $gamePlayer)) {
-        this.alpha = 0.5;
-      }
-    }
-  };
-
-  Game_MapObj.prototype.intersectsWith = function(type, chara) {
-    if (!Imported.QMovement) {
-      return this.intersectsWithSimple(type, chara._realX, chara._realY);
-    }
-    return this.collider(type).intersects(chara.collider('collision'));
-  };
-
-  Game_MapObj.prototype.intersectsWithSimple = function(type, x1, y1) {
-    var bounds = this.getTileBounds(type);
-    var x2 = x1 + 0.9;
-    var y2 = y1 + 0.9;
-    var insideX1 = (x1 >= bounds.x1 && x1 <= bounds.x2) || (x2 >= bounds.x1 && x2 <= bounds.x2);
-    var insideY1 = (y1 >= bounds.y1 && y1 <= bounds.y2) || (y2 >= bounds.y1 && y2 <= bounds.y2);
-    var insideX2 = (bounds.x1 >= x1 && bounds.x1 <= x2) || (bounds.x2 >= x1 && bounds.x2 <= x2);
-    var insideY2 = (bounds.y1 >= y1 && bounds.y1 <= y2) || (bounds.y2 >= x1 && bounds.y2 <= y2);
-    return (insideX1 || insideX2) && (insideY1 || insideY2);
-  };
-
   //-----------------------------------------------------------------------------
   // Sprite_MapObject
 
@@ -509,6 +564,9 @@ $dataQMap = null;
 
   Sprite_MapObject.prototype.updateOther = function() {
     this.alpha = this._mapObj.alpha;
+    this.scale.x = this._mapObj.scale.x;
+    this.scale.y = this._mapObj.scale.y;
+    this.setColorTone(this._mapObj.tone);
   };
 
   //-----------------------------------------------------------------------------
