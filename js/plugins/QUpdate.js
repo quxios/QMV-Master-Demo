@@ -2,7 +2,7 @@
  /*:
  * @plugindesc <QUpdate>
  * Checks QPlugins for updates
- * @author Quxios  | Version 1.0.0
+ * @author Quxios  | Version 1.1.0
  *
  * @help
  * ============================================================================
@@ -20,7 +20,7 @@
  * ============================================================================
  * RPGMakerWebs:
  *
- *   http://forums.rpgmakerweb.com/index.php?/topic/73023-qplugins/
+ *   http://forums.rpgmakerweb.com/index.php?threads/qplugins.73023/
  *
  * Terms of use:
  *
@@ -56,10 +56,22 @@ function Window_QUpdate() {
   var fs = require('fs');
   var path = require('path');
 
+  var versionCheck = function(version, targetVersion) {
+    version = version.split('.').map(Number);
+    targetVersion = targetVersion.split('.').map(Number);
+    if (version[0] < targetVersion[0]) return false;
+    if (version[1] < targetVersion[1]) return false;
+    if (version[2] < targetVersion[2]) return false;
+    return true;
+  };
+
   //-----------------------------------------------------------------------------
   // QUpdate
 
+  QUpdate.hasUpdated = false;
+  QUpdate.hasUpdates = false;
   QUpdate._plugins = {};
+
 
   QUpdate.getPlugins = function() {
     this._plugins = {};
@@ -100,12 +112,16 @@ function Window_QUpdate() {
   };
 
   QUpdate.comparePlugins = function(data) {
+    this.hasUpdates = false;
     for (var plugin in this._plugins) {
       if (!this._plugins.hasOwnProperty(plugin)) continue;
       for (var i = 0; i < data.length; i++) {
         if (data[i].name === plugin) {
           this._plugins[plugin].latest = data[i].version;
           this._plugins[plugin].url = data[i].download;
+          if (!this.hasUpdates) {
+            this.hasUpdates = versionCheck(this._plugins[plugin].current, data[i].version);
+          }
           break;
         }
       }
@@ -200,21 +216,12 @@ function Window_QUpdate() {
     var name = this.commandName(index)
     var current = this._plugins[name].current;
     var latest  = this._plugins[name].latest || '0.0.0';
-    if (!this.versionCheck(current, latest)) {
+    if (!versionCheck(current, latest)) {
       this.changeTextColor('#FF0000');
     }
     this.drawText(name, 0, rect.y, w);
     this.drawText(`Current: ${current}`, w, rect.y, w);
     this.drawText(`Latest: ${latest}`, w * 2, rect.y, w);
-  };
-
-  Window_QUpdate.prototype.versionCheck = function(version, targetVersion) {
-    version = version.split('.').map(Number);
-    targetVersion = targetVersion.split('.').map(Number);
-    if (version[0] < targetVersion[0]) return false;
-    if (version[1] < targetVersion[1]) return false;
-    if (version[2] < targetVersion[2]) return false;
-    return true;
   };
 
   //-----------------------------------------------------------------------------
