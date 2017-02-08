@@ -17,7 +17,7 @@ if (!Imported.QPlus) {
  * Better mouse handling for MV
  * @author Quxios  | Version 1.0.0
  *
- * @video https://youtu.be/nfhSBlwcz8k
+ * @video https://youtu.be/2UrazG-XRxw
  *
  * @param Mouse Decay
  * @desc Set the duration until mouse cursor is hidden while its not moving.
