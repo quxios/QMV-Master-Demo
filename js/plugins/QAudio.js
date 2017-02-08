@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QAudio = '2.0.3';
+Imported.QAudio = '2.0.4';
 
 if (!Imported.QPlus) {
   var msg = 'Error: QAudio requires QPlus to work.';
@@ -19,7 +19,7 @@ if (!Imported.QPlus) {
  /*:
  * @plugindesc <QAudio>
  * Few new audio features
- * @author Quxios  | Version 2.0.3
+ * @author Quxios  | Version 2.0.4
  *
  * @requires QPlus
  *
@@ -240,7 +240,7 @@ if (!Imported.QPlus) {
   };
 
   Game_Interpreter.prototype.getUniqueQAudioId = function() {
-    var id = "*0";
+    var id = '*0';
     var counter = 0;
     var newId = false;
     while(!newId) {
@@ -249,7 +249,7 @@ if (!Imported.QPlus) {
         break;
       }
       counter++;
-      id = `*${counter}`;
+      id = '*' + counter;
       var j = 0;
       for (var i = 0; i < AudioManager._QAudioBuffers.length; i++) {
         if (AudioManager._QAudioBuffers[i].uid !== id) {

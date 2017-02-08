@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QMap = '1.1.0';
+Imported.QMap = '1.1.1';
 
 if (!Imported.QPlus) {
   var msg = 'Error: QMap requires QPlus to work.';
@@ -15,7 +15,7 @@ if (!Imported.QPlus) {
  /*:
  * @plugindesc <QMap>
  * Creates maps made with QMap Editor
- * @author Quxios  | Version 1.1.0
+ * @author Quxios  | Version 1.1.1
  *
  * @requires QPlus
  *
@@ -138,7 +138,7 @@ function Sprite_MapObject() {
   this.initialize.apply(this, arguments);
 }
 
-$dataQMap = null;
+var $dataQMap = null;
 
 //=============================================================================
 // QMap
@@ -349,13 +349,13 @@ $dataQMap = null;
 
   Game_MapObj.prototype.screenX = function() {
     var tw = $gameMap.tileWidth();
-    x = $gameMap.adjustX(this.x);
+    var x = $gameMap.adjustX(this.x);
     return Math.round(x * tw);
   };
 
   Game_MapObj.prototype.screenY = function() {
     var th = $gameMap.tileHeight();
-    y = $gameMap.adjustY(this.y);
+    var y = $gameMap.adjustY(this.y);
     return Math.round(y * th);
   };
 

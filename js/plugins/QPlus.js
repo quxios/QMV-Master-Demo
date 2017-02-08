@@ -3,13 +3,13 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QPlus = '1.0.4';
+Imported.QPlus = '1.0.5';
 
 //=============================================================================
  /*:
  * @plugindesc <QPlus> (Should go above all Q Plugins)
  * Some small changes to MV for easier plugin development.
- * @author Quxios  | Version 1.0.4
+ * @author Quxios  | Version 1.0.5
  *
  * @param Quick Test
  * @desc Enable quick testing.
@@ -156,11 +156,11 @@ QPlus.makeArgs = function(string) {
     var arg = inital[i];
     if (merging) {
       if (arg.contains('"')) {
-        final[j] += ` ${arg.replace('"', '')}`;
+        final[j] += ' ' + arg.replace('"', '');
         merging = false;
         j++;
       } else {
-        final[j] += ` ${arg}`;
+        final[j] += ' ' + arg;
       }
     } else {
       if (arg.contains('"')) {
