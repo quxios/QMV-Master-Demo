@@ -2,7 +2,7 @@
  /*:
  * @plugindesc <QUpdate>
  * Checks QPlugins for updates
- * @author Quxios  | Version 1.1.0
+ * @author Quxios  | Version 1.1.1
  *
  * @help
  * ============================================================================
@@ -35,7 +35,7 @@ if (!Utils.isNwjs() && !Utils.isOptionValid('test')) {
 }
 
 require('dns').lookup('quxios.github.io', function(error) {
-  if (error && error.code == "ENOTFOUND") {
+  if (error && error.code == 'ENOTFOUND') {
     throw new Error("Couldn't connect to: quxios.github.io");
   }
 })
@@ -59,9 +59,13 @@ function Window_QUpdate() {
   var versionCheck = function(version, targetVersion) {
     version = version.split('.').map(Number);
     targetVersion = targetVersion.split('.').map(Number);
-    if (version[0] < targetVersion[0]) return false;
-    if (version[1] < targetVersion[1]) return false;
-    if (version[2] < targetVersion[2]) return false;
+    if (version[0] < targetVersion[0]) {
+      return false;
+    } else if (version[0] === targetVersion[0] && version[1] < targetVersion[1]) {
+      return false;
+    } else if (version[1] === targetVersion[1] && version[2] < targetVersion[2]) {
+      return false;
+    }
     return true;
   };
 
@@ -71,7 +75,6 @@ function Window_QUpdate() {
   QUpdate.hasUpdated = false;
   QUpdate.hasUpdates = false;
   QUpdate._plugins = {};
-
 
   QUpdate.getPlugins = function() {
     this._plugins = {};
@@ -155,9 +158,9 @@ function Window_QUpdate() {
       var url = this._plugins[plugin].url;
       if (url) {
         var cmd;
-        if (process.platform === "darwin") cmd = "open";
-        if (process.platform === "win32") cmd = "explorer.exe";
-        if (process.platform === "linux") cmd = "xdg-open";
+        if (process.platform === 'darwin') cmd = 'open';
+        if (process.platform === 'win32') cmd = 'explorer.exe';
+        if (process.platform === 'linux') cmd = 'xdg-open';
         if (cmd) {
           var spawn = require('child_process').spawn;
           spawn(cmd, [url]);

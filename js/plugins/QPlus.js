@@ -3,13 +3,13 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QPlus = '1.0.5';
+Imported.QPlus = '1.1.0';
 
 //=============================================================================
  /*:
  * @plugindesc <QPlus> (Should go above all Q Plugins)
  * Some small changes to MV for easier plugin development.
- * @author Quxios  | Version 1.0.5
+ * @author Quxios  | Version 1.1.0
  *
  * @param Quick Test
  * @desc Enable quick testing.
@@ -141,9 +141,13 @@ QPlus.getParams = function(id) {
 QPlus.versionCheck = function(version, targetVersion) {
   version = version.split('.').map(Number);
   targetVersion = targetVersion.split('.').map(Number);
-  if (version[0] < targetVersion[0]) return false;
-  if (version[1] < targetVersion[1]) return false;
-  if (version[2] < targetVersion[2]) return false;
+  if (version[0] < targetVersion[0]) {
+    return false;
+  } else if (version[0] === targetVersion[0] && version[1] < targetVersion[1]) {
+    return false;
+  } else if (version[1] === targetVersion[1] && version[2] < targetVersion[2]) {
+    return false;
+  }
   return true;
 };
 
@@ -208,6 +212,26 @@ QPlus.getCharacter = function(string) {
   }
 };
 
+QPlus.request = function(filePath, callback, err) {
+  var xhr = new XMLHttpRequest();
+  var url = filePath;
+  xhr.open('GET', url, true);
+  var type = filePath.split('.').pop().toLowerCase();
+  if (type === 'txt') {
+    xhr.overrideMimeType('text/plain');
+  } else if (type === 'json') {
+    xhr.overrideMimeType('application/json');
+  }
+  xhr.onload = function() {
+    if (xhr.status < 400) {
+      callback(xhr.responseText);
+    }
+  }
+  xhr.onerror = err || function() {
+    console.error('Error:' + filePath + ' not found');
+  }
+  xhr.send();
+};
 /**
  * @static QPlus.stringToObj
  * @param  {string} string
@@ -533,7 +557,7 @@ QPlus.freeImgCache = function(files) {
     if (dir === 6) return 0;
     if (dir === 8) return Math.PI / 2;
     if (dir === 1) return Math.PI * 5 / 4;
-    if (dir === 3) return Math.PI * 7 / 2;
+    if (dir === 3) return Math.PI * 7 / 4;
     if (dir === 7) return Math.PI * 3 / 4;
     if (dir === 9) return Math.PI / 4;
     return 0;
