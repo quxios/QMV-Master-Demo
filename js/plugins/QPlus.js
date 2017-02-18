@@ -3,13 +3,13 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QPlus = '1.1.0';
+Imported.QPlus = '1.1.1';
 
 //=============================================================================
  /*:
  * @plugindesc <QPlus> (Should go above all Q Plugins)
  * Some small changes to MV for easier plugin development.
- * @author Quxios  | Version 1.1.0
+ * @author Quxios  | Version 1.1.1
  *
  * @param Quick Test
  * @desc Enable quick testing.
@@ -196,7 +196,7 @@ QPlus.getArg = function(args, regex) {
 };
 
 QPlus.getCharacter = function(string) {
-  string = string.toLowerCase();
+  string = String(string).toLowerCase();
   if (/^[0-9]+$/.test(string)) {
     var id = Number(string);
     return id === 0 ? $gamePlayer : $gameMap.event(id);
@@ -212,6 +212,15 @@ QPlus.getCharacter = function(string) {
   }
 };
 
+/**
+ * @static QPlus.request
+ * @param  {String} filePath
+ *         path to the file to load
+ * @param  {Function} callback
+ *         callback on load, response value is passed as 1st argument
+ * @param  {Function} err
+ *         callback on error
+ */
 QPlus.request = function(filePath, callback, err) {
   var xhr = new XMLHttpRequest();
   var url = filePath;
@@ -224,7 +233,9 @@ QPlus.request = function(filePath, callback, err) {
   }
   xhr.onload = function() {
     if (xhr.status < 400) {
-      callback(xhr.responseText);
+      var val = xhr.responseText;
+      if (type === 'json') val = JSON.parse(val);
+      callback(val);
     }
   }
   xhr.onerror = err || function() {
@@ -232,13 +243,14 @@ QPlus.request = function(filePath, callback, err) {
   }
   xhr.send();
 };
+
 /**
  * @static QPlus.stringToObj
- * @param  {string} string
+ * @param  {String} string
  *         string in the format:
  *         key: value
  *         key2: value2
- * @return {obj}
+ * @return {Object}
  */
 QPlus.stringToObj = function(string) {
   var lines = string.split('\n');
@@ -264,9 +276,9 @@ QPlus.stringToObj = function(string) {
 
 /**
  * @static QPlus.stringToAry
- * @param  {string} string
+ * @param  {String} string
  *         Separate values with a comma
- * @return {array}
+ * @return {Array}
  *         Values will be trimmed, and auto converted to
  *         Number, true, false or null
  */
@@ -284,10 +296,10 @@ QPlus.stringToAry = function(string) {
 /**
  * @static QPlus.pointToIndex
  * Converts a point to a 1D point (an index)
- * @param  {point} point
- * @param  {int} maxCols
- * @param  {int} maxRows
- * @return {int} index value
+ * @param  {Point} point
+ * @param  {Int} maxCols
+ * @param  {Int} maxRows
+ * @return {Int} index value
  */
 QPlus.pointToIndex = function(point, maxCols, maxRows) {
   if (point.x >= maxCols) return -1;
@@ -301,10 +313,10 @@ QPlus.pointToIndex = function(point, maxCols, maxRows) {
 /**
  * @static QPlus.indexToPoint
  * Converts a 1D point (an index) to a 2D or 3D point
- * @param  {int} index
- * @param  {int} maxCols
- * @param  {int} maxRows
- * @return {point}
+ * @param  {Int} index
+ * @param  {Int} maxCols
+ * @param  {Int} maxRows
+ * @return {Point}
  *         2D point if index is within maxCols * maxRows
  *         3D point if index is out of maxCols * maxRows
  */
@@ -322,7 +334,7 @@ QPlus.indexToPoint = function(index, maxCols, maxRows) {
 
 /**
  * @static QPlus.freeImgCache
- * @param  {string or array} files
+ * @param  {String or Array} files
  *         List of files to remove from cache
  *         If a string, separate with commas
  *         Is case sensative, but only checking if any file
@@ -440,6 +452,16 @@ QPlus.freeImgCache = function(files) {
     for (var i = 0; i < _switches.length; i++) {
       $gameSwitches.setValue(_switches[i], true);
     }
+  };
+
+  var Alias_DataManager_extractMetadata = DataManager.extractMetadata;
+  DataManager.extractMetadata = function(data) {
+    Alias_DataManager_extractMetadata.call(this, data);
+    this.extractQData(data);
+  };
+
+  DataManager.extractQData = function(data) {
+    // To be aliased by QPlugins
   };
 
   //-----------------------------------------------------------------------------
@@ -606,6 +628,10 @@ QPlus.freeImgCache = function(files) {
 
   Game_Player.prototype.charaId = function() {
     return 0;
+  };
+
+  Game_Player.prototype.actor = function() {
+    return $gameParty.leader();
   };
 
   Game_Player.prototype.notes = function() {

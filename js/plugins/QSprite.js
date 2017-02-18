@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QSprite = '2.0.3';
+Imported.QSprite = '2.0.4';
 Imported.Quasi_Sprite = true; // backwards compatibility
 
 if (!Imported.QPlus) {
@@ -16,7 +16,7 @@ if (!Imported.QPlus) {
  /*:
  * @plugindesc <QSprite>
  * Lets you configure Spritesheets
- * @author Quxios  | Version 2.0.3
+ * @author Quxios  | Version 2.0.4
  *
  * @requires QPlus
  *
@@ -686,10 +686,6 @@ QSprite.json = null;
   Game_Player.prototype.canMove = function() {
     if (this._posePlaying && this._posePlaying.lock) return false;
     return Alias_Game_Player_canMove.call(this);
-  };
-
-  Game_Player.prototype.actor = function() {
-    return $gameParty.leader();
   };
 
   //-----------------------------------------------------------------------------
