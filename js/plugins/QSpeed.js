@@ -261,4 +261,20 @@ if (!Imported.QPlus) {
       this.setMoveSpeed(Number(match[1]) || 4);
     }
   };
-})()
+
+  //-----------------------------------------------------------------------------
+  // Game_Player
+
+  if (Imported.QInput && QPlus.versionCheck(Imported.QInput, '2.1.0')) {
+    Game_Player.prototype.realMoveSpeed = function() {
+      var spd = Game_Character.prototype.realMoveSpeed.call(this);
+      if (Input.preferGamepad()) {
+        var horz = Input._dirAxesA.x;
+        var vert = Input._dirAxesA.y;
+        var multi = Math.sqrt(horz * horz + vert * vert) || 1;
+        spd *= Math.min(multi, 1);
+      }
+      return spd;
+    };
+  }
+})();
