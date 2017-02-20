@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QMap = '1.1.1';
+Imported.QMap = '1.1.2';
 
 if (!Imported.QPlus) {
   var msg = 'Error: QMap requires QPlus to work.';
@@ -15,7 +15,7 @@ if (!Imported.QPlus) {
  /*:
  * @plugindesc <QMap>
  * Creates maps made with QMap Editor
- * @author Quxios  | Version 1.1.1
+ * @author Quxios  | Version 1.1.2
  *
  * @requires QPlus
  *
@@ -209,6 +209,17 @@ var $dataQMap = null;
     this.setupMapObjs();
   };
 
+  if (Imported.QMovement) {
+    var Alias_Game_Map_reloadAllColliders = Game_Map.prototype.reloadAllColliders;
+    Game_Map.prototype.reloadAllColliders = function() {
+      Alias_Game_Map_reloadAllColliders.call(this);
+      var i, j;
+      for (i = 0, j = this._mapObjs.length; i < j; i++) {
+        this._mapObjs[i].reloadColliders();
+      }
+    };
+  }
+
   Game_Map.prototype.setupMapObjs = function() {
     this._mapObjs = [];
     this._mapObjsWithColliders = [];
@@ -240,18 +251,39 @@ var $dataQMap = null;
   //-----------------------------------------------------------------------------
   // Game_CharacterBase
 
-  // todo, add a patch for QMovement collision checking
-  var Alias_Game_CharacterBase_isCollidedWithCharacters = Game_CharacterBase.prototype.isCollidedWithCharacters;
-  Game_CharacterBase.prototype.isCollidedWithCharacters = function(x, y) {
-    return Alias_Game_CharacterBase_isCollidedWithCharacters.call(this, x, y) || this.isCollidedWithMapObj(x, y);
-  };
+  if (Imported.QMovement) {
+    var Alias_Game_CharacterBase_collideWithCharacter = Game_CharacterBase.prototype.collideWithCharacter;
+    Game_CharacterBase.prototype.collideWithCharacter = function(type) {
+      if (Alias_Game_CharacterBase_collideWithCharacter.call(this, type)) return true;
+      return this.collideWithMapObj();
+    };
 
-  Game_CharacterBase.prototype.isCollidedWithMapObj = function(x, y) {
-    var mapObjs = $gameMap._mapObjsWithColliders;
-    return mapObjs.some(function(mapObj) {
-      return mapObj.intersectsWithSimple('collision', x, y);
-    });
-  };
+    Game_CharacterBase.prototype.collideWithMapObj = function() {
+      var collider = this.collider('collision');
+      var collided = false;
+      ColliderManager.getCollidersNear(collider, (function(mapObj) {
+        if (!mapObj.isMapObj) return false;
+        if (mapObj.type === 'collision') {
+          collided = mapObj.intersects(collider);
+          if (collided) return 'break';
+        }
+      }).bind(this));
+      return collided;
+    };
+  } else {
+    var Alias_Game_CharacterBase_isCollidedWithCharacters = Game_CharacterBase.prototype.isCollidedWithCharacters;
+    Game_CharacterBase.prototype.isCollidedWithCharacters = function(x, y) {
+      return Alias_Game_CharacterBase_isCollidedWithCharacters.call(this, x, y) || this.isCollidedWithMapObj(x, y);
+    };
+
+    Game_CharacterBase.prototype.isCollidedWithMapObj = function(x, y) {
+      var mapObjs = $gameMap._mapObjsWithColliders;
+      return mapObjs.some(function(mapObj) {
+        return mapObj.intersectsWithSimple('collision', x, y);
+      });
+    };
+  }
+
 
   //-----------------------------------------------------------------------------
   // Game_MapObj
@@ -397,8 +429,9 @@ var $dataQMap = null;
   Game_MapObj.prototype.intersectsWith = function(type, chara) {
     if (!Imported.QMovement) {
       return this.intersectsWithSimple(type, chara._realX, chara._realY);
+    } else {
+      return this.collider(type).intersects(chara.collider('collision'));
     }
-    return this.collider(type).intersects(chara.collider('collision'));
   };
 
   Game_MapObj.prototype.intersectsWithSimple = function(type, x1, y1) {
@@ -413,14 +446,27 @@ var $dataQMap = null;
   };
 
   Game_MapObj.prototype.collider = function(type) {
+    if (!$dataMap) return;
     if (!this.meta.collider && !this.meta.colliders) return false;
-    if (!this._collider) this.makeCollider();
-    return this._collider[type] || this._collider.default;
+    if (!this._colliders) this.setupColliders();
+    return this._colliders[type] || this._colliders.default;
   };
 
-  Game_MapObj.prototype.makeCollider = function() {
+  Game_MapObj.prototype.reloadColliders = function() {
+    for (var collider in this._colliders) {
+      if (!this._colliders.hasOwnProperty(collider)) continue;
+      if (Imported.QMovement) {
+        ColliderManager.remove(this._colliders[collider]);
+      }
+      this._colliders[collider] = null;
+    }
+    this.setupColliders();
+  };
+
+  Game_MapObj.prototype.setupColliders = function() {
+    if (!$dataMap) return;
     var configs = {};
-    this._collider = {};
+    this._colliders = {};
     if (this.meta.colliders) {
       configs = QPlus.stringToObj(this.meta.colliders);
     }
@@ -429,11 +475,11 @@ var $dataQMap = null;
     }
     for (var collider in configs) {
       if (!configs.hasOwnProperty(collider)) continue;
-      this._collider[collider] = this.convertToCollider(configs[collider]);
+      this._colliders[collider] = this.convertToCollider(configs[collider], collider);
     }
   };
 
-  Game_MapObj.prototype.convertToCollider = function(arr) {
+  Game_MapObj.prototype.convertToCollider = function(arr, ctype) {
     if (!Imported.QMovement) {
       return this.toSimpleCollider(arr);
     }
@@ -448,8 +494,11 @@ var $dataQMap = null;
       var collider = new Circle_Collider(w, h, ox, oy);
     }
     var x1 = this.pixelX + (this.width * -this.anchorX);
-    var y1 = this.pixelY + (this.height * -this.anchorY );
+    var y1 = this.pixelY + (this.height * -this.anchorY);
+    collider.isMapObj = true;
+    collider.type = ctype;
     collider.moveTo(x1, y1);
+    ColliderManager.addCollider(collider, -1, false);
     return collider;
   };
 
@@ -466,7 +515,7 @@ var $dataQMap = null;
 
   Game_MapObj.prototype.getTileBounds = function(type) {
     if (this.collider(type)) {
-      return this.getColliderBounds(type);
+      return this.getSimpleColliderBounds(type);
     }
     var tw = $gameMap.tileWidth();
     var th = $gameMap.tileHeight();
@@ -480,15 +529,6 @@ var $dataQMap = null;
       x2: x2,
       y2: y2
     }
-  };
-
-  Game_MapObj.prototype.getColliderBounds = function(type) {
-    var collider = this.collider(type);
-    if (collider.isSimple) {
-      return this.getSimpleColliderBounds(type);
-    }
-    var bounds = collider.gridEdge();
-    return bounds;
   };
 
   Game_MapObj.prototype.getSimpleColliderBounds = function(type) {
