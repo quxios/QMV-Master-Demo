@@ -3,10 +3,14 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QMap = '1.1.2';
+Imported.QMap = '1.2.0';
 
 if (!Imported.QPlus) {
   var msg = 'Error: QMap requires QPlus to work.';
+  alert(msg);
+  throw new Error(msg);
+} else if (!QPlus.versionCheck(Imported.QPlus, '1.1.2')) {
+  var msg = 'Error: QName requires QPlus 1.1.2 or newer to work.';
   alert(msg);
   throw new Error(msg);
 }
@@ -15,7 +19,7 @@ if (!Imported.QPlus) {
  /*:
  * @plugindesc <QMap>
  * Creates maps made with QMap Editor
- * @author Quxios  | Version 1.1.2
+ * @author Quxios  | Version 1.2.0
  *
  * @requires QPlus
  *
@@ -194,6 +198,28 @@ var $dataQMap = null;
     return Alias_DataManager_isMapLoaded.call(this) && !!$dataQMap;
   };
 
+  var Alias_DataManager_onLoad = DataManager.onLoad;
+  DataManager.onLoad = function(object) {
+    if (object === $dataQMap) {
+      for (var i = 0; i < object.length; i++) {
+        if (!Array.isArray(object[i])) continue;
+        for (var j = 0; j < object[i].length; j++) {
+          var data = object[i][j];
+          if (data.note === undefined && data.notes !== undefined) {
+            // older version the property was name notes, should
+            // have been just note
+            data.note = data.notes;
+          }
+          if (data && data.note !== undefined) {
+            this.extractMetadata(data);
+          }
+        }
+      }
+    } else {
+      Alias_DataManager_onLoad.call(this, object);
+    }
+  };
+
   //-----------------------------------------------------------------------------
   // Game_Map
 
@@ -310,23 +336,23 @@ var $dataQMap = null;
       if (objData.hasOwnProperty(prop)) {
         var propName = String(prop);
         if (propName === 'x') {
-          propName = 'pixelX';
+          propName = 'px';
         }
         if (propName === 'y') {
-          propName = 'pixelY';
+          propName = 'py';
         }
         this[propName] = objData[prop];
       }
     }
-    this.getMeta();
+    this.meta = this.qmeta || {};
     this.initMembers();
   };
 
   Game_MapObj.prototype.initMembers = function() {
     var tw = $gameMap.tileWidth();
     var th = $gameMap.tileHeight();
-    this.x = this.pixelX / tw;
-    this.y = this.pixelY / th;
+    this.x = this.px / tw;
+    this.y = this.py / th;
     this.alpha = 1;
     this.scale = new Point(1, 1);
     this.setupBreath();
@@ -349,34 +375,6 @@ var $dataQMap = null;
     this.tone[1] = this.tone[1] || 0;
     this.tone[2] = this.tone[2] || 0;
     this.tone[3] = this.tone[3] || 0;
-  };
-
-  Game_MapObj.prototype.getMeta = function() {
-    var notes = this.notes || '';
-    var inlineRegex = /<([^<>:\/]+)(?::?)([^>]*)>/g;
-    var blockRegex = /<([^<>:\/]+)>([\s\S]*?)<\/\1>/g;
-    this.meta = {};
-    for (;;) {
-      var match = inlineRegex.exec(notes);
-      if (match) {
-        if (match[2] === '') {
-          this.meta[match[1]] = true;
-        } else {
-          this.meta[match[1]] = match[2];
-        }
-      } else {
-          break;
-      }
-    }
-    for (;;) {
-      var match = blockRegex.exec(notes);
-      if (match) {
-        this.meta[match[1]] = match[2];
-      } else {
-          break;
-      }
-    }
-    return this.meta;
   };
 
   Game_MapObj.prototype.screenX = function() {
@@ -493,8 +491,8 @@ var $dataQMap = null;
     } else if (type === 'circle') {
       var collider = new Circle_Collider(w, h, ox, oy);
     }
-    var x1 = this.pixelX + (this.width * -this.anchorX);
-    var y1 = this.pixelY + (this.height * -this.anchorY);
+    var x1 = this.px + (this.width * -this.anchorX);
+    var y1 = this.py + (this.height * -this.anchorY);
     collider.isMapObj = true;
     collider.type = ctype;
     collider.moveTo(x1, y1);

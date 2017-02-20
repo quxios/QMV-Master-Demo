@@ -3,13 +3,13 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QPlus = '1.1.1';
+Imported.QPlus = '1.1.2';
 
 //=============================================================================
  /*:
  * @plugindesc <QPlus> (Should go above all Q Plugins)
  * Some small changes to MV for easier plugin development.
- * @author Quxios  | Version 1.1.1
+ * @author Quxios  | Version 1.1.2
  *
  * @param Quick Test
  * @desc Enable quick testing.
@@ -457,11 +457,21 @@ QPlus.freeImgCache = function(files) {
   var Alias_DataManager_extractMetadata = DataManager.extractMetadata;
   DataManager.extractMetadata = function(data) {
     Alias_DataManager_extractMetadata.call(this, data);
+    var blockRegex = /<([^<>:\/]+)>([\s\S]*?)<\/\1>/g;
+    data.qmeta = data.meta;
+    for (;;) {
+      var match = blockRegex.exec(data.note);
+      if (match) {
+        data.qmeta[match[1]] = match[2];
+      } else {
+        break;
+      }
+    }
     this.extractQData(data);
   };
 
   DataManager.extractQData = function(data) {
-    // To be aliased by QPlugins
+    // to be aliased by plugins
   };
 
   //-----------------------------------------------------------------------------
