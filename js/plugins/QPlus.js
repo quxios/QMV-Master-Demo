@@ -3,13 +3,13 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QPlus = '1.1.2';
+Imported.QPlus = '1.1.3';
 
 //=============================================================================
  /*:
  * @plugindesc <QPlus> (Should go above all Q Plugins)
  * Some small changes to MV for easier plugin development.
- * @author Quxios  | Version 1.1.2
+ * @author Quxios  | Version 1.1.3
  *
  * @param Quick Test
  * @desc Enable quick testing.
@@ -635,6 +635,10 @@ QPlus.freeImgCache = function(files) {
   Game_Player.prototype.canMove = function() {
     return Alias_Game_Player_canMove.call(this) && this._globalLocked === 0;
   };
+
+  Game_Player.prototype.canClick = function() {
+    return true;
+  }
 
   Game_Player.prototype.charaId = function() {
     return 0;
