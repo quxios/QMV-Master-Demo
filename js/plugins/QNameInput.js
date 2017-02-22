@@ -61,7 +61,7 @@ if (!Imported.QInput) {
   var _params = $plugins.filter(function(p) {
     return p.description.contains('<QNameInput>') && p.status
   })[0].parameters;
-  var _show  = _params["Show Window with Keys"] === "true";
+  var _show  = _params["Show Window with Keys"] === 'true';
   var _width = Number(_params["Window Width"]) || 480;
 
   //-----------------------------------------------------------------------------
@@ -180,7 +180,7 @@ if (!Imported.QInput) {
   var Alias_Window_NameInput_processCusorMove = Window_NameInput.prototype.processCursorMove;
   Window_NameInput.prototype.processCursorMove = function() {
     // Force to use real down, up, left, right, pageup, pagedown keys
-    if (Input.anyTriggered("num2, num4, num6, num8, 2, 4, 6, 8, q, w")) {
+    if (Input.anyTriggered('num2, num4, num6, num8, 2, 4, 6, 8, q, w')) {
       return;
     }
     return Alias_Window_NameInput_processCusorMove.call(this);
