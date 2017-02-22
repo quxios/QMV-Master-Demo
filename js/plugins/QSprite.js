@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QSprite = '2.0.4';
+Imported.QSprite = '2.0.5';
 Imported.Quasi_Sprite = true; // backwards compatibility
 
 if (!Imported.QPlus) {
@@ -16,7 +16,7 @@ if (!Imported.QPlus) {
  /*:
  * @plugindesc <QSprite>
  * Lets you configure Spritesheets
- * @author Quxios  | Version 2.0.4
+ * @author Quxios  | Version 2.0.5
  *
  * @requires QPlus
  *
@@ -303,10 +303,10 @@ QSprite.json = null;
     var args2 = args.slice(2);
     if (cmd === 'play') {
       var pose = args2.shift();
-      var locked   = !!QPlus.getArg(args2, /lock/i);
-      var pause    = !!QPlus.getArg(args2, /pause/i);
-      var canBreak = !!QPlus.getArg(args2, /breakable/i);
-      var wait     = !!QPlus.getArg(args2, /wait/i);
+      var locked   = !!QPlus.getArg(args2, /^lock$/i);
+      var pause    = !!QPlus.getArg(args2, /^pause$/i);
+      var canBreak = !!QPlus.getArg(args2, /^breakable$/i);
+      var wait     = !!QPlus.getArg(args2, /^wait$/i);
       chara.playPose(pose, locked, pause, false, canBreak);
       if (wait) {
         this.wait(chara.calcPoseWait());
@@ -314,9 +314,9 @@ QSprite.json = null;
     }
     if (cmd === 'loop') {
       var pose = args2.shift();
-      var locked = args2.contains('lock');
-      var canBreak = args2.contains('breakable');
-      var wait = args2.contains('wait');
+      var locked   = !!QPlus.getArg(args2, /^lock$/i);
+      var canBreak = !!QPlus.getArg(args2, /^breakable$/i);
+      var wait     = !!QPlus.getArg(args2, /^wait$/i);
       chara.loopPose(pose, locked, canBreak);
       if (wait) {
         this.wait(chara.calcPoseWait());

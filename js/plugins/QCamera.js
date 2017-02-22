@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QCamera = '1.0.3';
+Imported.QCamera = '1.0.4';
 
 if (!Imported.QPlus) {
   var msg = 'Error: QCamera requires QPlus to work.';
@@ -19,7 +19,7 @@ if (!Imported.QPlus) {
  /*:
  * @plugindesc <QCamera>
  * Better Camera control
- * @author Quxios  | Version 1.0.3
+ * @author Quxios  | Version 1.0.4
  *
  * @requires QPlus
  *
@@ -160,10 +160,10 @@ function Sprite_Bars() {
     var cmd = args[0].toLowerCase();
     var args2 = args.slice(1);
     if (cmd === 'scroll') {
-      var x = QPlus.getArg(args2, /x(-?\d+)/i) || 0;
-      var y = QPlus.getArg(args2, /y(-?\d+)/i) || 0;
-      var speed  = QPlus.getArg(args2, /speed(\d+)/i) || 4;
-      var frames = QPlus.getArg(args2, /frames(\d+)/i) || null;
+      var x = Number(QPlus.getArg(args2, /^x(-?\d+)/i)) || 0;
+      var y = Number(QPlus.getArg(args2, /^y(-?\d+)/i)) || 0;
+      var speed  = Number(QPlus.getArg(args2, /^speed(\d+)/i)) || 4;
+      var frames = QPlus.getArg(args2, /^frames(\d+)/i) || null;
       if (!$gameMap.isScrolling()) {
         this.setWaitMode('scroll');
       }
@@ -171,8 +171,8 @@ function Sprite_Bars() {
     }
     if (cmd === 'scrollto') {
       var chara  = QPlus.getCharacter(args2[0]);
-      var speed  = QPlus.getArg(args2, /speed(\d+)/i) || 4;
-      var frames = QPlus.getArg(args2, /frames(\d+)/i) || null;
+      var speed  = Number(QPlus.getArg(args2, /^speed(\d+)/i)) || 4;
+      var frames = Number(QPlus.getArg(args2, /^frames(\d+)/i)) || null;
       if (chara) {
         if (!$gameMap.isScrolling()) {
           this.setWaitMode('scroll');
@@ -182,15 +182,15 @@ function Sprite_Bars() {
     }
     if (cmd === 'focus') {
       var chara  = QPlus.getCharacter(args2[0]);
-      var speed  = QPlus.getArg(args2, /speed(\d+)/i) || null;
-      var frames = QPlus.getArg(args2, /frames(\d+)/i) || 15;
+      var speed  = Number(QPlus.getArg(args2, /^speed(\d+)/i)) || null;
+      var frames = Number(QPlus.getArg(args2, /^frames(\d+)/i)) || 15;
       if (chara) {
         $gameMap.focusOn(chara, speed, frames);
       }
     }
     if (cmd === 'bars') {
-      var height = QPlus.getArg(args2, /height(\d+)/i);
-      var frames = QPlus.getArg(args2, /frames(\d+)/i);
+      var height = Number(QPlus.getArg(args2, /^height(\d+)/i));
+      var frames = Number(QPlus.getArg(args2, /^frames(\d+)/i));
       $gameMap.requestBars(height, frames);
     }
   };

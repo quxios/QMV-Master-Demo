@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QAudio = '2.0.4';
+Imported.QAudio = '2.0.5';
 
 if (!Imported.QPlus) {
   var msg = 'Error: QAudio requires QPlus to work.';
@@ -19,7 +19,7 @@ if (!Imported.QPlus) {
  /*:
  * @plugindesc <QAudio>
  * Few new audio features
- * @author Quxios  | Version 2.0.4
+ * @author Quxios  | Version 2.0.5
  *
  * @requires QPlus
  *
@@ -58,7 +58,7 @@ if (!Imported.QPlus) {
  *  - type    - bgm, bgs, me, or se (Default: bgm)
  *  - maxV    - where V is the max volume for this audio, between 0-100
  *  - xX      - where X is the x position for the audio
- *  - xY      - where Y is the y position for the audio
+ *  - yY      - where Y is the y position for the audio
  *  - radiusR - where R is the max radius for the audio
  *  - bindToCHARAID - where CHARAID is the character to bind to
  *
@@ -162,21 +162,33 @@ if (!Imported.QPlus) {
     if (cmd === 'start') {
       var name  = args[1];
       var args2 = args.slice(2);
-      var loop     = !!QPlus.getArg(args2, /loop/i);
-      var dontPan  = !!QPlus.getArg(args2, /noPan/i);
-      var id = QPlus.getArg(args2, /id(.+)/i) || '*';
+      var loop     = !!QPlus.getArg(args2, /^loop$/i);
+      var dontPan  = !!QPlus.getArg(args2, /^noPan$/i);
+      var id = QPlus.getArg(args2, /^id(.+)/i) || '*';
       id = id === '*' ? this.getUniqueQAudioId() : id;
-      var type = QPlus.getArg(args2, /(bgm|bgs|me|se)/i) || 'bgm';
+      var type = QPlus.getArg(args2, /^(bgm|bgs|me|se)$/i) || 'bgm';
       type = type.toLowerCase();
-      var max = QPlus.getArg(args2, /(max)(\d+)/i) || _defaultVolume;
+      var max = QPlus.getArg(args2, /^max(\d+)/i);
+      if (max === null) {
+        max = _defaultVolume;
+      }
       max /= 100;
-      var radius = QPlus.getArg(args2, /(radius)(\d+)/i) || _defaultRadius;
-      var bindTo = QPlus.getArg(args2, /(bindTo)(.+)/i);
+      var radius = QPlus.getArg(args2, /^radius(\d+)/i) ;
+      if (radius === null) {
+        radius = _defaultRadius;
+      }
+      var bindTo = QPlus.getArg(args2, /^bindTo(.+)/i);
       if (bindTo) {
         bindTo = QPlus.getCharacter(bindTo);
       }
-      var x = QPlus.getArg(args2, /x(\d+)/i) || $gamePlayer.x;
-      var y = QPlus.getArg(args2, /y(\d+)/i) || $gamePlayer.y;
+      var x = QPlus.getArg(args2, /^x(\d+)/i);
+      if (x === null) {
+        x = $gamePlayer.x;
+      }
+      var y = QPlus.getArg(args2, /^y(\d+)/i);
+      if (y === null) {
+        y = $gamePlayer.y;
+      }
       var audio = {
         name: name,
         volume: 100,
@@ -186,10 +198,10 @@ if (!Imported.QPlus) {
       AudioManager.playQAudio(id, audio, {
         type: type,
         loop: loop,
-        maxVolume: max,
-        radius: radius,
-        x: x,
-        y: y,
+        maxVolume: Number(max),
+        radius: Number(radius),
+        x: Number(x),
+        y: Number(y),
         bindTo: bindTo,
         doPan: !dontPan
       });
