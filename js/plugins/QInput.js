@@ -3,29 +3,33 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.Quasi_Input = 2.00; // backwards compatibility
-Imported.QInput = '2.0.0';
+Imported.QInput = '2.1.0';
 
 //=============================================================================
  /*:
  * @plugindesc <QInput>
  * Adds additional keys to Input class, and allows remapping keys.
- * @author Quxios  | Version 2.0.0
+ * @author Quxios  | Version 2.1.0
  *
  * @param Ok
  * @desc Which buttons will trigger the ok input
- * MV Default: #enter, #space, #z
- * @default #enter, #space, #z
+ * MV Default: #enter, #space, #z, $A
+ * @default #enter, #space, #z, $A
  *
  * @param Escape / Cancel
  * @desc Which buttons will trigger the escape / cancel input
- * MV Default: #esc, #insert, #x, #num0
- * @default #esc, #insert, #x, #num0
+ * MV Default: #esc, #insert, #x, #num0, $B
+ * @default #esc, #insert, #x, #num0, $B
+ *
+ * @param Menu
+ * @desc Which buttons will trigger the menu input
+ * MV Default: $Y
+ * @default $Y
  *
  * @param Shift
  * @desc Which buttons will trigger the shift input
- * MV Default: #shift, #cancel
- * @default #shift, #cancel
+ * MV Default: #shift, #cancel, $X
+ * @default #shift, #cancel, $X
  *
  * @param Control
  * @desc Which buttons will trigger the control input
@@ -39,33 +43,33 @@ Imported.QInput = '2.0.0';
  *
  * @param Pageup
  * @desc Which buttons will trigger the pageup input
- * MV Default: #pageup, #q
- * @default #pageup, #q
+ * MV Default: #pageup, #q, $L1
+ * @default #pageup, #q, $L1
  *
  * @param Pagedown
  * @desc Which buttons will trigger the pagedown input
- * MV Default: #pagedown, #w
- * @default #pagedown, #w
+ * MV Default: #pagedown, #w, $R1
+ * @default #pagedown, #w, $R1
  *
  * @param Left
  * @desc Which buttons will trigger the left input
- * MV Default: #left, #num4
- * @default #left, #num4
+ * MV Default: #left, #num4, $LEFT
+ * @default #left, #num4, $LEFT
  *
  * @param Right
  * @desc Which buttons will trigger the right input
- * MV Default: #right, #num6
- * @default #right, #num6
+ * MV Default: #right, #num6, $RIGHT
+ * @default #right, #num6, $RIGHT
  *
  * @param Up
  * @desc Which buttons will trigger the up input
- * MV Default: #up, #num8
- * @default #up, #num8
+ * MV Default: #up, #num8, $UP
+ * @default #up, #num8, $UP
  *
  * @param Down
  * @desc Which buttons will trigger the down input
- * MV Default: #down, #num2
- * @default #down, #num2
+ * MV Default: #down, #num2, $DOWN
+ * @default #down, #num2, $DOWN
  *
  * @param Debug
  * @desc Which buttons will trigger the debug input
@@ -235,8 +239,6 @@ QInput.stringToAry = function(string) {
   return ary;
 };
 
-var QuasiInput = QInput; // backwards compatibility
-
 //=============================================================================
 // QInput
 
@@ -244,9 +246,11 @@ var QuasiInput = QInput; // backwards compatibility
   var _params = $plugins.filter(function(p) {
     return p.description.contains('<QInput>') && p.status;
   })[0].parameters;
+
   QInput.remapped = {};
   QInput.remapped['ok']       = QInput.stringToAry(_params['Ok']);
   QInput.remapped['escape']   = QInput.stringToAry(_params['Escape / Cancel']);
+  QInput.remapped['menu']     = QInput.stringToAry(_params['Menu']);
   QInput.remapped['shift']    = QInput.stringToAry(_params['Shift']);
   QInput.remapped['control']  = QInput.stringToAry(_params['Control']);
   QInput.remapped['tab']      = QInput.stringToAry(_params['Tab']);
@@ -286,10 +290,10 @@ var QuasiInput = QInput; // backwards compatibility
   };
 
   // returns key code based off the key name
-  QInput.keyAt = function(keyName) {
-    for (var key in this.keys) {
-      if (!this.keys.hasOwnProperty(key)) continue;
-      if (this.keys[key] === keyName) return key;
+  QInput.keyAt = function(obj, val) {
+    for (var key in obj) {
+      if (!obj.hasOwnProperty(key)) continue;
+      if (obj[key] === val) return key;
     }
   };
 
@@ -304,161 +308,109 @@ var QuasiInput = QInput; // backwards compatibility
   // what value to set it when setting all the keys back to default.
   QInput.remap = function(key) {
     switch(key) {
-      case "tab":
-        return ConfigManager.keys["tab"];
+      case 'tab':
+        return ConfigManager.keys['tab'];
         break;
-      case "ok":
-        return ConfigManager.keys["ok"];
+      case 'ok':
+        return ConfigManager.keys['ok'];
         break;
-      case "shift":
-        return ConfigManager.keys["shift"];
+      case 'shift':
+        return ConfigManager.keys['shift'];
         break;
-      case "control":
-        return ConfigManager.keys["control"];
+      case 'control':
+        return ConfigManager.keys['control'];
         break;
-      case "escape":
-      case "cancel":
-        return ConfigManager.keys["escape"];
+      case 'menu':
+        return ConfigManager.keys['menu'];
         break;
-      case "pageup":
-        return ConfigManager.keys["pageup"];
+      case 'escape':
+      case 'cancel':
+        return ConfigManager.keys['escape'];
         break;
-      case "pagedown":
-        return ConfigManager.keys["pagedown"];
+      case 'pageup':
+        return ConfigManager.keys['pageup'];
         break;
-      case "left":
-        return ConfigManager.keys["left"];
+      case 'pagedown':
+        return ConfigManager.keys['pagedown'];
         break;
-      case "right":
-        return ConfigManager.keys["right"];
+      case 'left':
+        return ConfigManager.keys['left'];
         break;
-      case "up":
-        return ConfigManager.keys["up"];
+      case 'right':
+        return ConfigManager.keys['right'];
         break;
-      case "down":
-        return ConfigManager.keys["down"];
+      case 'up':
+        return ConfigManager.keys['up'];
         break;
-      case "debug":
-        return ConfigManager.keys["debug"];
+      case 'down':
+        return ConfigManager.keys['down'];
         break;
-      case "fps":
-        return Number(this.keyAt(ConfigManager.keys["fps"]) || 113);
+      case 'debug':
+        return ConfigManager.keys['debug'];
         break;
-      case "streched":
-        return Number(this.keyAt(ConfigManager.keys["streched"]) || 114);
+      case 'fps':
+        return Number(this.keyAt(ConfigManager.keys['fps'])) || 113;
         break;
-      case "fullscreen":
-        return Number(this.keyAt(ConfigManager.keys["fullscreen"]) || 115);
+      case 'streched':
+        return Number(this.keyAt(ConfigManager.keys['streched'])) || 114;
         break;
-      case "restart":
-        return Number(this.keyAt(ConfigManager.keys["restart"]) || 116);
+      case 'fullscreen':
+        return Number(this.keyAt(ConfigManager.keys['fullscreen']))  || 115;
         break;
-      case "console":
-        return Number(this.keyAt(ConfigManager.keys["console"]) || 119);
+      case 'restart':
+        return Number(this.keyAt(ConfigManager.keys['restart'])) || 116;
+        break;
+      case 'console':
+        return Number(this.keyAt(ConfigManager.keys['console'])) || 119;
         break;
     }
   };
 
-  // This object is used for "hard" translation
-  //  > This replaces the ENG key on the keyboard to the key on a different language
-  //    * So it's actually remapping not translating
-  //  > Ex: The location for A is next to caps lock in Eng, but at that location
-  //        Rus is the Ф letter
-  // Each key is the ENG representation of the key
-  // The values are an array, each index is a different language
-  // Right now 1st index is Russian and 2nd is Japanese (Kana Input)
-  QInput.translation = {
-    "A": ["Ф", "ち"],  "a": ["ф", "ち"],
-    "B": ["И", "こ"],  "b": ["и", "こ"],
-    "C": ["С", "そ"],  "c": ["с", "そ"],
-    "D": ["В", "し"],  "d": ["в", "し"],
-    "E": ["У", "ぃ"],  "e": ["у", "い"],
-    "F": ["А", "は"],  "f": ["а", "は"],
-    "G": ["П", "き"],  "g": ["п", "き"],
-    "H": ["Р", "く"],  "h": ["р", "く"],
-    "I": ["Ш", "に"],  "i": ["ш", "に"],
-    "J": ["О", "ま"],  "j": ["о", "ま"],
-    "K": ["Л", "の"],  "k": ["л", "の"],
-    "L": ["Д", "り"],  "l": ["д", "り"],
-    "M": ["Ь", "も"],  "m": ["ь", "も"],
-    "N": ["Т", "み"],  "n": ["т", "み"],
-    "O": ["Щ", "ら"],  "o": ["щ", "ら"],
-    "P": ["З", "せ"],  "p": ["з", "せ"],
-    "Q": ["Й", "た"],  "q": ["й", "た"],
-    "R": ["К", "す"],  "r": ["к", "す"],
-    "S": ["Ы", "と"],  "s": ["ы", "と"],
-    "T": ["Е", "か"],  "t": ["е", "か"],
-    "U": ["Г", "な"],  "u": ["г", "な"],
-    "V": ["М", "ひ"],  "v": ["м", "ひ"],
-    "W": ["Ц", "て"],  "w": ["ц", "て"],
-    "X": ["Ч", "さ"],  "x": ["ч", "さ"],
-    "Y": ["Н", "ん"],  "y": ["н", "ん"],
-    "Z": ["Я", "つ"],  "z": ["я", "つ"],
-    "{": ["Х", "゛"],  "[": ["х", "゛"],
-    "}": ["Ъ", "゜"],  "]": ["ъ", "゜"],
-    "|": ["/", "む"],  "\\": ["\\", "む"],
-    ":": ["Ж", "れ"],  ";": ["ж", "れ"],
-    "\"": ["Э", "け"], "'": ["э", "け"],
-    "<": ["Б", "ね"],  ",": ["б", "ね"],
-    ">": ["Ю", "る"],  ".": ["ю", "る"],
-    "?": [",", "め"],  "/": [".", "め"],
-    "~": ["Ё", "ろ"],  "`": ["ё", "ろ"],
-    "1": ["1", "ぬ"],  "!": ["!", "ぬ"],
-    "2": ["2", "ふ"],  "@": ["\"", "ふ"],
-    "3": ["3", "あ"],  "#": ["№", "あ"],
-    "4": ["4", "う"],  "$": [";", "う"],
-    "5": ["5", "え"],  "%": ["%", "え"],
-    "6": ["6", "お"],  "^": [":", "お"],
-    "7": ["7", "や"],  "&": ["?", "や"],
-    "8": ["8", "ゆ"],  "*": ["*", "ゆ"],
-    "9": ["9", "よ"],  "(": ["(", "よ"],
-    "0": ["0", "わ"],  ")": [")", "わ"],
-    "-": ["-", "ほ"],  "_": ["_", "ほ"],
-    "=": ["=", "へ"],  "+": ["+", "へ"]
-  };
-
-  // To use, just call:
-  // QInput.translate("ENG Letter");
-  // returns the translated letter based off your game System language
-  // * Note this is not actually "translating" this is more like remapping
-  //   but since I already have a remapping function I named this translate
-  //   to avoid possible confusion
-  QInput.translate = function(letter) {
-    if ($gameSystem.isRussian()) {
-      return this.translation[letter] ? (this.translation[key][0] || letter) : letter;
-    }
-    if ($gameSystem.isJapanese()) {
-      return this.translation[letter] ? (this.translation[key][1] || letter) : letter;
-    }
-    return key;
-  };
-
+  //Gamepad button index to input action
   Input.gamepadMapper = {
     0: '$ok',        // A
     1: '$cancel',    // B
     2: '$shift',     // X
     3: '$menu',      // Y
-    4: '$pageup',    // LB
-    5: '$pagedown',  // RB
+    4: '$pageup',    // L1
+    5: '$pagedown',  // R1
+    6: '', // L2
+    7: '', // R2
+    8: '', // Select
+    9: '', // Start
+    10: '', // L3
+    11: '', // R3
     12: '$up',       // D-pad up
     13: '$down',     // D-pad down
     14: '$left',     // D-pad left
     15: '$right',    // D-pad right
   };
 
+  // Gamepad button index to button name
+  Input.gamepadKeys = {
+    0: '$A', 1: '$B', 2: '$X', 3: '$Y',
+    4: '$L1', 5: '$R1', 6: '$L2', 7: '$R2', 10: '$L3', 11: '$R3',
+    8: '$SELECT', 9: '$START',
+    12: '$UP', 13: '$DOWN', 14: '$LEFT', 15: '$RIGHT'
+  };
+
   var Alias_Input_clear = Input.clear;
   Input.clear = function() {
     Alias_Input_clear.call(this);
+    this._lastUsed = 'keyboard';
     this._ranPress = false;
     this._lastPressed = null;
     this._lastTriggered = null;
+    this._lastGamepadDown = null;
+    this._dirAxesA = new Point(0, 0);
+    this._dirAxesB = new Point(0, 0);
   };
 
   // Checks if any press is pressed with .onkeydown()
   Input.anyTriggered = function(keys) {
     var any = [];
     var start, i, j;
-    if (keys === "sym") {
+    if (keys === 'sym') {
       start = 186
       for (i = 0; i < 11; i++) {
         if (i > 6) {
@@ -467,7 +419,7 @@ var QuasiInput = QInput; // backwards compatibility
         any.push(QInput.keys[start + i]);
       }
     }
-    if (keys === "0-9" || keys === "a-z0-9") {
+    if (keys === '0-9' || keys === 'a-z0-9') {
       start = 48;
       for (i = 0; i < 20; i++) {
         if (i > 9) {
@@ -476,7 +428,7 @@ var QuasiInput = QInput; // backwards compatibility
         any.push(QInput.keys[start + i]);
       }
     }
-    if (keys === "a-z" || keys === "a-z0-9") {
+    if (keys === 'a-z' || keys === 'a-z0-9') {
       start = 65;
       for (i = 0; i < 26; i++) {
         any.push(QInput.keys[start + i]);
@@ -515,23 +467,27 @@ var QuasiInput = QInput; // backwards compatibility
   };
 
   Input.remap = function(keyName, alias) {
-    if (/^\$/.test(this._latestButton)) {
-      return alias.call(this, "$" + keyName);
-    }
     var newKey = QInput.remap(keyName);
     if (!newKey) return alias.call(this, keyName);
     if (newKey.constructor === Array) {
       var i, pressed;
       for (i = 0; i < newKey.length; i++) {
-        if (alias.call(this, newKey[i])) {
+        var key = newKey[i];
+        if (/^\$/.test(newKey[i])) {
+          //key = QInput.keyAt(this.gamepadKeys, key);
+        }
+        if (alias.call(this, key)) {
           pressed = true;
           break;
         }
       }
       return pressed;
     }
+    if (/^\$/.test(newKey)) {
+      //newKey = QInput.keyAt(this.gamepadKeys, newKey);
+    }
     return alias.call(this, newKey);
-  }
+  };
 
   var Alias_Input_isPressed = Input.isPressed;
   Input.isPressed = function(keyName) {
@@ -566,14 +522,14 @@ var QuasiInput = QInput; // backwards compatibility
   };
 
   // Added keypress listener to check for caps lock.
+  var Alias_Input__setupEventHandlers = Input._setupEventHandlers;
   Input._setupEventHandlers = function() {
     document.addEventListener('keypress', this._onKeyPress.bind(this));
-    document.addEventListener('keydown', this._onKeyDown.bind(this));
-    document.addEventListener('keyup', this._onKeyUp.bind(this));
-    window.addEventListener('blur', this._onLostFocus.bind(this));
+    Alias_Input__setupEventHandlers.call(this);
   };
 
   Input._onKeyDown = function(event) {
+    this._lastUsed = 'keyboard';
     if (this._shouldPreventDefault(event.keyCode)) {
       event.preventDefault();
     }
@@ -608,6 +564,7 @@ var QuasiInput = QInput; // backwards compatibility
   };
 
   Input._onKeyPress = function(event) {
+    this._lastUsed = 'keyboard';
     this._lastPressed = String.fromCharCode(event.charCode);
     this._ranPress = true;
     this._setCapsLock(event);
@@ -625,18 +582,112 @@ var QuasiInput = QInput; // backwards compatibility
     }
   };
 
+  Input._updateGamepadState = function(gamepad) {
+    var lastState = this._gamepadStates[gamepad.index] || [];
+    var newState = [];
+    var buttons = gamepad.buttons;
+    var axes = gamepad.axes;
+    var threshold = 0.2;
+    this._usingGamepad = false;
+    this._lastGamepadDown = null;
+    this._dirAxesA.x = 0;
+    this._dirAxesA.y = 0;
+    this._dirAxesB.x = 0;
+    this._dirAxesB.y = 0;
+    newState[12] = false;
+    newState[13] = false;
+    newState[14] = false;
+    newState[15] = false;
+    for (var i = 0; i < buttons.length; i++) {
+      newState[i] = buttons[i].pressed;
+    }
+    // dpad
+    if (newState[12]) {
+      this._dirAxesA.y = -1;
+    }
+    if (newState[13]) {
+      this._dirAxesA.y = 1;
+    }
+    if (newState[14]) {
+      this._dirAxesA.x = -1;
+    }
+    if (newState[15]) {
+      this._dirAxesA.x = 1;
+    }
+    // left stick
+    if (axes[0] < -threshold) {
+      this._dirAxesA.x = axes[0];
+      newState[14] = true;    // left
+      this._lastUsed = 'gamepad';
+    } else if (axes[0] > threshold) {
+      this._dirAxesA.x = axes[0];
+      newState[15] = true;    // right
+      this._lastUsed = 'gamepad';
+    }
+    if (axes[1] < -threshold) {
+      this._dirAxesA.y = axes[1];
+      newState[12] = true;    // up
+      this._lastUsed = 'gamepad';
+    } else if (axes[1] > threshold) {
+      this._dirAxesA.y = axes[1];
+      newState[13] = true;    // down
+      this._lastUsed = 'gamepad';
+    }
+    // right stick
+    if (Math.abs(axes[2]) > threshold) {
+      this._dirAxesB.x = axes[2];
+      this._lastUsed = 'gamepad';
+    }
+    if (Math.abs(axes[3]) > threshold) {
+      this._dirAxesB.y = axes[3];
+      this._lastUsed = 'gamepad';
+    }
+    for (var j = 0; j < newState.length; j++) {
+      if (newState[j] !== lastState[j]) {
+        var buttonName = this.gamepadKeys[j];
+        if (buttonName) {
+          this._lastUsed = 'gamepad';
+          this._lastGamepadDown = this.gamepadKeys[j];
+          this._currentState[buttonName] = newState[j];
+        }
+      }
+    }
+    this._gamepadStates[gamepad.index] = newState;
+  };
+
+  Input.anyGamepadTriggered = function() {
+    var states = this._gamepadStates;
+    for (var i = 0; i < states.length; i++) {
+      if (states[i]) {
+        return this.gamepadKeys[i];
+      }
+    }
+    return false;
+  };
+
+  Input.preferKeyboard = function() {
+    return this._lastUsed === 'keyboard';
+  };
+
+  Input.preferGamepad = function() {
+    return this._lastUsed === 'gamepad';
+  };
+
+  //-----------------------------------------------------------------------------
+  // Graphics
+
   Graphics._onKeyDown = function(event) {
     if (!event.ctrlKey && !event.altKey) {
       switch (event.keyCode) {
-      case QInput.remap("fps"):
+      case QInput.remap('fps'):
         event.preventDefault();
         this._switchFPSMeter();
         break;
-      case QInput.remap("stretch"):
+      case QInput.remap('stretch'):
         event.preventDefault();
         this._switchStretchMode();
         break;
-      case QInput.remap("fullscreen"):
+      case QInput.remap('fullscreen'):
         event.preventDefault();
         this._switchFullScreen();
         break;
@@ -652,12 +703,12 @@ var QuasiInput = QInput; // backwards compatibility
   SceneManager.onKeyDown = function(event) {
     if (!event.ctrlKey && !event.altKey) {
       switch (event.keyCode) {
-      case QInput.remap("restart"):
+      case QInput.remap('restart'):
         if (Utils.isNwjs()) {
           location.reload();
         }
         break;
-      case QInput.remap("console"):
+      case QInput.remap('console'):
         if (Utils.isNwjs() && Utils.isOptionValid('test')) {
           if (Imported.QElectron) {
             require('electron').ipcRenderer.send('open-DevTools');
@@ -728,15 +779,15 @@ var QuasiInput = QInput; // backwards compatibility
           return;
         }
       }
-      if (Input.isRepeated("#backspace")) {
+      if (Input.isRepeated('#backspace')) {
         if (this.back()) {
           Input.clear();
           SoundManager.playCancel();
           return;
         }
       }
-      if (Input.isTriggered("#esc")) {
-        return this.callHandler("#esc");
+      if (Input.isTriggered('#esc')) {
+        return this.callHandler('#esc');
       }
       if (Input.anyPressed(this._mode)) {
         this.add(Input._lastPressed);
@@ -776,9 +827,9 @@ var QuasiInput = QInput; // backwards compatibility
   };
 
   Window_TextInput.prototype.setDefault = function(name, max, mode) {
-    this._default.name = String(name || "");
+    this._default.name = String(name || '');
     this._default.max = max;
-    this._default.mode = mode || "~a-z0-9";
+    this._default.mode = mode || '~a-z0-9';
     return this.restoreDefault();
   };
 
