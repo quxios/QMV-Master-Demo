@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QAudio = '2.0.5';
+Imported.QAudio = '2.1.0';
 
 if (!Imported.QPlus) {
   var msg = 'Error: QAudio requires QPlus to work.';
@@ -19,7 +19,7 @@ if (!Imported.QPlus) {
  /*:
  * @plugindesc <QAudio>
  * Few new audio features
- * @author Quxios  | Version 2.0.5
+ * @author Quxios  | Version 2.1.0
  *
  * @requires QPlus
  *
@@ -38,7 +38,6 @@ if (!Imported.QPlus) {
  * This plugin allows you to play an audio (bgm, bgs, me or se) at a fixed
  * position. The volume and panning will be dynamically updated based off of
  * the players distance from that audios location.
- *
  * ============================================================================
  * ## Plugin Commands
  * ============================================================================
@@ -54,9 +53,10 @@ if (!Imported.QPlus) {
  *
  *  - loop    - this audio will loop
  *  - noPan   - this audio will not update its pan
- *  - idX     - where X the ID for the audio (used for stopping)
+ *  - idX     - where X the ID for the audio (needed for stopping)
  *  - type    - bgm, bgs, me, or se (Default: bgm)
  *  - maxV    - where V is the max volume for this audio, between 0-100
+ *  - fadeinT - where T is the time to fade in, in seconds
  *  - xX      - where X is the x position for the audio
  *  - yY      - where Y is the y position for the audio
  *  - radiusR - where R is the max radius for the audio
@@ -79,54 +79,64 @@ if (!Imported.QPlus) {
  * way, best to set options.
  *
  * ~~~
- *   qAudio start City bgs max80 radius10 x5 y5
+ *   qAudio start City bgs idCITY max80 radius10 x5 y5
  * ~~~
  * Will play bgs City at position (5, 5) with a radius of 10 and max volume of
- * 80
+ * 80. It's id is CITY
  *
  * ~~~
- *   qAudio start City bgs radius5 bindTo1 loop
- *   qAudio start City bgs radius5 bindToE1 loop
- *   qAudio start City bgs radius5 bindToEvent1 loop
+ *   qAudio start City bgs idCITY radius5 bindTo1 loop
+ *   qAudio start City bgs idCITY radius5 bindToE1 loop
+ *   qAudio start City bgs idCITY radius5 bindToEvent1 loop
  * ~~~
  * (Note: All 3 are the same, just using a different character id method)
  *
  * Will play bgs City at event 1s position and move with that event. It also has
- * a radius of 5 and it will keep looping
+ * a radius of 5 and it will keep looping. It's id is CITY
  * ----------------------------------------------------------------------------
  * **Stoping a QAudio**
  * ----------------------------------------------------------------------------
  * ~~~
- *   qAudio stop ID
+ *  qAudio stop ID [list of options]
  * ~~~
  * ID - the ID you set for the audio
  *
+ * Possible options:
+ *
+ *  - fadeoutT - where T is the time to fade out, in seconds
  *
  * To stop all qAudios
  * ~~~
- *   qAudio clear
+ *  qAudio clear
  * ~~~
  * ----------------------------------------------------------------------------
  * **Examples**
  * ----------------------------------------------------------------------------
  * First make a qAudio with an Id like:
  * ~~~
- *   qAudio start Battle1 idAb1
+ *  qAudio start Battle1 bgm idAb1
  * ~~~
+ *
  * Then when you want to clear it:
  * ~~~
- *   qAudio clear Ab1
+ *  qAudio stop Ab1
+ * ~~~
+ *
+ * Or clear it with a fadeout
+ * ~~~
+ *  qAudio stop Ab1 fadeOut2
  * ~~~
  * ============================================================================
  * ## Links
  * ============================================================================
  * RPGMakerWebs:
- *
- *   http://forums.rpgmakerweb.com/index.php?threads/qplugins.73023/
+ *  http://forums.rpgmakerweb.com/index.php?threads/qplugins.73023/
  *
  * Terms of use:
+ *  https://github.com/quxios/QMV-Master-Demo/blob/master/readme.md
  *
- *   https://github.com/quxios/QMV-Master-Demo/blob/master/readme.md
+ * Like my plugins? Support me on Patreon!
+ *  https://www.patreon.com/quxios
  *
  * @tags audio, character, proximity
  */
@@ -165,7 +175,7 @@ if (!Imported.QPlus) {
       var loop     = !!QPlus.getArg(args2, /^loop$/i);
       var dontPan  = !!QPlus.getArg(args2, /^noPan$/i);
       var id = QPlus.getArg(args2, /^id(.+)/i) || '*';
-      id = id === '*' ? this.getUniqueQAudioId() : id;
+      id = !id || id === '*' ? this.getUniqueQAudioId() : id;
       var type = QPlus.getArg(args2, /^(bgm|bgs|me|se)$/i) || 'bgm';
       type = type.toLowerCase();
       var max = QPlus.getArg(args2, /^max(\d+)/i);
@@ -189,6 +199,7 @@ if (!Imported.QPlus) {
       if (y === null) {
         y = $gamePlayer.y;
       }
+      var fadein = QPlus.getArg(args2, /^fadein(\d+)/i);
       var audio = {
         name: name,
         volume: 100,
@@ -203,12 +214,23 @@ if (!Imported.QPlus) {
         x: Number(x),
         y: Number(y),
         bindTo: bindTo,
-        doPan: !dontPan
-      });
+        doPan: !dontPan,
+        fadeIn: Number(fadein) || 0
+      })
+    }
+    if (cmd === 'fadeout') {
+      var id = args[1];
+      var duration = Number(args[2]) || 0;
+      AudioManager.fadeOutQAudio(id, duration);
     }
     if (cmd === 'stop') {
       var id = args[1];
-      AudioManager.stopQAudio(id);
+      var fadeOut = Number(QPlus.getArg(args2, /^fadeout(\d+)/i));
+      if (fadeOut) {
+        AudioManager.fadeOutQAudio(id, fadeOut);
+      } else {
+        AudioManager.stopQAudio(id);
+      }
     }
     if (cmd === 'clear') {
       AudioManager.stopAllQAudio();
@@ -307,11 +329,20 @@ if (!Imported.QPlus) {
         buffer.mapX = options.x;
         buffer.mapY = options.y;
       }
-      buffer.uid = options.id;
+      buffer.uid = id;
       buffer.type = options.type;
       buffer.radius = options.radius;
       buffer.maxVolume = options.maxVolume;
       buffer.doPan = options.doPan;
+      buffer.rVolume = 1;
+      buffer.fadingIn = null;
+      if (options.fadeIn) {
+        buffer.rVolume = 0;
+        buffer.fadingIn = {
+          t: 0,
+          dur: options.fadeIn * 60
+        }
+      }
       this.updateQAudioParameters(buffer, audio);
       this.updateQAudioDistance(buffer);
       buffer.play(options.loop, 0);
@@ -320,48 +351,6 @@ if (!Imported.QPlus) {
       }
       options = null;
       this._QAudioBuffers.push(buffer);
-    }
-  };
-
-  AudioManager.updateQAudioParameters = function(buffer, audio) {
-    var volume = 100;
-    if (buffer.type === 'bgm') volume = this._bgmVolume;
-    if (buffer.type === 'bgs') volume = this._bgsVolume;
-    if (buffer.type === 'me')  volume = this._meVolume;
-    if (buffer.type === 'se')  volume = this._seVolume;
-    this.updateBufferParameters(buffer, volume, audio);
-  };
-
-  AudioManager.updateQAudioDistance = function(buffer) {
-    var x1 = $gamePlayer._realX;
-    var y1 = $gamePlayer._realY;
-    var x2 = buffer.mapX;
-    var y2 = buffer.mapY;
-    var radius  = buffer.radius;
-    var radian = Math.atan2(y2 - y1, x2 - x1);
-    var dx = $gameMap.deltaX(x2, x1);
-    var dy = $gameMap.deltaY(y2, y1);
-    var dist = Math.sqrt(dx * dx + dy * dy);
-    var volume = Math.max((radius - dist) / radius, 0);
-    var typeVolume = 100;
-    if (buffer.type === 'bgm') typeVolume = this._bgmVolume;
-    if (buffer.type === 'bgs') typeVolume = this._bgsVolume;
-    if (buffer.type === 'me')  typeVolume = this._meVolume;
-    if (buffer.type === 'se')  typeVolume = this._seVolume;
-    volume *= buffer.maxVolume * (typeVolume / 100);
-    buffer.volume = volume;
-    if (buffer.doPan) {
-      var pan = Math.cos(radian);
-      if (x2 === x1 && y2 === y1) {
-        pan = 0;
-      }
-      buffer.pan = pan;
-    }
-  };
-
-  AudioManager.updateQAudio = function() {
-    for (var i = 0; i < this._QAudioBuffers.length; i++) {
-      this.updateQAudioDistance(this._QAudioBuffers[i]);
     }
   };
 
@@ -374,6 +363,7 @@ if (!Imported.QPlus) {
         buffers[i].mapY = null;
         buffers[i] = null;
         buffers.splice(i, 1);
+        break;
       }
     }
   };
@@ -395,6 +385,86 @@ if (!Imported.QPlus) {
   AudioManager.stopAll = function() {
     Alias_AudioManager_stopAll.call(this);
     this.stopAllQAudio();
+  };
+
+  AudioManager.fadeOutQAudio = function(id, duration) {
+    var buffers = this._QAudioBuffers;
+    for (var i = buffers.length - 1; i >= 0; i--) {
+      if (buffers[i] && buffers[i].uid === id) {
+        buffers[i].fadeOut(duration);
+        buffers[i].mapX = null;
+        buffers[i].mapY = null;
+        buffers[i] = null;
+        buffers.splice(i, 1);
+        break;
+      }
+    }
+  };
+
+  AudioManager.updateQAudio = function() {
+    for (var i = 0; i < this._QAudioBuffers.length; i++) {
+      var buffer = this._QAudioBuffers[i];
+      if (buffer.fadingIn) {
+        this.updateQAudioFadeIn(buffer);
+      }
+      this.updateQAudioDistance(buffer);
+    }
+  };
+
+  AudioManager.updateQAudioParameters = function(buffer, audio) {
+    var volume = 100;
+    if (buffer.type === 'bgm') volume = this._bgmVolume;
+    if (buffer.type === 'bgs') volume = this._bgsVolume;
+    if (buffer.type === 'me')  volume = this._meVolume;
+    if (buffer.type === 'se')  volume = this._seVolume;
+    this.updateBufferParameters(buffer, volume, audio);
+  };
+
+  AudioManager.updateQAudioFadeIn = function(buffer) {
+    buffer.fadingIn.t++;
+    buffer.rVolume = buffer.fadingIn.t / buffer.fadingIn.dur;
+    if (buffer.fadingIn.t === buffer.fadingIn.dur) {
+       buffer.fadingIn = null;
+    }
+  };
+
+  AudioManager.updateQAudioDistance = function(buffer) {
+    var x1 = $gamePlayer._realX;
+    var y1 = $gamePlayer._realY;
+    var x2 = buffer.mapX;
+    var y2 = buffer.mapY;
+    if (buffer.cached) {
+      if ((buffer.cached.x1 === x1 && buffer.cached.y1 === y1) &&
+      (buffer.cached.x2 === x2 && buffer.cached.y2 === y2) &&
+      (buffer.cached.rV === buffer.rVolume)) {
+        return;
+      }
+    }
+    var radius  = buffer.radius;
+    var radian = Math.atan2(y2 - y1, x2 - x1);
+    var dx = $gameMap.deltaX(x2, x1);
+    var dy = $gameMap.deltaY(y2, y1);
+    var dist = Math.sqrt(dx * dx + dy * dy);
+    var volume = Math.max((radius - dist) / radius, 0);
+    var typeVolume = 100;
+    if (buffer.type === 'bgm') typeVolume = this._bgmVolume;
+    if (buffer.type === 'bgs') typeVolume = this._bgsVolume;
+    if (buffer.type === 'me')  typeVolume = this._meVolume;
+    if (buffer.type === 'se')  typeVolume = this._seVolume;
+    volume *= buffer.maxVolume * (typeVolume / 100);
+    buffer.volume = volume * buffer.rVolume;
+    if (buffer.doPan) {
+      var pan = Math.cos(radian);
+      if (x2 === x1 && y2 === y1) {
+        pan = 0;
+      }
+      buffer.pan = pan;
+    }
+    buffer.cached = {
+      x1: x1, x2: x2,
+      y1: y1, y2: y2,
+      rV: buffer.rVolume
+    }
   };
 
   //-----------------------------------------------------------------------------
