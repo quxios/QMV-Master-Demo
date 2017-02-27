@@ -92,6 +92,21 @@ if (!Imported.QPlus) {
  *  - For events: EVENTID, eEVENTID or eventEVENTID (replace EVENTID with a number)
  *
  * TARGETCHARAID - The CharaID of who you want the CHARAID to chase
+ *
+ * * Chasing ends when event page changes.
+ * * To force end a chase, you'll need to clear it.
+ * ----------------------------------------------------------------------------
+ * **Clear / End Pathfind**
+ * ----------------------------------------------------------------------------
+ * If you need to end a pathfind early, for example to end a chase. Then use
+ * the plugin command:
+ * ~~~
+ *  qPathfind [CHARAID] clear
+ * ~~~
+ * CHARAID - The character identifier.
+ *
+ *  - For player: 0, p, or player
+ *  - For events: EVENTID, eEVENTID or eventEVENTID (replace EVENTID with a number)
  * ----------------------------------------------------------------------------
  * **Examples**
  * ----------------------------------------------------------------------------
@@ -127,12 +142,13 @@ if (!Imported.QPlus) {
  * ## Links
  * ============================================================================
  * RPGMakerWebs:
- *
- *   http://forums.rpgmakerweb.com/index.php?threads/qplugins.73023/
+ *  http://forums.rpgmakerweb.com/index.php?threads/qplugins.73023/
  *
  * Terms of use:
+ *  https://github.com/quxios/QMV-Master-Demo/blob/master/readme.md
  *
- *   https://github.com/quxios/QMV-Master-Demo/blob/master/readme.md
+ * Like my plugins? Support me on Patreon!
+ *  https://www.patreon.com/quxios
  *
  * @tags pathfind, chase, character, map
  */
@@ -558,6 +574,7 @@ function QPathfind() {
   Game_Interpreter.prototype.qPathfindCommand = function(args) {
     // qPathfind CHARAID X Y
     // qPathfind CHARAID chase CHARAID2
+    // qPathfind CHARAID clear
     var chara = QPlus.getCharacter(args[0]);
     if (!chara) return;
     var args2 = args.slice(1);
