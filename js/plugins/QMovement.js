@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QMovement = '1.0.0';
+Imported.QMovement = '1.0.1';
 
 if (!Imported.QPlus) {
   var msg = 'Error: QMovement requires QPlus to work.';
@@ -19,7 +19,7 @@ if (!Imported.QPlus) {
  /*:
  * @plugindesc <QMovement>
  * More control over character movement
- * @author Quxios  | Version 1.0.0
+ * @author Quxios  | Version 1.0.1
  *
  * @requires QPlus
  *
@@ -231,17 +231,17 @@ if (!Imported.QPlus) {
  * ## Links
  * ============================================================================
  * RPGMakerWebs:
- *
- *   http://forums.rpgmakerweb.com/index.php?threads/qplugins.73023/
+ *  http://forums.rpgmakerweb.com/index.php?threads/qplugins.73023/
  *
  * Terms of use:
+ *  https://github.com/quxios/QMV-Master-Demo/blob/master/readme.md
  *
- *   https://github.com/quxios/QMV-Master-Demo/blob/master/readme.md
+ * Like my plugins? Support me on Patreon!
+ *  https://www.patreon.com/quxios
  *
  * @tags movement, pixel, character
  */
 //=============================================================================
-
 //=============================================================================
 // QMovement Static Class
 
@@ -1262,12 +1262,6 @@ function ColliderManager() {
 //-----------------------------------------------------------------------------
 // Game_CharacterBase
 
-// TODO
-// few collision bugs;
-//  smartmove speed lets you get close to a collider, once as close as can be
-//  can only move back, cant move adjacently
-// need to change how to check the smart move value
-
 (function() {
   Object.defineProperties(Game_CharacterBase.prototype, {
       px: { get: function() { return this._px; }, configurable: true },
@@ -1481,17 +1475,19 @@ function ColliderManager() {
   };
 
   Game_CharacterBase.prototype.passableColors = function() {
-    var colors = ["#ffffff", "#000000"];
+    var colors = ['#ffffff'];
     switch (this._passabilityLevel) {
       case 1:
-      case 3:
+      case 3: {
         colors.push(QMovement.water1);
         break;
+      }
       case 2:
-      case 4:
+      case 4: {
         colors.push(QMovement.water1);
         colors.push(QMovement.water2);
         break;
+      }
     }
     return colors;
   };
@@ -1667,7 +1663,10 @@ function ColliderManager() {
     dist = dist || this.moveTiles();
     this.setMovementSuccess(this.canPixelPass(this.px, this.py, d, dist));
     var originalSpeed = this._moveSpeed;
-    if (this.smartMove() === 1 || this.smartMove() > 2) this.smartMoveSpeed(d, dist);
+    if (this.smartMove() === 1 || this.smartMove() > 2) {
+      this.smartMoveSpeed(d);
+      dist = this.moveTiles();
+    }
     if (this.isMovementSucceeded()) {
       this._diagonal = false;
       this._adjustFrameSpeed = false;
@@ -1692,7 +1691,7 @@ function ColliderManager() {
     dist = dist || this.moveTiles();
     this.setMovementSuccess(this.canPixelPassDiagonally(this.px, this.py, horz, vert, dist));
     var originalSpeed = this._moveSpeed;
-    if (this.smartMove() === 1 || this.smartMove() > 2) this.smartMoveSpeed([horz, vert], dist);
+    if (this.smartMove() === 1 || this.smartMove() > 2) this.smartMoveSpeed([horz, vert]);
     if (this.isMovementSucceeded()) {
       this._diagonal = this.direction8(horz, vert);
       this._adjustFrameSpeed = false;
@@ -1907,16 +1906,16 @@ function ColliderManager() {
     }
   };
 
-  Game_CharacterBase.prototype.smartMoveSpeed = function(dir, dist) {
+  Game_CharacterBase.prototype.smartMoveSpeed = function(dir) {
     var diag = dir.constructor === Array;
     while (!this.isMovementSucceeded()) {
       // should improve by figuring out what 1 pixel is in terms of movespeed
       // and subtract by that value instead
       this._moveSpeed--;
       if (diag) {
-        this.setMovementSuccess(this.canPixelPassDiagonally(this.px, this.py, dir[0], dir[1], dist));
+        this.setMovementSuccess(this.canPixelPassDiagonally(this._px, this._py, dir[0], dir[1]));
       } else {
-        this.setMovementSuccess(this.canPixelPass(this.px, this.py, dir, dist));
+        this.setMovementSuccess(this.canPixelPass(this._px, this._py, dir));
       }
       if (this._moveSpeed < 1) break;
     }
@@ -2327,6 +2326,15 @@ function ColliderManager() {
     }
   };
 
+  Game_Player.prototype.updateDashing = function() {
+    if (this.startedMoving()) return;
+    if (this.canMove() && !this.isInVehicle() && !$gameMap.isDashDisabled()) {
+      this._dashing = this.isDashButtonPressed() || $gameTemp.isDestinationValid();
+    } else {
+      this._dashing = false;
+    }
+  };
+
   Game_Player.prototype.startMapEvent = function(x, y, triggers, normal) {
     if (!$gameMap.isEventRunning()) {
       var collider = this.collider('interaction');
@@ -2677,3 +2685,4 @@ function Sprite_Collider() {
     // also get collision map here
   };
 })();
+
