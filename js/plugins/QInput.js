@@ -3,13 +3,22 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QInput = '2.1.0';
+Imported.QInput = '2.1.1';
 
 //=============================================================================
  /*:
  * @plugindesc <QInput>
  * Adds additional keys to Input class, and allows remapping keys.
- * @author Quxios  | Version 2.1.0
+ * @author Quxios  | Version 2.1.1
+ *
+ * @param Threshold
+ * @desc The threshold for gamepad analog sticks to send input
+ * MV Default: 0.5,   value should be between 0.1 to 1.0
+ * @default 0.5
+ *
+ * @param ========
+ * @desc spacer
+ * @default
  *
  * @param Ok
  * @desc Which buttons will trigger the ok input
@@ -180,38 +189,58 @@ Imported.QInput = '2.1.0';
  * If you haven't noticed by now, Qkeys have a # identifier. So if you want
  * to run a trigger check for left key you will run:
  * ~~~
- *   Input.isTriggered("#left");
+ *  Input.isTriggered("#left");
  * ~~~
  * If you didn't use the # and put
  * ~~~
- *   Input.isTriggered("left");
+ *  Input.isTriggered("left");
  * ~~~
  * This will check for the keys you set for parameter left, so by default this
  * will let numberpad 4 to trigger this as well.
  *
  * I also added an extra input check
  * ~~~
- *   Input.anyTriggered(keylist);
+ *  Input.anyTriggered(keylist);
  * ~~~
  * Keylist is a string with keys seperated by commas.
  * You can also set it to a-z, a-z0-9 or sym.
  * If keylist is left empty it will return true when any key is pressed
+ * ============================================================================
+ * ## Gamepad Keys
+ * ============================================================================
+ * Gamepad keys begin with $ and are in all caps. Here's the list of gamepad keys:
+ *
+ * - Buttons: $A, $B, $X, $Y, $SELECT, $START
+ * - Triggers: $L1, $L2, $L3, $R1, $R2, $R3
+ * - DPad: $UP, $DOWN, $LEFT, $RIGHT
  * =============================================================================
  * ## Advanced Users: Using Window_TextInput
  * =============================================================================
  * This new window will allow for a keyboard input.
  * If you want to see how it is used please look at the code or look at
  * QNameInput.js as they both use Window_TextInput
+ *
+ * There are also 2 new functions in game input which might be useful:
+ * ~~~
+ * Input.preferKeyboard()
+ * ~~~
+ * Will return true if the last input was sent with the keyboard.
+ *
+ * ~~~
+ * Input.preferGamepad()
+ * ~~~
+ * Will return true if the last input was sent with the gamepad.
  * ============================================================================
  * ## Links
  * ============================================================================
  * RPGMakerWebs:
- *
- *   http://forums.rpgmakerweb.com/index.php?threads/qplugins.73023/
+ *  http://forums.rpgmakerweb.com/index.php?threads/qplugins.73023/
  *
  * Terms of use:
+ *  https://github.com/quxios/QMV-Master-Demo/blob/master/readme.md
  *
- *   https://github.com/quxios/QMV-Master-Demo/blob/master/readme.md
+ * Like my plugins? Support me on Patreon!
+ *  https://www.patreon.com/quxios
  *
  * @tags input, keyboard
  */
@@ -246,6 +275,7 @@ QInput.stringToAry = function(string) {
   var _params = $plugins.filter(function(p) {
     return p.description.contains('<QInput>') && p.status;
   })[0].parameters;
+  var _threshold = Number(_params['Threshold']) || 0.1;
 
   QInput.remapped = {};
   QInput.remapped['ok']       = QInput.stringToAry(_params['Ok']);
@@ -366,7 +396,8 @@ QInput.stringToAry = function(string) {
     }
   };
 
-  //Gamepad button index to input action
+  // Gamepad button index to input action
+  // shouldn't be used, left just incase
   Input.gamepadMapper = {
     0: '$ok',        // A
     1: '$cancel',    // B
@@ -587,7 +618,6 @@ QInput.stringToAry = function(string) {
     var newState = [];
     var buttons = gamepad.buttons;
     var axes = gamepad.axes;
-    var threshold = 0.2;
     this._usingGamepad = false;
     this._lastGamepadDown = null;
     this._dirAxesA.x = 0;
@@ -615,30 +645,30 @@ QInput.stringToAry = function(string) {
       this._dirAxesA.x = 1;
     }
     // left stick
-    if (axes[0] < -threshold) {
+    if (axes[0] < -_threshold) {
       this._dirAxesA.x = axes[0];
       newState[14] = true;    // left
       this._lastUsed = 'gamepad';
-    } else if (axes[0] > threshold) {
+    } else if (axes[0] > _threshold) {
       this._dirAxesA.x = axes[0];
       newState[15] = true;    // right
       this._lastUsed = 'gamepad';
     }
-    if (axes[1] < -threshold) {
+    if (axes[1] < -_threshold) {
       this._dirAxesA.y = axes[1];
       newState[12] = true;    // up
       this._lastUsed = 'gamepad';
-    } else if (axes[1] > threshold) {
+    } else if (axes[1] > _threshold) {
       this._dirAxesA.y = axes[1];
       newState[13] = true;    // down
       this._lastUsed = 'gamepad';
     }
     // right stick
-    if (Math.abs(axes[2]) > threshold) {
+    if (Math.abs(axes[2]) > _threshold) {
       this._dirAxesB.x = axes[2];
       this._lastUsed = 'gamepad';
     }
-    if (Math.abs(axes[3]) > threshold) {
+    if (Math.abs(axes[3]) > _threshold) {
       this._dirAxesB.y = axes[3];
       this._lastUsed = 'gamepad';
     }
