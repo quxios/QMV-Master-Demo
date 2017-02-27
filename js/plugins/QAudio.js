@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QAudio = '2.1.0';
+Imported.QAudio = '2.1.1';
 
 if (!Imported.QPlus) {
   var msg = 'Error: QAudio requires QPlus to work.';
@@ -19,7 +19,7 @@ if (!Imported.QPlus) {
  /*:
  * @plugindesc <QAudio>
  * Few new audio features
- * @author Quxios  | Version 2.1.0
+ * @author Quxios  | Version 2.1.1
  *
  * @requires QPlus
  *
@@ -218,14 +218,9 @@ if (!Imported.QPlus) {
         fadeIn: Number(fadein) || 0
       })
     }
-    if (cmd === 'fadeout') {
-      var id = args[1];
-      var duration = Number(args[2]) || 0;
-      AudioManager.fadeOutQAudio(id, duration);
-    }
     if (cmd === 'stop') {
       var id = args[1];
-      var fadeOut = Number(QPlus.getArg(args2, /^fadeout(\d+)/i));
+      var fadeOut = Number(QPlus.getArg(args, /^fadeout(\d+)/i));
       if (fadeOut) {
         AudioManager.fadeOutQAudio(id, fadeOut);
       } else {
