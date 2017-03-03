@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QPathfind = '1.0.0';
+Imported.QPathfind = '1.0.1';
 
 if (!Imported.QPlus) {
   var msg = 'Error: QPathfind requires QPlus to work.';
@@ -19,9 +19,11 @@ if (!Imported.QPlus) {
  /*:
  * @plugindesc <QPathfind>
  * A* Pathfinding algorithm
- * @author Quxios  | Version 1.0.0
+ * @author Quxios  | Version 1.0.1
  *
  * @requires QPlus
+ *
+ * @video
  *
  * @param Diagonals
  * @desc Set to true to enable diagonals in the route
@@ -46,8 +48,6 @@ if (!Imported.QPlus) {
  * @desc (Only for QMovement) Uses half the value from Optimize Move Tiles.
  * Slightly increases pathfinding accuracy.
  * @default true
- *
- * @video
  *
  * @help
  * ============================================================================
@@ -228,7 +228,6 @@ function QPathfind() {
     this._current = null;
     this._completed = false;
     this._tick = 0;
-    this._steps = 0;
     if (this.options.smart > 1) {
       // TODO smart wait should probably be calculated
       // based on how many pathfinders there are
@@ -252,6 +251,7 @@ function QPathfind() {
     if (!canPass && !this.options.chase) {
       this.onFail();
     }
+    this.update();
   };
 
   QPathfind.prototype.update = function() {
@@ -268,7 +268,6 @@ function QPathfind() {
         if (this.options.chase) {
           chasing.setThrough(oldThrough);
         }
-        this._steps++;
         if (this._completed) {
           break;
         } else if (this._openNodes.length === 0) {
@@ -325,6 +324,10 @@ function QPathfind() {
     return QPlus.getCharacter(this._charaId);
   };
 
+  // TODO
+  // + Try a heap again, last time heap didn't inc performace
+  //   may have been a bad heap class
+  // + Look for other ways to inc performance, ex; mix in jump point
   QPathfind.prototype.aStar = function() {
     var currI = 0;
     var i, j;
@@ -701,7 +704,11 @@ function QPathfind() {
   Game_Character.prototype.restartPathfind = function() {
     var x = this._pathfind._endNode.x;
     var y = this._pathfind._endNode.y;
-    this.initPathfind(x, y, this._pathfind.options);
+    this._isPathfinding = false;
+    this.processRouteEnd();
+    var options = this._pathfind.options;
+    this._pathfind = new QPathfind(this.charaId(), new Point(x, y), options);
+    this._isChasing = options.chase !== null ? options.chase : false;
   };
 
   Game_Character.prototype.startPathfind = function(path) {

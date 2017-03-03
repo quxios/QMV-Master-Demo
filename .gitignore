@@ -7,6 +7,9 @@ movies/
 
 # Include new imgs
 !img/characters/%test-Actor1.png
+!icon/cursor-default.png
+!icon/cursor-pointer.png
+!img/parallaxes/!CollisionMap.png
 
 # Ignore default js
 js/libs/
