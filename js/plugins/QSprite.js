@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QSprite = '2.0.5';
+Imported.QSprite = '2.0.6';
 Imported.Quasi_Sprite = true; // backwards compatibility
 
 if (!Imported.QPlus) {
@@ -16,7 +16,7 @@ if (!Imported.QPlus) {
  /*:
  * @plugindesc <QSprite>
  * Lets you configure Spritesheets
- * @author Quxios  | Version 2.0.5
+ * @author Quxios  | Version 2.0.6
  *
  * @requires QPlus
  *
@@ -253,6 +253,7 @@ QSprite.json = null;
     _idleInterval[1] = _idleInterval[0];
   }
   var _useNewAdjust = _params['Use New Adjust'] === 'true';
+  var _hasQMovement = Imported.Quasi_Movement || Imported.QMovement;
 
   (function() {
     var xhr = new XMLHttpRequest();
@@ -269,7 +270,7 @@ QSprite.json = null;
       alert('Error: data/SpriteAnim.json could not be loaded.');
     }
     xhr.send();
-  })()
+  })();
 
   var Alias_Scene_Base_isReady = Scene_Base.prototype.isReady;
   Scene_Base.prototype.isReady = function() {
@@ -430,7 +431,7 @@ QSprite.json = null;
       this.clearPose();
     }
     var dir = this._direction;
-    if (Imported.Quasi_Movement && this.isDiagonal()) {
+    if (_hasQMovement && this.isDiagonal()) {
       var diag = this.isDiagonal();
     }
     if (!isMoving && this.hasPose(this._idlePose + dir)) {
@@ -629,7 +630,7 @@ QSprite.json = null;
   Game_CharacterBase.prototype.playPose = function(pose, lock, pause, looping, canBreak) {
     if (!this.qSprite()) return;
     var dir = this._direction;
-    if (Imported.Quasi_Movement && this.isDiagonal()) {
+    if (_hasQMovement && this.isDiagonal()) {
       var diag = this.isDiagonal();
       if (this.hasPose(pose + diag)) {
         dir = diag;
