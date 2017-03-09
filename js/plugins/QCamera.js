@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QCamera = '1.0.4';
+Imported.QCamera = '1.1.0';
 
 if (!Imported.QPlus) {
   var msg = 'Error: QCamera requires QPlus to work.';
@@ -19,7 +19,7 @@ if (!Imported.QPlus) {
  /*:
  * @plugindesc <QCamera>
  * Better Camera control
- * @author Quxios  | Version 1.0.4
+ * @author Quxios  | Version 1.1.0
  *
  * @requires QPlus
  *
@@ -75,7 +75,7 @@ if (!Imported.QPlus) {
  * CHARAID - The character identifier.
  *
  *  - For player: 0, p, or player
- *  - For events: EVENTID, eEVENTID or eventEVENTID
+ *  - For events: EVENTID, eEVENTID, eventEVENTID or this for the event that called this
  *  (replace EVENTID with a number)
  *
  * Possible options:
@@ -93,7 +93,7 @@ if (!Imported.QPlus) {
  * CHARAID - The character identifier.
  *
  *  - For player: 0, p, or player
- *  - For events: EVENTID, eEVENTID or eventEVENTID
+ *  - For events: EVENTID, eEVENTID, eventEVENTID or this for the event that called this
  *  (replace EVENTID with a number)
  *
  * Possible options:
@@ -117,12 +117,15 @@ if (!Imported.QPlus) {
  * ## Links
  * ============================================================================
  * RPGMakerWebs:
+ *
  *  http://forums.rpgmakerweb.com/index.php?threads/qplugins.73023/
  *
  * Terms of use:
+ *
  *  https://github.com/quxios/QMV-Master-Demo/blob/master/readme.md
  *
  * Like my plugins? Support me on Patreon!
+ *
  *  https://www.patreon.com/quxios
  *
  * @tags camera
@@ -171,7 +174,12 @@ function Sprite_Bars() {
       $gameMap.startQScroll(x, y, speed, frames);
     }
     if (cmd === 'scrollto') {
-      var chara  = QPlus.getCharacter(args2[0]);
+      var chara;
+      if (args2[0].toLowerCase() === 'this') {
+        chara = this.character(0);
+      } else {
+        chara  = QPlus.getCharacter(args2[0]);
+      }
       var speed  = Number(QPlus.getArg(args2, /^speed(\d+)/i)) || 4;
       var frames = Number(QPlus.getArg(args2, /^frames(\d+)/i)) || null;
       if (chara) {
@@ -182,7 +190,12 @@ function Sprite_Bars() {
       }
     }
     if (cmd === 'focus') {
-      var chara  = QPlus.getCharacter(args2[0]);
+      var chara;
+      if (args2[0].toLowerCase() === 'this') {
+        chara = this.character(0);
+      } else {
+        chara  = QPlus.getCharacter(args2[0]);
+      }
       var speed  = Number(QPlus.getArg(args2, /^speed(\d+)/i)) || null;
       var frames = Number(QPlus.getArg(args2, /^frames(\d+)/i)) || 15;
       if (chara) {
