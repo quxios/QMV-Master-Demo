@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QMovement = '1.0.3';
+Imported.QMovement = '1.1.0';
 
 if (!Imported.QPlus) {
   var msg = 'Error: QMovement requires QPlus to work.';
@@ -19,7 +19,7 @@ if (!Imported.QPlus) {
  /*:
  * @plugindesc <QMovement>
  * More control over character movement
- * @author Quxios  | Version 1.0.3
+ * @author Quxios  | Version 1.1.0
  *
  * @repo https://github.com/quxios/QMovement
  *
@@ -356,7 +356,7 @@ function QMovement() {
     3599: [48, 48],  // Impassable A2, A3, A4
     3727: [48, 48]
   };
-  QMovement.regionBoxes = {}; // will be changable in a separate addon
+  QMovement.regionColliders = {}; // will be changable in a separate addon
 })();
 
 //=============================================================================
@@ -709,7 +709,7 @@ function Circle_Collider() {
   Circle_Collider.prototype.initialize = function(width, height, ox, oy) {
     ox = ox !== undefined ? ox : 0;
     oy = oy !== undefined ? oy : 0;
-    this._radius = new Point((width - 1) / 2, (height - 1) / 2);
+    this._radius = new Point(width / 2, height / 2);
     var points = [];
     for (var i = 7; i >= 0; i--) {
       var rad = Math.PI / 4 * i + Math.PI;
@@ -809,34 +809,22 @@ function ColliderManager() {
   ColliderManager._colliderGrid = [];
   ColliderManager._characterGrid = [];
   ColliderManager._sectorSize = 48;
-  ColliderManager._needsRefresh = false;
+  ColliderManager._needsRefresh = true;
   ColliderManager.container = new Sprite();
   ColliderManager.container.alpha = 0.3;
   ColliderManager.visible = QMovement.showColliders;
 
   ColliderManager.clear = function() {
     this._colliders = [];
-    this._colliderGrid = new Array($gameMap.width());
-    for (var x = 0; x < this._colliderGrid.length; x++) {
-      this._colliderGrid[x] = [];
-      for (var y = 0; y < $gameMap.height(); y++) {
-        this._colliderGrid[x].push([]);
-      }
-    }
-    this._characterGrid = new Array($gameMap.width());
-    for (var x = 0; x < this._characterGrid.length; x++) {
-      this._characterGrid[x] = [];
-      for (var y = 0; y < $gameMap.height(); y++) {
-        this._characterGrid[x].push([]);
-      }
-    }
+    this._colliderGrid = [];
+    this._characterGrid = [];
     this.container.removeChildren();
-    ColliderManager._needsRefresh = true;
+    this._needsRefresh = true;
   };
 
   ColliderManager.refresh = function() {
-    // refresh is done inside Game_Map
-    this._needsRefresh = true;
+    this.clear();
+    // rest of refresh is done inside Game_Map
   };
 
   ColliderManager.addCollider = function(collider, duration, ignoreGrid) {
@@ -1091,17 +1079,20 @@ function ColliderManager() {
 })();
 
 //-----------------------------------------------------------------------------
+// Game_System
+
+(function() {
+  var Alias_Game_System_onAfterLoad = Game_System.prototype.onAfterLoad;
+  Game_System.prototype.onAfterLoad = function() {
+    Alias_Game_System_onAfterLoad.call(this);
+    ColliderManager.refresh();
+  };
+})();
+
+//-----------------------------------------------------------------------------
 // Game_Map
 
 (function() {
-  var Alias_Game_Map_setup = Game_Map.prototype.setup;
-  Game_Map.prototype.setup = function(mapId) {
-    if ($dataMap) {
-      ColliderManager.clear();
-    }
-    Alias_Game_Map_setup.call(this, mapId);
-  };
-
   Game_Map.prototype.tileWidth = function() {
     return QMovement.tileSize;
   };
@@ -1117,11 +1108,35 @@ function ColliderManager() {
     var tiles = this.allTiles(x, y);
     for (var i = 0; i < tiles.length; i++) {
       var flag = flags[tiles[i]];
-      console.log("layer", i, ":", flag);
-      if (flag & 0x20)  console.log("layer", i, "is ladder");
-      if (flag & 0x40)  console.log("layer", i, "is bush");
-      if (flag & 0x80)  console.log("layer", i, "is counter");
-      if (flag & 0x100) console.log("layer", i, "is damage");
+      console.log('layer', i, ':', flag);
+      if (flag & 0x20)  console.log('layer', i, 'is ladder');
+      if (flag & 0x40)  console.log('layer', i, 'is bush');
+      if (flag & 0x80)  console.log('layer', i, 'is counter');
+      if (flag & 0x100) console.log('layer', i, 'is damage');
+    }
+  };
+
+  var Alias_Game_Map_setupEvents = Game_Map.prototype.setupEvents;
+  Game_Map.prototype.setupEvents = function() {
+    ColliderManager.clear();
+    this.setupColliders();
+    Alias_Game_Map_setupEvents.call(this);
+  };
+
+  Game_Map.prototype.setupColliders = function() {
+    ColliderManager._colliderGrid = new Array(this.width());
+    for (var x = 0; x < ColliderManager._colliderGrid.length; x++) {
+      ColliderManager._colliderGrid[x] = [];
+      for (var y = 0; y < this.height(); y++) {
+        ColliderManager._colliderGrid[x].push([]);
+      }
+    }
+    ColliderManager._characterGrid = new Array(this.width());
+    for (var x = 0; x < ColliderManager._characterGrid.length; x++) {
+      ColliderManager._characterGrid[x] = [];
+      for (var y = 0; y < this.height(); y++) {
+        ColliderManager._characterGrid[x].push([]);
+      }
     }
   };
 
@@ -1135,7 +1150,7 @@ function ColliderManager() {
   };
 
   Game_Map.prototype.reloadAllColliders = function() {
-    ColliderManager.clear();
+    this.setupColliders();
     this.reloadTileMap();
     var events = this.events();
     var i, j;
@@ -1168,7 +1183,7 @@ function ColliderManager() {
         for (var i = tiles.length - 1; i >= 0; i--) {
           var flag = flags[tiles[i]];
           if (flag === 16) continue;
-          var colliders = this.getMapCollider(x, y, flag);
+          this.getMapCollider(x, y, flag);
         }
       }
     }
@@ -1181,55 +1196,62 @@ function ColliderManager() {
       flag = flag.slice(flag.length - 12, flag.length);
       flag = parseInt(flag, 2);
     }
-    if (QMovement.regionBoxes[this.regionId(x, y)]) {
-      var regionData = QMovement.regionBoxes[this.regionId(x, y)];
-      var boxData = [];
+    var boxData;
+    if (QMovement.regionColliders[this.regionId(x, y)]) {
+      var regionData = QMovement.regionColliders[this.regionId(x, y)];
+      boxData = [];
       for (var i = 0; i < regionData.length; i++) {
-        var data = [
+        boxData[i] = [
           regionData[i].width || 0,
           regionData[i].height || 0,
           regionData[i].ox || 0,
           regionData[i].oy || 0,
-          regionData[i].tag || ""
-        ];
-        boxData[i] = data;
+          regionData[i].tag || regionData[i].note || '',
+          regionData[i].type || 'box'
+        ]
       }
       flag = 0;
     } else {
-      var boxData = QMovement.tileBoxes[flag];
+      boxData = QMovement.tileBoxes[flag];
     }
     if (!boxData) {
       if (flag & 0x20 || flag & 0x40 || flag & 0x80 || flag & 0x100) {
         boxData = [this.tileWidth(), this.tileHeight(), 0, 0];
       } else {
-        return [];
+        return;
       }
     }
-    var tilebox = [];
     if (boxData[0].constructor === Array) {
       var i = 0;
       for (var i = 0; i < boxData.length; i++) {
-        var newBox = this.makeTileCollider(x, y, realFlag, boxData[i], i);
-        tilebox.push(newBox);
+        this.makeTileCollider(x, y, realFlag, boxData[i], i);
       }
     } else {
-      var newBox = this.makeTileCollider(x, y, realFlag, boxData);
-      tilebox.push(newBox);
+      this.makeTileCollider(x, y, realFlag, boxData, 0);
     }
-    return tilebox;
   };
 
   Game_Map.prototype.makeTileCollider = function(x, y, flag, boxData, index) {
+    // boxData is array [width, height, ox, oy, note, type]
     var x1 = x * this.tileWidth();
     var y1 = y * this.tileHeight();
     var ox = boxData[2] || 0;
     var oy = boxData[3] || 0;
     var w  = boxData[0];
     var h  = boxData[1];
-    var newBox = new Box_Collider(w, h, ox, oy);
+    if (w === 0 || h === 0) return;
+    var type = boxData[5] || 'box';
+    var newBox;
+    if (type === 'circle') {
+      newBox = new Circle_Collider(w, h, ox, oy);
+    } else if (type === 'box') {
+      newBox = new Box_Collider(w, h, ox, oy);
+    } else {
+      return;
+    }
     newBox.isTile = true;
     newBox.moveTo(x1, y1);
-    newBox.note      = boxData[4] || "";
+    newBox.note      = boxData[4] || '';
     newBox.flag      = flag;
     newBox.terrain   = flag >> 12;
     newBox.isWater1  = flag >> 12 === QMovement.water1Tag || /<water1>/i.test(newBox.note);
@@ -1249,7 +1271,6 @@ function ColliderManager() {
       newBox.color = QMovement.collision.toLowerCase();
     }
     ColliderManager.addCollider(newBox, -1);
-    return newBox;
   };
 
   Game_Map.prototype.adjustPX = function(x) {
@@ -1413,7 +1434,7 @@ function ColliderManager() {
 
   Game_CharacterBase.prototype.moveTiles = function() {
     if (QMovement.grid < this.frameSpeed()) {
-      return QMovement.offGrid ? this.frameSpeed() : QMovement.grid
+      return QMovement.offGrid ? this.frameSpeed() : QMovement.grid;
     }
     return QMovement.grid;
   };
@@ -2008,13 +2029,13 @@ function ColliderManager() {
   };
 
   Game_CharacterBase.prototype.collider = function(type) {
-    if (!$dataMap) return;
+    if (!$dataMap || !$gameMap) return;
     if (!this._colliders) this.setupColliders();
     return this._colliders[type] || this._colliders['default'];
   };
 
   Game_CharacterBase.prototype.defaultColliderConfig = function() {
-    return 'box,48,48';
+    return 'box,0,0';
   };
 
   Game_CharacterBase.prototype.setupColliders = function() {
@@ -2272,6 +2293,26 @@ function ColliderManager() {
     }
   };
 
+  Game_Character.prototype.turnTowardCharacter = function(character) {
+    var sx = this.deltaPXFrom(character.cx());
+    var sy = this.deltaPYFrom(character.cy());
+    if (Math.abs(sx) > Math.abs(sy)) {
+      this.setDirection(sx > 0 ? 4 : 6);
+    } else if (sy !== 0) {
+      this.setDirection(sy > 0 ? 8 : 2);
+    }
+  };
+
+  Game_Character.prototype.turnAwayFromCharacter = function(character) {
+    var sx = this.deltaPXFrom(character.cx());
+    var sy = this.deltaPYFrom(character.cy());
+    if (Math.abs(sx) > Math.abs(sy)) {
+      this.setDirection(sx > 0 ? 6 : 4);
+    } else if (sy !== 0) {
+      this.setDirection(sy > 0 ? 2 : 8);
+    }
+  };
+
   Game_Character.prototype.deltaPXFrom = function(x) {
     return $gameMap.deltaPX(this.cx(), x);
   };
@@ -2282,6 +2323,18 @@ function ColliderManager() {
 
   Game_Character.prototype.pixelDistanceFrom = function(x, y) {
     return $gameMap.distance(this.cx(), this.cy(), x, y);
+  };
+
+  // Returns the px, py needed for this character to be center aligned
+  // with the character passed in (align is based off collision collider)
+  Game_Character.prototype.centerWith = function(character) {
+    var dx1 = this.cx() - this.px;
+    var dy1 = this.cy() - this.py;
+    var dx2 = character.cx() - character.px;
+    var dy2 = character.cy() - character.py;
+    var dx = dx1 - dx2;
+    var dy = dy1 - dy2;
+    return new Point(character.px + dx, character.py + dy);
   };
 })();
 
@@ -2310,6 +2363,9 @@ function ColliderManager() {
 
   Game_Player.prototype.moveByMouse = function(x, y) {
     $gameTemp.setPixelDestination(x, y);
+    if (this.triggerTouchAction()) {
+      return this.clearMouseMove();
+    }
     this._requestMouseMove = false;
     this._movingWithMouse = true;
     // alias with pathfinding addon
@@ -2476,6 +2532,42 @@ function ColliderManager() {
     }
   };
 
+  Game_Player.prototype.triggerTouchAction = function() {
+    if ($gameTemp.isDestinationValid()) {
+      var dx = $gameTemp.destinationPX() - this.cx();
+      var dy = $gameTemp.destinationPY() - this.cy();
+      var radian = Math.atan2(-dy, dx);
+      radian += radian < 0 ? 2 * Math.PI : 0;
+      var dir = this.radianToDirection(radian, true);
+      var horz = dir;
+      var vert = dir;
+      if ([1, 3, 7, 9].contains(dir)) {
+        if (dir === 1 || dir === 7) horz = 4;
+        if (dir === 1 || dir === 3) vert = 2;
+        if (dir === 3 || dir === 9) horz = 6;
+        if (dir === 7 || dir === 9) vert = 8;
+      }
+      var dist = this.pixelDistanceFrom($gameTemp.destinationPX(), $gameTemp.destinationPY());
+      if (dist <= QMovement.tileSize) {
+        var x1 = $gameMap.roundPXWithDirection(this._px, horz, this.moveTiles());
+        var y1 = $gameMap.roundPYWithDirection(this._py, vert, this.moveTiles());
+        this.startMapEvent(x1, y1, [0, 1, 2], true);
+        if (!$gameMap.isAnyEventStarting()) {
+          if (this.checkCounter([0, 1, 2], $gameTemp.destinationPX(), $gameTemp.destinationPY())) {
+            this.clearMouseMove();
+            this.setDirection(dir);
+            return true;
+          }
+        } else {
+          this.clearMouseMove();
+          this.setDirection(dir);
+          return true;
+        }
+      }
+    }
+    return false;
+  };
+
   Game_Player.prototype.checkCounter = function(triggers, x2, y2) {
     var direction = this.direction();
     var x1 = this._px;
@@ -2506,6 +2598,16 @@ function ColliderManager() {
       var y3 = $gameMap.roundPYWithDirection(y1, direction, dist);
       return this.startMapEvent(x3, y3, triggers, true);
     }
+    return false;
+  };
+
+  Game_Player.prototype.airshipHere = function() {
+    // TODO
+    return false;
+  };
+
+  Game_Player.prototype.shipBoatThere = function(x2, y2) {
+    // TODO
     return false;
   };
 
@@ -2547,6 +2649,9 @@ function ColliderManager() {
 
   Game_Event.prototype.updateSelfMovement = function() {
     if (this.isNearTheScreen() && this.canMove()) {
+      if (this.checkStop(this.stopCountThreshold())) {
+        this._stopCount = this._freqCount = 0;
+      }
       if (this._freqCount < this.freqThreshold()) {
         switch (this._moveType) {
         case 1:
@@ -2558,10 +2663,6 @@ function ColliderManager() {
         case 3:
           this.moveTypeCustom();
           break;
-        }
-      } else {
-        if (this.checkStop(this.stopCountThreshold())) {
-          this._stopCount = this._freqCount = 0;
         }
       }
     }
@@ -2619,22 +2720,28 @@ function ColliderManager() {
   };
 
   Scene_Map.prototype.processMapTouch = function() {
-    if ((TouchInput.isTriggered() || TouchInput.isPressed()) && $gamePlayer.canClick()) {
-      if (this._touchCount % 10 === 0) {
-        var x = $gameMap.canvasToMapPX(TouchInput.x);
-        var y = $gameMap.canvasToMapPY(TouchInput.y);
-        if (!QMovement.offGrid) {
-          var ox  = x % QMovement.tileSize;
-          var oy  = y % QMovement.tileSize;
-          x += QMovement.tileSize / 2 - ox;
-          y += QMovement.tileSize / 2 - oy;
+    if ( $gamePlayer.canClick() && TouchInput.isTriggered() || this._touchCount > 0) {
+      if (TouchInput.isPressed()) {
+        if (this._touchCount === 0 || this._touchCount >= 15) {
+          var x = $gameMap.canvasToMapPX(TouchInput.x);
+          var y = $gameMap.canvasToMapPY(TouchInput.y);
+          if (!QMovement.offGrid) {
+            var ox  = x % QMovement.tileSize;
+            var oy  = y % QMovement.tileSize;
+            x += QMovement.tileSize / 2 - ox;
+            y += QMovement.tileSize / 2 - oy;
+          }
+          if (!TouchInput.isMousePressed()) {
+            $gameTemp.setIsMapTouched(true);
+          }
+          $gameTemp.setPixelDestination(x, y);
+          $gamePlayer.requestMouseMove();
         }
-        $gameTemp.setPixelDestination(x, y);
-        $gamePlayer.requestMouseMove();
+        this._touchCount++;
+      } else {
+        this._touchCount = 0;
+        $gameTemp.setIsMapTouched(false);
       }
-      this._touchCount++;
-    } else {
-      this._touchCount = 0;
     }
   };
 })();
