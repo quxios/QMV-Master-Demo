@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QSpeed = '1.1.0';
+Imported.QSpeed = '1.2.0';
 
 if (!Imported.QPlus) {
   var msg = 'Error: QSpeed requires QPlus to work.';
@@ -15,7 +15,7 @@ if (!Imported.QPlus) {
  /*:
  * @plugindesc <QSpeed>
  * Allows for custom Move speeds and an acceleration effect
- * @author Quxios  | Version 1.1.0
+ * @author Quxios  | Version 1.2.0
  *
  * @requires QPlus
  *
@@ -56,7 +56,7 @@ if (!Imported.QPlus) {
  * CHARAID   - The character identifier.
  *
  *  - For player: 0, p, or player
- *  - For events: EVENTID, eEVENTID or eventEVENTID
+ *  - For events: EVENTID, eEVENTID, eventEVENTID or this for the event that called this
  *  (replace EVENTID with a number)
  *
  * MOVESPEED - The speed to set the character too. Can be a float; ex: 3.5
@@ -74,7 +74,7 @@ if (!Imported.QPlus) {
  * CHARAID   - The character identifier.
  *
  *  - For player: 0, p, or player
- *  - For events: EVENTID, eEVENTID or eventEVENTID
+ *  - For events: EVENTID, eEVENTID, eventEVENTID or this for the event that called this
  *  (replace EVENTID with a number)
  * ----------------------------------------------------------------------------
  * **Disabling Acceleration**
@@ -85,7 +85,7 @@ if (!Imported.QPlus) {
  * CHARAID   - The character identifier.
  *
  *  - For player: 0, p, or player
- *  - For events: EVENTID, eEVENTID or eventEVENTID
+ *  - For events: EVENTID, eEVENTID, eventEVENTID or this for the event that called this
  *  (replace EVENTID with a number)
  * ----------------------------------------------------------------------------
  * **Setting Acceleration time**
@@ -96,7 +96,7 @@ if (!Imported.QPlus) {
  * CHARAID   - The character identifier.
  *
  *  - For player: 0, p, or player
- *  - For events: EVENTID, eEVENTID or eventEVENTID
+ *  - For events: EVENTID, eEVENTID, eventEVENTID or this for the event that called this
  *  (replace EVENTID with a number)
  *
  * TIME      - The time in frames it takes the character to reach new speeds.
@@ -147,12 +147,15 @@ if (!Imported.QPlus) {
  * ## Links
  * ============================================================================
  * RPGMakerWebs:
+ *
  *  http://forums.rpgmakerweb.com/index.php?threads/qplugins.73023/
  *
  * Terms of use:
+ *
  *  https://github.com/quxios/QMV-Master-Demo/blob/master/readme.md
  *
  * Like my plugins? Support me on Patreon!
+ *
  *  https://www.patreon.com/quxios
  *
  * @tags character
@@ -175,14 +178,19 @@ if (!Imported.QPlus) {
   var Alias_Game_Interpreter_pluginCommand = Game_Interpreter.prototype.pluginCommand;
   Game_Interpreter.prototype.pluginCommand = function(command, args) {
     if (command.toLowerCase() === 'qspeed') {
-      this.qPluginCommand(args);
+      this.qSpeedCommand(args);
       return;
     }
     Alias_Game_Interpreter_pluginCommand.call(this, command, args);
   };
 
-  Game_Interpreter.prototype.qPluginCommand = function(args) {
-    var chara = QPlus.getCharacter(args[0]);
+  Game_Interpreter.prototype.qSpeedCommand = function(args) {
+    var chara;
+    if (args[0].toLowerCase() === 'this') {
+      chara = this.character(0);
+    } else {
+      chara = QPlus.getCharacter(args[0]);
+    }
     var cmd = args[1].toLowerCase();
     var args2 = args.slice(2);
     if (cmd === 'enableaccel') {
