@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QSprite = '2.0.6';
+Imported.QSprite = '2.1.0';
 Imported.Quasi_Sprite = true; // backwards compatibility
 
 if (!Imported.QPlus) {
@@ -16,7 +16,7 @@ if (!Imported.QPlus) {
  /*:
  * @plugindesc <QSprite>
  * Lets you configure Spritesheets
- * @author Quxios  | Version 2.0.6
+ * @author Quxios  | Version 2.1.0
  *
  * @requires QPlus
  *
@@ -112,9 +112,9 @@ if (!Imported.QPlus) {
  * With spritesheets being large, it may be hard to pick that events starting
  * direction. To fix that, you can add a comment in that event that will set
  * it's default direction.
- * ```
+ * ~~~
  *   <direction:X>
- * ```
+ * ~~~
  * Set X to direction. 2 for down, 4 left, 6 right, 8 up.
  * ============================================================================
  * ## Plugin Commands
@@ -128,7 +128,7 @@ if (!Imported.QPlus) {
  * CHARAID - The character identifier.
  *
  *  - For player: 0, p, or player
- *  - For events: EVENTID, eEVENTID or eventEVENTID
+ *  - For events: EVENTID, eEVENTID, eventEVENTID or this for the event that called this
  *  (replace EVENTID with a number)
  *
  * POSE    - The pose to play (Don’t add the direction! ex: atk, not atk2)
@@ -150,7 +150,7 @@ if (!Imported.QPlus) {
  * CHARAID - The character identifier.
  *
  *  - For player: 0, p, or player
- *  - For events: EVENTID, eEVENTID or eventEVENTID
+ *  - For events: EVENTID, eEVENTID, eventEVENTID or this for the event that called this
  *  (replace EVENTID with a number)
  *
  * POSE    - The pose to play (Don’t add the direction! ex: atk, not atk2)
@@ -221,12 +221,15 @@ if (!Imported.QPlus) {
  * ## Links
  * ============================================================================
  * RPGMakerWebs:
+ *
  *  http://forums.rpgmakerweb.com/index.php?threads/qplugins.73023/
  *
  * Terms of use:
+ *
  *  https://github.com/quxios/QMV-Master-Demo/blob/master/readme.md
  *
  * Like my plugins? Support me on Patreon!
+ *
  *  https://www.patreon.com/quxios
  *
  * @tags character, sprite, animation
@@ -295,7 +298,12 @@ QSprite.json = null;
   };
 
   Game_Interpreter.prototype.qSpriteCommand = function(args) {
-    var chara = QPlus.getCharacter(args[0]);
+    var chara;
+    if (args[0].toLowerCase() === 'this') {
+      chara = this.character(0);
+    } else {
+      chara = QPlus.getCharacter(args[0]);
+    }
     if (!chara) return;
     var cmd = args[1].toLowerCase();
     var args2 = args.slice(2);
