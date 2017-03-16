@@ -3,13 +3,13 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QPlus = '1.1.3';
+Imported.QPlus = '1.1.4';
 
 //=============================================================================
  /*:
  * @plugindesc <QPlus> (Should go above all Q Plugins)
  * Some small changes to MV for easier plugin development.
- * @author Quxios  | Version 1.1.3
+ * @author Quxios  | Version 1.1.4
  *
  * @param Quick Test
  * @desc Enable quick testing.
@@ -581,41 +581,41 @@ QPlus.freeImgCache = function(files) {
   };
 
   /**
-   * east is 0, north is 90, west is 180 and south is 270
+   * east is 0, north is 270, west is 180 and south is 90
    */
   Game_CharacterBase.prototype.directionToRadian = function(dir) {
     dir = dir || this._direction;
-    if (dir === 2) return Math.PI * 3 / 2;
+    if (dir === 2) return Math.PI / 2;
     if (dir === 4) return Math.PI;
     if (dir === 6) return 0;
-    if (dir === 8) return Math.PI / 2;
-    if (dir === 1) return Math.PI * 5 / 4;
-    if (dir === 3) return Math.PI * 7 / 4;
-    if (dir === 7) return Math.PI * 3 / 4;
-    if (dir === 9) return Math.PI / 4;
+    if (dir === 8) return Math.PI * 3 / 2;
+    if (dir === 1) return Math.PI * 3 / 4;
+    if (dir === 3) return Math.PI / 4;
+    if (dir === 7) return Math.PI * 5 / 4;
+    if (dir === 9) return Math.PI * 7 / 4;
     return 0;
   };
 
   Game_CharacterBase.prototype.radianToDirection = function(radian, useDiag) {
     if (useDiag) {
       if (radian >= Math.PI / 6 && radian < Math.PI / 3) {
-        return 9;
-      } else if (radian >= Math.PI * 2 / 3 && radian < Math.PI * 5 / 6) {
-        return 7;
-      } else if (radian >= Math.PI * 7 / 6 && radian < Math.PI * 4 / 3) {
-        return 1;
-      } else if (radian >= Math.PI * 5 / 3 && radian < Math.PI * 11 / 6) {
         return 3;
+      } else if (radian >= Math.PI * 2 / 3 && radian < Math.PI * 5 / 6) {
+        return 1;
+      } else if (radian >= Math.PI * 7 / 6 && radian < Math.PI * 4 / 3) {
+        return 7;
+      } else if (radian >= Math.PI * 5 / 3 && radian < Math.PI * 11 / 6) {
+        return 9;
       }
     }
     if (radian >= 0 && radian < Math.PI / 4) {
       return 6;
     } else if (radian >= Math.PI / 4 && radian < 3 * Math.PI / 4) {
-      return 8;
+      return 2;
     } else if (radian >= Math.PI * 3 / 4 && radian < Math.PI * 5 / 4) {
       return 4;
     } else if (radian >= Math.PI * 5 / 4 && radian < Math.PI * 7 / 4) {
-      return 2;
+      return 8;
     } else if (radian >= Math.PI * 7 / 4) {
       return 6;
     }
