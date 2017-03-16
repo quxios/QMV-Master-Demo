@@ -478,12 +478,14 @@ QInput.stringToAry = function(string) {
         return s;
       });
     }
+    this._lastTriggered = null;
     for (i = 0, j = any.length; i < j; i++) {
       if (this.isTriggered('#' + any[i])) {
         this._lastTriggered = any[i];
         return true;
       }
     }
+    return false;
   };
 
   // Checks if any press is pressed with .onkeypress()
