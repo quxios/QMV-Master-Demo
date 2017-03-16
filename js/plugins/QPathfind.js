@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QPathfind = '1.1.0';
+Imported.QPathfind = '1.1.1';
 
 if (!Imported.QPlus) {
   var msg = 'Error: QPathfind requires QPlus to work.';
@@ -19,7 +19,7 @@ if (!Imported.QPlus) {
  /*:
  * @plugindesc <QPathfind>
  * A* Pathfinding algorithm
- * @author Quxios  | Version 1.1.0
+ * @author Quxios  | Version 1.1.1
  *
  * @requires QPlus
  *
@@ -728,7 +728,34 @@ function QPathfind() {
   //-----------------------------------------------------------------------------
   // Game_CharacterBase
 
+  var Alias_Game_CharacterBase_initMembers = Game_CharacterBase.prototype.initMembers;
+  Game_CharacterBase.prototype.initMembers = function() {
+    Alias_Game_CharacterBase_initMembers.call(this);
+    this._pathfind = null;
+    this._isPathfinding = false;
+    this._isChasing = false;
+  };
+
+  var Alias_Game_CharacterBase_update = Game_CharacterBase.prototype.update;
+  Game_CharacterBase.prototype.update = function() {
+    Alias_Game_CharacterBase_update.call(this);
+    if (this._pathfind) {
+      this._pathfind.update();
+    }
+  };
+
   if (Imported.QMovement) {
+    // TODO might not be needed
+    var Alias_Game_CharacterBase_ignoreCharacters = Game_CharacterBase.prototype.ignoreCharacters;
+    Game_CharacterBase.prototype.ignoreCharacters = function(type) {
+      var ignores = Alias_Game_CharacterBase_ignoreCharacters.call(this, type);
+      if (this._isChasing !== false) {
+        if (!ignores['_pathfind']) ignores['_pathfind'] = [];
+        ignores['_pathfind'].push(this._isChasing);
+      }
+      return ignores[type] || [];
+    };
+
     Game_CharacterBase.prototype.optTiles = function() {
       if (!QMovement.offGrid) {
         return this.moveTiles();
@@ -762,35 +789,6 @@ function QPathfind() {
 
   //-----------------------------------------------------------------------------
   // Game_Character
-
-  var Alias_Game_Character_initMembers = Game_Character.prototype.initMembers;
-  Game_Character.prototype.initMembers = function() {
-    Alias_Game_Character_initMembers.call(this);
-    this._pathfind = null;
-    this._isPathfinding = false;
-    this._isChasing = false;
-  };
-
-  var Alias_Game_Character_update = Game_Character.prototype.update;
-  Game_Character.prototype.update = function() {
-    Alias_Game_Character_update.call(this);
-    if (this._pathfind) {
-      this._pathfind.update();
-    }
-  };
-
-  if (Imported.QMovement) {
-    // TODO might not be needed
-    var Alias_Game_CharacterBase_ignoreCharacters = Game_CharacterBase.prototype.ignoreCharacters;
-    Game_CharacterBase.prototype.ignoreCharacters = function(type) {
-      var ignores = Alias_Game_CharacterBase_ignoreCharacters.call(this, type);
-      if (this._isChasing !== false) {
-        if (!ignores['_pathfind']) ignores['_pathfind'] = [];
-        ignores['_pathfind'].push(this._isChasing);
-      }
-      return ignores[type] || [];
-    };
-  }
 
   // if using QMovement, x and y are pixel values
   Game_Character.prototype.initPathfind = function(x, y, options) {
