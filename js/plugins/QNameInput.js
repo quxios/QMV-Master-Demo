@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QNameInput = '2.0.0';
+Imported.QNameInput = '2.0.1';
 
 if (!Imported.QInput) {
   var msg = 'Error: QNameInput requires QInput to work.';
@@ -15,14 +15,14 @@ if (!Imported.QInput) {
  /*:
  * @plugindesc <QNameInput>
  * Quasi Input addon: Adds Keyboard Input to Name Input Scene
- * @author Quxios  | Version 2.0.0
+ * @author Quxios  | Version 2.0.1
  *
  * @requires QInput
  *
  * @param Show Window with Keys
  * @desc Set to true or false to display the old input window.
- * Default: true
- * @default true
+ * Default: false    MV Default: true
+ * @default false
  *
  * @param Window Width
  * @desc Set the width of the window
@@ -79,14 +79,18 @@ if (!Imported.QInput) {
       this._inputWindow.hide();
       this._inputWindow.deactivate();
       this._editWindow.setHandler('#enter', this.onInputOk.bind(this));
+    } else {
+      this._editWindow.setHandler('#enter', this._inputWindow.processOk.bind(this._inputWindow));
     }
+    this._editWindow._inputWindow = this._inputWindow;
+    this._inputWindow._last = 'here';
   };
 
   //-----------------------------------------------------------------------------
   // Window_NameEditInput
 
   function Window_NameEditInput() {
-      this.initialize.apply(this, arguments);
+    this.initialize.apply(this, arguments);
   }
 
   Window_NameEditInput.prototype = Object.create(Window_TextInput.prototype);
@@ -152,6 +156,11 @@ if (!Imported.QInput) {
     this.setCursorRect(rect.x, rect.y, rect.width, rect.height);
   };
 
+  Window_NameEditInput.prototype.add = function(ch) {
+    this._inputWindow._last = 'keyboard';
+    return Window_TextInput.prototype.add.call(this, ch);
+  };
+
   //-----------------------------------------------------------------------------
   // Window_NameInput
   //
@@ -163,7 +172,6 @@ if (!Imported.QInput) {
         this.processBack();
       }
       if (this.isOkTriggered()) {
-        Input.clear();
         this.processOk();
       }
     }
@@ -177,12 +185,53 @@ if (!Imported.QInput) {
     return Input.isRepeated('#esc');
   };
 
+  Window_NameInput.prototype.processOk = function() {
+    var last = this._last
+    if (this._last === 'here' && this.character()) {
+      this.onNameAdd();
+      this._last = last;
+    } else if (this._last === 'here' && this.isPageChange()) {
+      SoundManager.playOk();
+      this.cursorPagedown();
+    } else if (this._last === 'keyboard' || this.isOk()) {
+      this.onNameOk();
+    }
+  };
+
   var Alias_Window_NameInput_processCusorMove = Window_NameInput.prototype.processCursorMove;
   Window_NameInput.prototype.processCursorMove = function() {
-    // Force to use real down, up, left, right, pageup, pagedown keys
-    if (Input.anyTriggered('num2, num4, num6, num8, 2, 4, 6, 8, q, w')) {
-      return;
+    var lastPage = this._page;
+    if (this.isCursorMovable()) {
+      var lastIndex = this.index();
+      if (Input.isRepeated('#down')) {
+        this.cursorDown(Input.isTriggered('#down'));
+      }
+      if (Input.isRepeated('#up')) {
+        this.cursorUp(Input.isTriggered('#up'));
+      }
+      if (Input.isRepeated('#right')) {
+        this.cursorRight(Input.isTriggered('#right'));
+      }
+      if (Input.isRepeated('#left')) {
+        this.cursorLeft(Input.isTriggered('#left'));
+      }
+      if (!this.isHandled('pagedown') && Input.isTriggered('#pagedown')) {
+        this.cursorPagedown();
+      }
+      if (!this.isHandled('pageup') && Input.isTriggered('#pageup')) {
+        this.cursorPageup();
+      }
+      if (this.index() !== lastIndex) {
+        console.log('here');
+        this._last = 'here';
+        SoundManager.playCursor();
+      }
     }
-    return Alias_Window_NameInput_processCusorMove.call(this);
+    this.updateCursor();
+    if (this._page !== lastPage) {
+      console.log('here');
+      this._last = 'here';
+      SoundManager.playCursor();
+    }
   };
 })();
