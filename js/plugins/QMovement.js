@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QMovement = '1.1.0';
+Imported.QMovement = '1.1.1';
 
 if (!Imported.QPlus) {
   var msg = 'Error: QMovement requires QPlus to work.';
@@ -19,7 +19,7 @@ if (!Imported.QPlus) {
  /*:
  * @plugindesc <QMovement>
  * More control over character movement
- * @author Quxios  | Version 1.1.0
+ * @author Quxios  | Version 1.1.1
  *
  * @repo https://github.com/quxios/QMovement
  *
@@ -503,9 +503,9 @@ function Polygon_Collider() {
 
   Polygon_Collider.prototype.gridEdge = function() {
     var x1 = this._xMin + this.x + this.ox;
-    var x2 = this._xMax + this.x + this.ox;
+    var x2 = this._xMax + this.x + this.ox - 1;
     var y1 = this._yMin + this.y + this.oy;
-    var y2 = this._yMax + this.y + this.oy;
+    var y2 = this._yMax + this.y + this.oy - 1;
     x1 = Math.floor(x1 / QMovement.tileSize);
     x2 = Math.floor(x2 / QMovement.tileSize);
     y1 = Math.floor(y1 / QMovement.tileSize);
@@ -544,7 +544,7 @@ function Polygon_Collider() {
 
   Polygon_Collider.prototype.setRadian = function(radian) {
     radian = radian !== undefined ? radian : 0;
-    this.rotate(radian - this.radian);
+    this.rotate(radian - this._radian);
   };
 
   Polygon_Collider.prototype.rotate = function(radian) {
@@ -862,9 +862,7 @@ function ColliderManager() {
   };
 
   ColliderManager.removeSprite = function(sprite) {
-    if (sprite) {
-      this.container.removeChild(sprite);
-    }
+    this.container.removeChild(sprite);
   };
 
   ColliderManager.updateGrid = function(collider, prevGrid) {
@@ -879,6 +877,7 @@ function ColliderManager() {
       grid = this._colliderGrid;
       currGrid = collider.sectorEdge();
     }
+    // TODO make this into 1 single 2d loop
     var x, y;
     if (prevGrid) {
       if (currGrid.x1 == prevGrid.x1 && currGrid.y1 === prevGrid.y1 &&
@@ -912,10 +911,10 @@ function ColliderManager() {
   ColliderManager.removeFromGrid = function(collider) {
     var edge;
     var grid;
-    if (collider._colliders) {
+    if (collider._colliders) { // Is a character obj
       grid = this._characterGrid;
       currGrid = collider.collider('bounds').sectorEdge();
-    } else {
+    } else { // is a collider
       grid = this._colliderGrid;
       currGrid = collider.sectorEdge();
     }
@@ -929,6 +928,8 @@ function ColliderManager() {
     }
   };
 
+  // TODO create a similar function that gets
+  // characters that intersect with the collider passed in
   ColliderManager.getCharactersNear = function(collider, only) {
     var grid = collider.sectorEdge();
     var arr = [];
@@ -940,6 +941,9 @@ function ColliderManager() {
         if (y < 0 || y >= this.sectorRows()) continue;
         var charas = this._characterGrid[x][y];
         for (i = 0; i < charas.length; i++) {
+          if (arr.contains(charas[i])) {
+            continue;
+          }
           if (only) {
             if (only(charas[i]) === 'break') {
               isBreaking = true;
@@ -947,9 +951,7 @@ function ColliderManager() {
             }
             if (!only(charas[i])) continue;
           }
-          if (!arr.contains(charas[i])) {
-            arr.push(charas[i]);
-          }
+          arr.push(charas[i]);
         }
         if (isBreaking) break;
       }
@@ -960,7 +962,6 @@ function ColliderManager() {
   };
 
   ColliderManager.getCollidersNear = function(collider, only) {
-    only = only || function() { return true; };
     var grid = collider.sectorEdge();
     var arr = [];
     var isBreaking = false;
@@ -971,6 +972,9 @@ function ColliderManager() {
         if (y < 0 || y >= this.sectorRows()) continue;
         var colliders = this._colliderGrid[x][y];
         for (i = 0; i < colliders.length; i++) {
+          if (arr.contains(colliders[i])) {
+            continue;
+          }
           if (only) {
             if (only(colliders[i]) === 'break') {
               isBreaking = true;
@@ -978,9 +982,7 @@ function ColliderManager() {
             }
             if (!only(colliders[i])) continue;
           }
-          if (!arr.contains(colliders[i])) {
-            arr.push(colliders[i]);
-          }
+          arr.push(colliders[i]);
         }
         if (isBreaking) break;
       }
@@ -1000,6 +1002,15 @@ function ColliderManager() {
 
   ColliderManager.draw = function(collider, duration) {
     if ($gameTemp.isPlaytest()) {
+      var sprites = this.container.children;
+      for (var i = 0; i < sprites.length; i++) {
+        if (sprites[i]._collider.id === collider.id) {
+          sprites[i]._collider.kill = false;
+          sprites[i]._duration = duration;
+          return;
+        }
+      }
+      collider.kill = false;
       var sprite = new Sprite_Collider(collider, duration || -1);
       this.container.addChild(sprite);
     }
@@ -1260,7 +1271,10 @@ function ColliderManager() {
     newBox.isBush    = (flag & 0x40)  || /<bush>/i.test(newBox.note);
     newBox.isCounter = (flag & 0x80)  || /<counter>/i.test(newBox.note);
     newBox.isDamage  = (flag & 0x100) || /<damage>/i.test(newBox.note);
-    newBox.id = this._tileCounter++;
+    var vx = x * this.height() * this.width();
+    var vy = y * this.height();
+    var vz = index;
+    newBox.location  = vx + vy + vz;
     if (newBox.isWater2) {
       newBox.color = QMovement.water2.toLowerCase();
     } else if (newBox.isWater1) {
@@ -1692,7 +1706,7 @@ function ColliderManager() {
       var newRad = Math.max(this._currentRad - this.angularSpeed(), this._targetRad);
     }
     var x1 = this._pivotX + this._radiusL * Math.cos(newRad);
-    var y1 = this._pivotY + this._radiusH * -Math.sin(newRad);
+    var y1 = this._pivotY + this._radiusH * Math.sin(newRad);
     this._currentRad = newRad;
     this._px = this._realPX = x1;
     this._py = this._realPY = y1;
@@ -1765,7 +1779,7 @@ function ColliderManager() {
 
   Game_CharacterBase.prototype.moveStraight = function(d, dist) {
     dist = dist || this.moveTiles();
-    this.setMovementSuccess(this.canPixelPass(this.px, this.py, d, dist));
+    this.setMovementSuccess(this.canPixelPass(this._px, this._py, d, dist));
     var originalSpeed = this._moveSpeed;
     if (this.smartMove() === 1 || this.smartMove() > 2) {
       this.smartMoveSpeed(d);
@@ -1792,7 +1806,7 @@ function ColliderManager() {
 
   Game_CharacterBase.prototype.moveDiagonally = function(horz, vert, dist) {
     dist = dist || this.moveTiles();
-    this.setMovementSuccess(this.canPixelPassDiagonally(this.px, this.py, horz, vert, dist));
+    this.setMovementSuccess(this.canPixelPassDiagonally(this._px, this._py, horz, vert, dist));
     var originalSpeed = this._moveSpeed;
     if (this.smartMove() === 1 || this.smartMove() > 2) this.smartMoveSpeed([horz, vert]);
     if (this.isMovementSucceeded()) {
@@ -1814,9 +1828,9 @@ function ColliderManager() {
     }
     this._moveSpeed = originalSpeed;
     if (!this.isMovementSucceeded() && this.smartMove() > 1) {
-      if (this.canPixelPass(this.px, this.py, horz)) {
+      if (this.canPixelPass(this._px, this._py, horz)) {
         this.moveStraight(horz);
-      } else if (this.canPixelPass(this.px, this.py, vert)) {
+      } else if (this.canPixelPass(this._px, this._py, vert)) {
         this.moveStraight(vert);
       }
     }
@@ -1827,7 +1841,7 @@ function ColliderManager() {
     var realDir = this.radianToDirection(radian, true);
     var dir = this.radianToDirection(radian);
     var xAxis = Math.cos(radian);
-    var yAxis = -Math.sin(radian);
+    var yAxis = Math.sin(radian);
     var horzSteps = Math.abs(xAxis) * dist;
     var vertSteps = Math.abs(yAxis) * dist;
     var horz = xAxis > 0 ? 6 : xAxis < 0 ? 4 : 0;
@@ -1857,9 +1871,9 @@ function ColliderManager() {
     }
     if (!this.isMovementSucceeded() && this.smartMove() > 1) {
       if ([1, 3, 7, 9].contains(realDir)) {
-        if (this.canPixelPass(this.px, this.py, horz, horzSteps)) {
+        if (this.canPixelPass(this._px, this._py, horz, horzSteps)) {
           this.moveStraight(horz, horzSteps);
-        } else if (this.canPixelPass(this.px, this.py, vert, vertSteps)) {
+        } else if (this.canPixelPass(this._px, this._py, vert, vertSteps)) {
           this.moveStraight(vert, vertSteps);
         }
       } else {
@@ -1879,7 +1893,7 @@ function ColliderManager() {
       }
       return this.fixedDiagMove(diag[dir][0], diag[dir][1], dist);
     }
-    this.setMovementSuccess(this.canPixelPass(this.px, this.py, dir, dist));
+    this.setMovementSuccess(this.canPixelPass(this._px, this._py, dir, dist));
     if (this.isMovementSucceeded()) {
       this._diagonal = false;
       this._adjustFrameSpeed = false;
@@ -1896,7 +1910,7 @@ function ColliderManager() {
   };
 
   Game_CharacterBase.prototype.fixedDiagMove = function(horz, vert, dist) {
-    this.setMovementSuccess(this.canPixelPassDiagonally(this.px, this.py, horz, vert));
+    this.setMovementSuccess(this.canPixelPassDiagonally(this._px, this._py, horz, vert));
     if (this.isMovementSucceeded()) {
       this._diagonal = this.direction8(horz, vert);
       this._adjustFrameSpeed = false;
@@ -1927,7 +1941,7 @@ function ColliderManager() {
     var cc = cc ? 1 : -1;
     var dx = this._px - pivotX;
     var dy = this._py - pivotY;
-    var rad = Math.atan2(-dy, dx);
+    var rad = Math.atan2(dy, dx);
     frames = frames || 1;
     rad += rad < 0 ? 2 * Math.PI : 0;
     this._currentRad = rad;
@@ -1997,7 +2011,7 @@ function ColliderManager() {
       this._realPY = y1;
       this._px = x2;
       this._py = y2;
-      this._radian = Math.atan2(y1 - y2, x2 - x1);
+      this._radian = Math.atan2(y2 - y1, x2 - x1);
       this._radian += this._radian < 0 ? 2 * Math.PI : 0;
       this._adjustFrameSpeed = false;
       this.increaseSteps();
@@ -2424,7 +2438,7 @@ function ColliderManager() {
 
   Game_Player.prototype.moveWithAnalog = function() {
     var horz = Input._dirAxesA.x;
-    var vert = -Input._dirAxesA.y;
+    var vert = Input._dirAxesA.y;
     if (horz === 0 && vert === 0) return;
     var radian = Math.atan2(vert, horz);
     radian += radian < 0 ? Math.PI * 2 : 0;
@@ -2536,7 +2550,7 @@ function ColliderManager() {
     if ($gameTemp.isDestinationValid()) {
       var dx = $gameTemp.destinationPX() - this.cx();
       var dy = $gameTemp.destinationPY() - this.cy();
-      var radian = Math.atan2(-dy, dx);
+      var radian = Math.atan2(dy, dx);
       radian += radian < 0 ? 2 * Math.PI : 0;
       var dir = this.radianToDirection(radian, true);
       var horz = dir;
@@ -2757,12 +2771,13 @@ function Sprite_Collider() {
   Sprite_Collider.prototype = Object.create(Sprite.prototype);
   Sprite_Collider.prototype.constructor = Sprite_Collider;
 
-  Sprite_Collider.prototype.initialize = function(collider, options) {
+  Sprite_Collider.prototype.initialize = function(collider, duration) {
     Sprite.prototype.initialize.call(this);
     this.z = 7;
-    this._duration = options.duration || -1;
-    this._color = options.color || '#ff0000';
+    this._duration = duration || 0;
+    this._color = collider.color || '#ff0000';
     this.setupCollider(collider);
+    this.checkChanges();
   };
 
   Sprite_Collider.prototype._setupCollider = function(collider) {
@@ -2770,7 +2785,6 @@ function Sprite_Collider() {
     this.bitmap = new Bitmap(collider.width, collider.height);
     this.drawCollider();
   };
-
 
   Sprite_Collider.prototype.setupCollider = function(collider) {
     this._collider = collider;
@@ -2828,7 +2842,7 @@ function Sprite_Collider() {
 
   Sprite_Collider.prototype.updateDecay = function() {
     this._duration--;
-    if (this._duration <= 0) {
+    if (this._duration <= 0 || this._collider.kill) {
       ColliderManager.removeSprite(this);
       this._collider = null;
     }
