@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QSpeed = '1.2.0';
+Imported.QSpeed = '1.2.1';
 
 if (!Imported.QPlus) {
   var msg = 'Error: QSpeed requires QPlus to work.';
@@ -15,7 +15,7 @@ if (!Imported.QPlus) {
  /*:
  * @plugindesc <QSpeed>
  * Allows for custom Move speeds and an acceleration effect
- * @author Quxios  | Version 1.2.0
+ * @author Quxios  | Version 1.2.1
  *
  * @requires QPlus
  *
@@ -269,6 +269,7 @@ if (!Imported.QPlus) {
     if (match) {
       this.setMoveSpeed(Number(match[1]) || 4);
     }
+    this._realMoveSpeed = this._moveSpeed;
   };
 
   //-----------------------------------------------------------------------------
