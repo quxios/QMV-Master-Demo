@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QAudio = '2.1.1';
+Imported.QAudio = '2.2.0';
 
 if (!Imported.QPlus) {
   var msg = 'Error: QAudio requires QPlus to work.';
@@ -19,7 +19,7 @@ if (!Imported.QPlus) {
  /*:
  * @plugindesc <QAudio>
  * Few new audio features
- * @author Quxios  | Version 2.1.1
+ * @author Quxios  | Version 2.2.0
  *
  * @requires QPlus
  *
@@ -130,12 +130,15 @@ if (!Imported.QPlus) {
  * ## Links
  * ============================================================================
  * RPGMakerWebs:
+ *
  *  http://forums.rpgmakerweb.com/index.php?threads/qplugins.73023/
  *
  * Terms of use:
+ *
  *  https://github.com/quxios/QMV-Master-Demo/blob/master/readme.md
  *
  * Like my plugins? Support me on Patreon!
+ *
  *  https://www.patreon.com/quxios
  *
  * @tags audio, character, proximity
@@ -189,7 +192,9 @@ if (!Imported.QPlus) {
       }
       var bindTo = QPlus.getArg(args2, /^bindTo(.+)/i);
       if (bindTo) {
-        bindTo = QPlus.getCharacter(bindTo);
+        if (bindTo.toLowerCase() === 'this') {
+          bindTo = this.character(0).charaId();
+        }
       }
       var x = QPlus.getArg(args2, /^x(\d+)/i);
       if (x === null) {
@@ -250,9 +255,9 @@ if (!Imported.QPlus) {
     var bindTo = null;
     if (!y && y !== 0) {
       if (x === 0) {
-        bindTo = $gamePlayer;
+        bindTo = 0;
       } else {
-        bindTo = $gameMap.event(x);
+        bindTo = $gameMap.event(x).charaId();
       }
       x = null;
       y = null;
@@ -297,29 +302,17 @@ if (!Imported.QPlus) {
 
   AudioManager.playQAudio = function(id, audio, options) {
     if (audio.name) {
-      this._QAudioBuffers = this._QAudioBuffers.filter(function(a) {
-        if (a.uid === id) {
-          a.stop();
-          a.mapX = null;
-          a.mapY = null;
-          a = null;
+      this._QAudioBuffers = this._QAudioBuffers.filter(function(b) {
+        if (b.uid === id) {
+          b.stop();
+          b = null;
           return false;
         }
-        return a._autoPlay || a.isPlaying();
+        return true;
       })
       var buffer = this.createBuffer(options.type, audio.name);
       if (options.bindTo) {
         buffer.bindTo = options.bindTo;
-        Object.defineProperty(buffer, 'mapX', {
-          get: function() {
-            return this.bindTo._realX;
-          }
-        });
-        Object.defineProperty(buffer, 'mapY', {
-          get: function() {
-            return this.bindTo._realY;
-          }
-        });
       } else {
         buffer.mapX = options.x;
         buffer.mapY = options.y;
@@ -338,14 +331,17 @@ if (!Imported.QPlus) {
           dur: options.fadeIn * 60
         }
       }
-      this.updateQAudioParameters(buffer, audio);
       this.updateQAudioDistance(buffer);
       buffer.play(options.loop, 0);
       if (!options.loop) {
         buffer.addStopListener(this.stopQAudio.bind(this, id));
       }
-      options = null;
       this._QAudioBuffers.push(buffer);
+      $gameSystem._QAudios.push({
+        id: id,
+        audio: audio,
+        options: options
+      })
     }
   };
 
@@ -354,26 +350,25 @@ if (!Imported.QPlus) {
     for (var i = buffers.length - 1; i >= 0; i--) {
       if (buffers[i] && buffers[i].uid === id) {
         buffers[i].stop();
-        buffers[i].mapX = null;
-        buffers[i].mapY = null;
         buffers[i] = null;
         buffers.splice(i, 1);
+        $gameSystem._QAudios.splice(i, 1);
         break;
       }
     }
   };
 
   AudioManager.stopAllQAudio = function() {
-    for (var i = 0; i < this._QAudioBuffers.length; i++) {
-      if (this._QAudioBuffers[i]._stopListeners) {
-        this._QAudioBuffers[i]._stopListeners.length = 0;
+    var buffers = this._QAudioBuffers;
+    for (var i = 0; i < buffers.length; i++) {
+      if (buffers[i]._stopListeners) {
+        buffers[i]._stopListeners.length = 0;
       }
-      this._QAudioBuffers[i].stop();
-      this._QAudioBuffers[i].mapX = null;
-      this._QAudioBuffers[i].mapY = null;
-      this._QAudioBuffers[i] = null;
+      buffers[i].stop();
+      buffers[i] = null;
     }
     this._QAudioBuffers = [];
+    $gameSystem._QAudios = [];
   };
 
   var Alias_AudioManager_stopAll = AudioManager.stopAll;
@@ -387,32 +382,50 @@ if (!Imported.QPlus) {
     for (var i = buffers.length - 1; i >= 0; i--) {
       if (buffers[i] && buffers[i].uid === id) {
         buffers[i].fadeOut(duration);
-        buffers[i].mapX = null;
-        buffers[i].mapY = null;
         buffers[i] = null;
         buffers.splice(i, 1);
+        $gameSystem._QAudios.splice(i, 1);
         break;
       }
     }
   };
 
-  AudioManager.updateQAudio = function() {
-    for (var i = 0; i < this._QAudioBuffers.length; i++) {
-      var buffer = this._QAudioBuffers[i];
-      if (buffer.fadingIn) {
-        this.updateQAudioFadeIn(buffer);
-      }
-      this.updateQAudioDistance(buffer);
+  AudioManager.fadeOutAllQAudio = function(duration) {
+    var buffers = this._QAudioBuffers;
+    for (var i = buffers.length - 1; i >= 0; i--) {
+      buffers[i].fadeOut(duration);
+      buffers[i] = null;
+      buffers.splice(i, 1);
+      $gameSystem._QAudios.splice(i, 1);
     }
   };
 
-  AudioManager.updateQAudioParameters = function(buffer, audio) {
-    var volume = 100;
-    if (buffer.type === 'bgm') volume = this._bgmVolume;
-    if (buffer.type === 'bgs') volume = this._bgsVolume;
-    if (buffer.type === 'me')  volume = this._meVolume;
-    if (buffer.type === 'se')  volume = this._seVolume;
-    this.updateBufferParameters(buffer, volume, audio);
+  AudioManager.checkForQAudios = function() {
+    if (this._QAudioBuffers.length !== $gameSystem._QAudios.length) {
+      var newAudios = $gameSystem._QAudios.clone();
+      this.stopAllQAudio();
+      for (var i = 0; i < newAudios.length; i++) {
+        var qAudio = newAudios[i];
+        this.playQAudio(qAudio.id, qAudio.audio, qAudio.options);
+      }
+    }
+  };
+
+  AudioManager.updateQAudio = function() {
+    this.checkForQAudios();
+    var buffers = this._QAudioBuffers;
+    for (var i = buffers.length - 1; i >= 0; i--) {
+      if (!buffers[i]._autoPlay && !buffers[i].isPlaying()) {
+        buffers[i].stop();
+        buffers.splice(i, 1);
+        $gameSystem._QAudios.splice(i, 1);
+        continue;
+      }
+      if (buffers[i].fadingIn) {
+        this.updateQAudioFadeIn(buffers[i]);
+      }
+      this.updateQAudioDistance(buffers[i]);
+    }
   };
 
   AudioManager.updateQAudioFadeIn = function(buffer) {
@@ -428,6 +441,11 @@ if (!Imported.QPlus) {
     var y1 = $gamePlayer._realY;
     var x2 = buffer.mapX;
     var y2 = buffer.mapY;
+    if (buffer.bindTo || buffer.bindTo === 0) {
+      var chara = QPlus.getCharacter(buffer.bindTo);
+      x2 = chara._realX;
+      y2 = chara._realY;
+    }
     if (buffer.cached) {
       if ((buffer.cached.x1 === x1 && buffer.cached.y1 === y1) &&
       (buffer.cached.x2 === x2 && buffer.cached.y2 === y2) &&
@@ -463,12 +481,28 @@ if (!Imported.QPlus) {
   };
 
   //-----------------------------------------------------------------------------
+  // Scene_Base
+
+  var Alias_Scene_Base_fadeOutAll = Scene_Base.prototype.fadeOutAll;
+  Scene_Base.prototype.fadeOutAll = function() {
+    Alias_Scene_Base_fadeOutAll.call(this);
+    var time = this.slowFadeSpeed() / 60;
+    AudioManager.fadeOutAllQAudio(time);
+  };
+
+  //-----------------------------------------------------------------------------
   // Scene_Map
 
   var Alias_Scene_Map_update = Scene_Map.prototype.update;
   Scene_Map.prototype.update = function() {
     Alias_Scene_Map_update.call(this);
     AudioManager.updateQAudio();
+  };
+
+  var Alias_Scene_Map_stopAudioOnBattleStart = Scene_Map.prototype.stopAudioOnBattleStart;
+  Scene_Map.prototype.stopAudioOnBattleStart = function() {
+    Alias_Scene_Map_stopAudioOnBattleStart.call(this);
+    AudioManager.stopAllQAudio();
   };
 
   //-----------------------------------------------------------------------------
@@ -478,5 +512,14 @@ if (!Imported.QPlus) {
   Game_Map.prototype.setup = function(mapId) {
     AudioManager.stopAllQAudio();
     Alias_Game_Map_setup.call(this, mapId);
+  };
+
+  //-----------------------------------------------------------------------------
+  // Game_System
+
+  var Alias_Game_System_initialize = Game_System.prototype.initialize;
+  Game_System.prototype.initialize = function() {
+    Alias_Game_System_initialize.call(this);
+    this._QAudios = [];
   };
 })()
