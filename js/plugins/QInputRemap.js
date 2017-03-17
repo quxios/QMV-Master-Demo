@@ -6,8 +6,7 @@ var Imported = Imported || {};
 Imported.QInputRemap = '2.0.0';
 
 if (!Imported.QInput) {
-  var msg = 'Error: QInputRemap requires QInput to work.';
-  alert(msg);
+  alert('Error: QInputRemap requires QInput to work.');
   throw new Error(msg);
 }
 

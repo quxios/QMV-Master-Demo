@@ -6,9 +6,8 @@ var Imported = Imported || {};
 Imported.QTouch = '1.0.0';
 
 if (!Imported.QPlus) {
-  var msg = 'Error: QTouch requires QPlus to work.';
-  alert(msg);
-  throw new Error(msg);
+  alert('Error: QTouch requires QPlus to work.');
+  throw new Error('Error: QTouch requires QPlus to work.');
 }
 
 //=============================================================================

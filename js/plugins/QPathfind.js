@@ -6,13 +6,11 @@ var Imported = Imported || {};
 Imported.QPathfind = '1.1.1';
 
 if (!Imported.QPlus) {
-  var msg = 'Error: QPathfind requires QPlus to work.';
-  alert(msg);
-  throw new Error(msg);
+  alert('Error: QPathfind requires QPlus to work.');
+  throw new Error('Error: QPathfind requires QPlus to work.');
 } else if (!QPlus.versionCheck(Imported.QPlus, '1.1.3')) {
-  var msg = 'Error: QName requires QPlus 1.1.3 or newer to work.';
-  alert(msg);
-  throw new Error(msg);
+  alert('Error: QName requires QPlus 1.1.3 or newer to work.');
+  throw new Error('Error: QName requires QPlus 1.1.3 or newer to work.');
 }
 
 //=============================================================================

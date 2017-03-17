@@ -6,9 +6,8 @@ var Imported = Imported || {};
 Imported.QNameInput = '2.0.1';
 
 if (!Imported.QInput) {
-  var msg = 'Error: QNameInput requires QInput to work.';
-  alert(msg);
-  throw new Error(msg);
+  alert('Error: QNameInput requires QInput to work.');
+  throw new Error('Error: QNameInput requires QInput to work.');
 }
 
 //=============================================================================

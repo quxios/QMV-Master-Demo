@@ -6,13 +6,11 @@ var Imported = Imported || {};
 Imported.QMap = '1.2.0';
 
 if (!Imported.QPlus) {
-  var msg = 'Error: QMap requires QPlus to work.';
-  alert(msg);
-  throw new Error(msg);
+  alert('Error: QMap requires QPlus to work.');
+  throw new Error('Error: QMap requires QPlus to work.');
 } else if (!QPlus.versionCheck(Imported.QPlus, '1.1.2')) {
-  var msg = 'Error: QName requires QPlus 1.1.2 or newer to work.';
-  alert(msg);
-  throw new Error(msg);
+  alert('Error: QName requires QPlus 1.1.2 or newer to work.');
+  throw new Error('Error: QName requires QPlus 1.1.2 or newer to work.');
 }
 
 //=============================================================================

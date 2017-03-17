@@ -6,13 +6,11 @@ var Imported = Imported || {};
 Imported.QAudio = '2.2.0';
 
 if (!Imported.QPlus) {
-  var msg = 'Error: QAudio requires QPlus to work.';
-  alert(msg);
-  throw new Error(msg);
+  alert('Error: QAudio requires QPlus to work.');
+  throw new Error('Error: QAudio requires QPlus to work.');
 } else if (!QPlus.versionCheck(Imported.QPlus, '1.0.1')) {
-  var msg = 'Error: QAudio requires QPlus 1.0.1 or newer to work.';
-  alert(msg);
-  throw new Error(msg);
+  alert('Error: QAudio requires QPlus 1.0.1 or newer to work.');
+  throw new Error('Error: QAudio requires QPlus 1.0.1 or newer to work.');
 }
 
 //=============================================================================

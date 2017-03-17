@@ -6,9 +6,8 @@ var Imported = Imported || {};
 Imported.QSpeed = '1.2.1';
 
 if (!Imported.QPlus) {
-  var msg = 'Error: QSpeed requires QPlus to work.';
-  alert(msg);
-  throw new Error(msg);
+  alert('Error: QSpeed requires QPlus to work.');
+  throw new Error('Error: QSpeed requires QPlus to work.');
 }
 
 //=============================================================================

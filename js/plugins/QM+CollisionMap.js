@@ -6,13 +6,11 @@ var Imported = Imported || {};
 Imported.QM_CollisionMap = '1.0.0';
 
 if (!Imported.QMovement) {
-  var msg = 'Error: QM+CollisionMap requires QMovement to work.';
-  alert(msg);
-  throw new Error(msg);
+  alert('Error: QM+CollisionMap requires QMovement to work.');
+  throw new Error('Error: QM+CollisionMap requires QMovement to work.');
 } else if (!QPlus.versionCheck(Imported.QMovement, '1.0.2')) {
-  var msg = 'Error: QM+CollisionMap requires QMovement 1.0.2 or newer to work.';
-  alert(msg);
-  throw new Error(msg);
+  alert('Error: QM+CollisionMap requires QMovement 1.0.2 or newer to work.');
+  throw new Error('Error: QM+CollisionMap requires QMovement 1.0.2 or newer to work.');
 }
 
 //=============================================================================
