@@ -3,23 +3,21 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QMovement = '1.1.1';
+Imported.QMovement = '1.1.2';
 
 if (!Imported.QPlus) {
-  var msg = 'Error: QMovement requires QPlus to work.';
-  alert(msg);
-  throw new Error(msg);
+  alert('Error: QMovement requires QPlus to work.');
+  throw new Error('Error: QMovement requires QPlus to work.');
 } else if (!QPlus.versionCheck(Imported.QPlus, '1.1.3')) {
-  var msg = 'Error: QName requires QPlus 1.1.3 or newer to work.';
-  alert(msg);
-  throw new Error(msg);
+  alert('Error: QName requires QPlus 1.1.3 or newer to work.');
+  throw new Error('Error: QName requires QPlus 1.1.3 or newer to work.');
 }
 
 //=============================================================================
  /*:
  * @plugindesc <QMovement>
  * More control over character movement
- * @author Quxios  | Version 1.1.1
+ * @author Quxios  | Version 1.1.2
  *
  * @repo https://github.com/quxios/QMovement
  *
@@ -808,7 +806,7 @@ function ColliderManager() {
   ColliderManager._colliders = [];
   ColliderManager._colliderGrid = [];
   ColliderManager._characterGrid = [];
-  ColliderManager._sectorSize = 48;
+  ColliderManager._sectorSize = QMovement.tileSize;
   ColliderManager._needsRefresh = true;
   ColliderManager.container = new Sprite();
   ColliderManager.container.alpha = 0.3;
@@ -910,6 +908,7 @@ function ColliderManager() {
 
   ColliderManager.removeFromGrid = function(collider) {
     var edge;
+    var currGrid;
     var grid;
     if (collider._colliders) { // Is a character obj
       grid = this._characterGrid;
@@ -1004,7 +1003,7 @@ function ColliderManager() {
     if ($gameTemp.isPlaytest()) {
       var sprites = this.container.children;
       for (var i = 0; i < sprites.length; i++) {
-        if (sprites[i]._collider.id === collider.id) {
+        if (sprites[i]._collider && sprites[i]._collider.id === collider.id) {
           sprites[i]._collider.kill = false;
           sprites[i]._duration = duration;
           return;
