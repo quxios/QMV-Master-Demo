@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QMovement = '1.1.2';
+Imported.QMovement = '1.1.3';
 
 if (!Imported.QPlus) {
   alert('Error: QMovement requires QPlus to work.');
@@ -11,13 +11,13 @@ if (!Imported.QPlus) {
 } else if (!QPlus.versionCheck(Imported.QPlus, '1.1.3')) {
   alert('Error: QName requires QPlus 1.1.3 or newer to work.');
   throw new Error('Error: QName requires QPlus 1.1.3 or newer to work.');
-}
+} 
 
 //=============================================================================
  /*:
  * @plugindesc <QMovement>
  * More control over character movement
- * @author Quxios  | Version 1.1.2
+ * @author Quxios  | Version 1.1.3
  *
  * @repo https://github.com/quxios/QMovement
  *
@@ -2733,7 +2733,7 @@ function ColliderManager() {
   };
 
   Scene_Map.prototype.processMapTouch = function() {
-    if ( $gamePlayer.canClick() && TouchInput.isTriggered() || this._touchCount > 0) {
+    if (TouchInput.isTriggered() || this._touchCount > 0) {
       if (TouchInput.isPressed()) {
         if (this._touchCount === 0 || this._touchCount >= 15) {
           var x = $gameMap.canvasToMapPX(TouchInput.x);
@@ -2744,16 +2744,12 @@ function ColliderManager() {
             x += QMovement.tileSize / 2 - ox;
             y += QMovement.tileSize / 2 - oy;
           }
-          if (!TouchInput.isMousePressed()) {
-            $gameTemp.setIsMapTouched(true);
-          }
           $gameTemp.setPixelDestination(x, y);
           $gamePlayer.requestMouseMove();
         }
         this._touchCount++;
       } else {
         this._touchCount = 0;
-        $gameTemp.setIsMapTouched(false);
       }
     }
   };
