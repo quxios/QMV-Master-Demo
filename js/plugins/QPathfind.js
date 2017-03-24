@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QPathfind = '1.1.1';
+Imported.QPathfind = '1.2.0';
 
 if (!Imported.QPlus) {
   alert('Error: QPathfind requires QPlus to work.');
@@ -17,7 +17,7 @@ if (!Imported.QPlus) {
  /*:
  * @plugindesc <QPathfind>
  * A* Pathfinding algorithm
- * @author Quxios  | Version 1.1.1
+ * @author Quxios  | Version 1.2.0
  *
  * @requires QPlus
  *
@@ -196,6 +196,8 @@ function QPathfind() {
   var _intervals = Number(_params['Intervals']);
   var _smartWait = Number(_params['Smart Wait']);
   var _halfOpt = _params['Half Opt'] === 'true';
+  var _jump = false; // Experimental, not complete
+  var _jumpDist = 144;
   var _defaultOptions = {
     smart: 0, // 0 no smart, 1 recalc on blocked, 2 recalc at intervals
     chase: null, // charaID of character it's chasing
@@ -277,6 +279,7 @@ function QPathfind() {
   };
 
   QPathfind.prototype.beforeStart = function() {
+    //console.time('Pathfind');
     var x = this._endNode.x;
     var y = this._endNode.y;
     var canPass = true;
@@ -425,14 +428,22 @@ function QPathfind() {
     }
   };
 
+  QPathfind.prototype.getNodeAt = function(current, x, y) {
+    var node;
+    var val = x + (y * this._mapWidth);
+    if (this._grid[val]) {
+      node = this._grid[val];
+    } else {
+      node = this.node(current, new Point(x, y));
+      this._grid[val] = node;
+    }
+    return node;
+  };
+
   QPathfind.prototype.character = function() {
     return QPlus.getCharacter(this._charaId);
   };
 
-  // TODO
-  // + Try a heap again, last time heap didn't inc performace
-  //   may have been a bad heap class
-  // + Look for other ways to inc performance, ex; mix in jump point
   QPathfind.prototype.aStar = function() {
     var currI = 0;
     var i, j;
@@ -449,7 +460,12 @@ function QPathfind() {
     }
     this._openNodes.splice(currI, 1);
     this._closed[this._current.value] = true;
-    var neighbors = this.findNeighbors(this._current);
+    var neighbors;
+    if (_jump) {
+      neighbors = this.findSuccessor(this._current);
+    } else {
+      neighbors = this.findNeighbors(this._current);
+    }
     j = neighbors.length;
     for (i = 0; i < j; i++) {
       if (this._closed[neighbors[i].value]) continue;
@@ -461,9 +477,166 @@ function QPathfind() {
         continue;
       }
       neighbors[i].g = gScore;
-      neighbors[i].f = gScore + this.heuristic(this._current, this._endNode);
+      neighbors[i].f = gScore + this.heuristic(neighbors[i], this._endNode);
       neighbors[i].parent = this._current;
     }
+  };
+
+  QPathfind.prototype.findNeighbors = function(current) {
+    var chara = this.character();
+    var x = current.x;
+    var y = current.y;
+    var xf = this._endNode.x;
+    var yf = this._endNode.y;
+    var neighbors = [];
+    var stepDist = 1;
+    if (Imported.QMovement) {
+      stepDist = chara.moveTiles();
+      var nearEnd = Math.abs(x - xf) < chara.optTiles() &&
+                    Math.abs(y - yf) < chara.optTiles();
+      var tiles = nearEnd ? chara.moveTiles() : chara.optTiles();
+    }
+    var i;
+    var j = _diagonals ? 8 : 4;
+    var dirs = [2, 4, 6, 8, 1, 3, 7, 9];
+    var diags = {
+      1: [4, 2], 3: [6, 2],
+      7: [4, 8], 9: [6, 8]
+    }
+    for (i = 0; i < j; i++) {
+      var dir = dirs[i];
+      var horz = dirs[i];
+      var vert = dirs[i];
+      if (i >= 4) {
+        horz = diags[dir][0];
+        vert = diags[dir][1];
+      }
+      var passed = false;
+      var onEnd = false;
+      var x2, y2;
+      if (Imported.QMovement) {
+        x2 = $gameMap.roundPXWithDirection(x, horz, tiles);
+        y2 = $gameMap.roundPYWithDirection(y, vert, tiles);
+        if (i >= 4) {
+          passed = chara.canPixelPassDiagonally(x, y, horz, vert, tiles, '_pathfind');
+        } else {
+          passed = chara.canPixelPass(x, y, dir, tiles, '_pathfind');
+        }
+      } else {
+        x2 = $gameMap.roundXWithDirection(x, horz);
+        y2 = $gameMap.roundYWithDirection(y, vert);
+        if (i >= 4) {
+          passed = chara.canPassDiagonally(x, y, horz, vert);
+        } else {
+          passed = chara.canPass(x, y, dir);
+        }
+      }
+      var val = x2 + (y2 * this._mapWidth);
+      if (passed || val === this._endNode.value) {
+        var node = this.getNodeAt(current, x2, y2);
+        if (Imported.QMovement) {
+          if (Math.abs(x2 - xf) < stepDist && Math.abs(y2 - yf) < stepDist) {
+            // this is as close as we can get
+            // so force early end
+            node.value = this._endNode.value;
+          }
+        }
+        neighbors.push(node);
+      }
+    }
+    return neighbors;
+  };
+
+  QPathfind.prototype.findSuccessor = function(current) {
+    var successors = [];
+    var neighbors = this.findNeighbors(current);
+    for (var i = 0; i < neighbors.length; i++) {
+      var dx = neighbors[i].x - current.x;
+      var dy = neighbors[i].y - current.y;
+      var rad = Math.atan2(dy, dx);
+      rad += rad < 0 ? Math.PI * 2 : 0;
+      var dir = this.character().radianToDirection(rad, true);
+      if (dir === current.from) {
+        continue;
+      }
+      var jump = this.jump(neighbors[i], dir);
+      var rad2 = rad - Math.PI;
+      rad2 += rad2 < 0 ? Math.PI * 2 : 0;
+      jump.from = this.character().radianToDirection(rad2, true);
+      successors.push(jump);
+    }
+    return successors;
+  };
+
+  // Similar idea from jump point search
+  QPathfind.prototype.jump = function(current, dir) {
+    var chara = this.character();
+    var x = current.x;
+    var y = current.y;
+    var xf = this._endNode.x;
+    var yf = this._endNode.y;
+    var stepDist = 1;
+    if (Imported.QMovement) {
+      stepDist = chara.moveTiles();
+      var nearEnd = Math.abs(x - xf) < chara.optTiles() &&
+                    Math.abs(y - yf) < chara.optTiles();
+      var tiles = nearEnd ? chara.moveTiles() : chara.optTiles();
+    }
+    var diags = {
+      1: [4, 2], 3: [6, 2],
+      7: [4, 8], 9: [6, 8]
+    }
+    var horz = dir;
+    var vert = dir;
+    var isDiag = [1, 3, 7, 9].contains(dir);
+    if (isDiag) {
+      horz = diags[dir][0];
+      vert = diags[dir][1];
+    }
+    var passed = true;
+    var totalDist = 0;
+    while (true) {
+      if (Imported.QMovement) {
+        if (isDiag) {
+          passed = chara.canPixelPassDiagonally(x, y, horz, vert, tiles, '_pathfind');
+        } else {
+          passed = chara.canPixelPass(x, y, dir, tiles, '_pathfind');
+        }
+        if (passed) {
+          x = $gameMap.roundPXWithDirection(x, horz, tiles);
+          y = $gameMap.roundPYWithDirection(y, vert, tiles);
+          // TODO check for edges
+        }
+      } else {
+        if (isDiag) {
+          passed = chara.canPassDiagonally(x, y, horz, vert);
+        } else {
+          passed = chara.canPass(x, y, dir);
+        }
+        if (passed) {
+          x = $gameMap.roundXWithDirection(x, horz);
+          y = $gameMap.roundYWithDirection(y, vert);
+          // TODO check for edges
+        }
+      }
+      totalDist += stepDist;
+      if (totalDist > _jumpDist) {
+        break;
+      }
+      if (Math.abs(x - xf) < stepDist || Math.abs(y - yf) < stepDist) {
+        break;
+      }
+      if (!passed) {
+        break;
+      }
+    }
+    var node = this.getNodeAt(current, x, y);
+    if (Imported.QMovement) {
+      if (Math.abs(x - xf) < stepDist && Math.abs(y - yf) < stepDist) {
+        node.value = this._endNode.value; // force early end
+      }
+    }
+    return node;
   };
 
   QPathfind.prototype.onComplete = function() {
@@ -496,75 +669,6 @@ function QPathfind() {
       path.unshift(node);
     }
     return path;
-  };
-
-  QPathfind.prototype.findNeighbors = function(current) {
-    var chara = this.character();
-    var x = current.x;
-    var y = current.y;
-    var xf = this._endNode.x;
-    var yf = this._endNode.y;
-    var neighbors = [];
-    var stepDist = 1;
-    if (Imported.QMovement) {
-      stepDist = chara.moveTiles();
-      var nearEnd = Math.abs(x - xf) < chara.optTiles() &&
-                    Math.abs(y - yf) < chara.optTiles();
-      var tiles = nearEnd ? chara.moveTiles() : chara.optTiles();
-    }
-    var dirs = _diagonals ? 9 : 5
-    var i;
-    for (i = 1; i < dirs; i++) {
-      var horz = 5;
-      var vert = 5;
-      var dir = 5;
-      if (i < 5) {
-        horz = vert = dir = i * 2;
-      } else {
-        horz = i === 5 || i === 6 ? 4 : 6;
-        vert = i === 5 || i === 7 ? 2 : 8;
-      }
-      var passed = false;
-      var onEnd = false;
-      var x2, y2;
-      if (Imported.QMovement) {
-        x2 = $gameMap.roundPXWithDirection(x, horz, tiles);
-        y2 = $gameMap.roundPYWithDirection(y, vert, tiles);
-        if (i >= 5) {
-          passed = chara.canPixelPassDiagonally(x, y, horz, vert, tiles, '_pathfind');
-        } else {
-          passed = chara.canPixelPass(x, y, dir, tiles, '_pathfind');
-        }
-      } else {
-        x2 = $gameMap.roundXWithDirection(x, horz);
-        y2 = $gameMap.roundYWithDirection(y, vert);
-        if (i >= 5) {
-          passed = chara.canPassDiagonally(x, y, horz, vert);
-        } else {
-          passed = chara.canPass(x, y, dir);
-        }
-      }
-      var val = x2 + (y2 * this._mapWidth);
-      if (passed || val === this._endNode.value) {
-        var node;
-        if (Imported.QMovement) {
-          if (Math.abs(x2 - xf) < stepDist && Math.abs(y2 - yf) < stepDist) {
-            // this is as close as we can get
-            // so force in endnode
-            neighbors.push(this._endNode);
-            continue;
-          }
-        }
-        if (this._grid[val]) {
-          node = this._grid[val];
-        } else {
-          node = this.node(current, new Point(x2, y2));
-          this._grid[val] = node;
-        }
-        neighbors.push(node)
-      }
-    }
-    return neighbors;
   };
 
   // http://theory.stanford.edu/~amitp/GameProgramming/Heuristics.html
@@ -739,6 +843,14 @@ function QPathfind() {
     Alias_Game_CharacterBase_update.call(this);
     if (this._pathfind) {
       this._pathfind.update();
+    }
+  };
+
+  var Alias_Game_CharacterBase_setPosition = Game_CharacterBase.prototype.setPosition;
+  Game_CharacterBase.prototype.setPosition = function(x, y) {
+    Alias_Game_CharacterBase_setPosition.call(this, x, y);
+    if (this._pathfind) {
+      this.clearPathfind();
     }
   };
 
