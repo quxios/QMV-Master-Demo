@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QNameInput = '2.0.1';
+Imported.QNameInput = '2.0.2';
 
 if (!Imported.QInput) {
   alert('Error: QNameInput requires QInput to work.');
@@ -14,7 +14,7 @@ if (!Imported.QInput) {
  /*:
  * @plugindesc <QNameInput>
  * Quasi Input addon: Adds Keyboard Input to Name Input Scene
- * @author Quxios  | Version 2.0.1
+ * @author Quxios  | Version 2.0.2
  *
  * @requires QInput
  *
@@ -176,12 +176,20 @@ if (!Imported.QInput) {
     }
   };
 
+  var _gamepadOk = QInput.remapped['ok'].filter(function(k) {
+    return /^\$/.test(k)
+  })[0];
+
+  var _gamepadCancel = QInput.remapped['escape'].filter(function(k) {
+    return /^\$/.test(k)
+  })[0];
+
   Window_NameInput.prototype.isOkTriggered = function() {
-    return Input.isRepeated('#enter');
+    return Input.isRepeated('#enter') || Input.isRepeated(_gamepadOk);
   };
 
   Window_NameInput.prototype.isCancelTriggered = function() {
-    return Input.isRepeated('#esc');
+    return Input.isRepeated('#esc') || Input.isRepeated(_gamepadCancel);
   };
 
   Window_NameInput.prototype.processOk = function() {
@@ -202,17 +210,17 @@ if (!Imported.QInput) {
     var lastPage = this._page;
     if (this.isCursorMovable()) {
       var lastIndex = this.index();
-      if (Input.isRepeated('#down')) {
-        this.cursorDown(Input.isTriggered('#down'));
+      if (Input.isRepeated('#down') || Input.isRepeated('$DOWN')) {
+        this.cursorDown(Input.isTriggered('#down') || Input.isTriggered('$DOWN'));
       }
-      if (Input.isRepeated('#up')) {
-        this.cursorUp(Input.isTriggered('#up'));
+      if (Input.isRepeated('#up') || Input.isRepeated('$UP')) {
+        this.cursorUp(Input.isTriggered('#up') || Input.isTriggered('$UP'));
       }
-      if (Input.isRepeated('#right')) {
-        this.cursorRight(Input.isTriggered('#right'));
+      if (Input.isRepeated('#right') || Input.isRepeated('$RIGHT')) {
+        this.cursorRight(Input.isTriggered('#right') || Input.isTriggered('$RIGHT'));
       }
-      if (Input.isRepeated('#left')) {
-        this.cursorLeft(Input.isTriggered('#left'));
+      if (Input.isRepeated('#left') || Input.isRepeated('$LEFT')) {
+        this.cursorLeft(Input.isTriggered('#left') || Input.isTriggered('$LEFT'));
       }
       if (!this.isHandled('pagedown') && Input.isTriggered('#pagedown')) {
         this.cursorPagedown();
@@ -221,14 +229,12 @@ if (!Imported.QInput) {
         this.cursorPageup();
       }
       if (this.index() !== lastIndex) {
-        console.log('here');
         this._last = 'here';
         SoundManager.playCursor();
       }
     }
     this.updateCursor();
     if (this._page !== lastPage) {
-      console.log('here');
       this._last = 'here';
       SoundManager.playCursor();
     }
