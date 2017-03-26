@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QYScale = '1.0.1';
+Imported.QYScale = '1.0.2';
 
 if (!Imported.QPlus) {
   alert('Error: QYScale requires QPlus to work.');
@@ -14,7 +14,7 @@ if (!Imported.QPlus) {
  /*:
  * @plugindesc <QYScale>
  * Change characters scale based off their Y value
- * @author Quxios  | Version 1.0.1
+ * @author Quxios  | Version 1.0.2
  *
  * @requires QPlus
  *
@@ -37,6 +37,18 @@ if (!Imported.QPlus) {
  * ~~~
  *  - Min: The zoom value at the top of the map (0 Y position)
  *  - Max: The zoom value at the bottom of the map
+ * ============================================================================
+ * ## Notetags / Comments
+ * ============================================================================
+ * **Have an event ignore YScale**
+ * ----------------------------------------------------------------------------
+ * Adding the following to the notes or in a comment will make that event ignore
+ * YScaling.
+ * ~~~
+ *  <noYScale>
+ * ~~~
+ * When its in the notes, it applies to all pages. When its in the comments
+ * it applies only to that page.
  * ============================================================================
  * ## Links
  * ============================================================================
@@ -118,15 +130,27 @@ if (!Imported.QPlus) {
     this._yScale = null;
   };
 
+  var Alias_Game_CharacterBase_setPosition = Game_CharacterBase.prototype.setPosition;
+  Game_CharacterBase.prototype.setPosition = function(x, y) {
+    Alias_Game_CharacterBase_setPosition.call(this, x, y);
+    this._yScale = null;
+  };
+
   var Alias_Game_CharacterBase_update = Game_CharacterBase.prototype.update;
   Game_CharacterBase.prototype.update = function() {
     var oldY = this._realY;
     Alias_Game_CharacterBase_update.call(this);
-    if ($gameMap.YScale() && (this._realY !== oldY || this._yScale === null)) {
-      this.updateYScale();
-    } else if (!$gameMap.YScale()) {
+    if (!$gameMap.YScale() || !this.hasYScale()) {
       this._yScale = 1;
+    } else if ($gameMap.YScale() && (this._realY !== oldY || this._yScale === null)) {
+      this.updateYScale();
     }
+  };
+
+  Game_CharacterBase.prototype.hasYScale = function() {
+    // TODO cache this?
+    var notes = this.notes(true);
+    return !/<noYScale>/i.test(notes);
   };
 
   Game_CharacterBase.prototype.updateYScale = function() {
