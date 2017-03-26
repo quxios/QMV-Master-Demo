@@ -18,5 +18,6 @@ var $plugins =
 {"name":"QAudio","status":true,"description":"<QAudio>\r\nFew new audio features","parameters":{"Default Radius":"5","Default Max Volume":"100"}},
 {"name":"QSpeed","status":true,"description":"<QSpeed>\r\nAllows for custom Move speeds and an acceleration effect","parameters":{"Acceleration":"true","Duration":"30","===========":"","Dash Inc":"1"}},
 {"name":"QCamera","status":true,"description":"<QCamera>\r\nBetter Camera control","parameters":{"Offset":"0.5","Shift Y":"0","Shift X":"0"}},
-{"name":"QPathfind","status":true,"description":"<QPathfind>\r\nA* Pathfinding algorithm","parameters":{"Diagonals":"false","Intervals":"100","Smart Wait":"60","=============":"","Half Opt":"true"}}
+{"name":"QPathfind","status":true,"description":"<QPathfind>\r\nA* Pathfinding algorithm","parameters":{"Diagonals":"false","Intervals":"100","Smart Wait":"60","=============":"","Half Opt":"true"}},
+{"name":"QYScale","status":true,"description":"<QYScale>\r\nChange characters scale based off their Y value","parameters":{}}
 ];
