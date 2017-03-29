@@ -3,12 +3,9 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QAudio = '2.2.0';
+Imported.QAudio = '2.2.1';
 
-if (!Imported.QPlus) {
-  alert('Error: QAudio requires QPlus to work.');
-  throw new Error('Error: QAudio requires QPlus to work.');
-} else if (!QPlus.versionCheck(Imported.QPlus, '1.0.1')) {
+if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.0.1')) {
   alert('Error: QAudio requires QPlus 1.0.1 or newer to work.');
   throw new Error('Error: QAudio requires QPlus 1.0.1 or newer to work.');
 }
@@ -17,7 +14,7 @@ if (!Imported.QPlus) {
  /*:
  * @plugindesc <QAudio>
  * Few new audio features
- * @author Quxios  | Version 2.2.0
+ * @author Quxios  | Version 2.2.1
  *
  * @requires QPlus
  *
@@ -63,7 +60,7 @@ if (!Imported.QPlus) {
  * CHARAID - The character identifier.
  *
  *  - For player: 0, p, or player
- *  - For events: EVENTID, eEVENTID or eventEVENTID
+ *  - For events: EVENTID, eEVENTID, eventEVENTID or this for the event that called this
  *  (replace EVENTID with a number)
  *
  * (Note: If no x, y or bindTo are set, it will play at players position)
@@ -366,7 +363,9 @@ if (!Imported.QPlus) {
       buffers[i] = null;
     }
     this._QAudioBuffers = [];
-    $gameSystem._QAudios = [];
+    if ($gameSystem) {
+      $gameSystem._QAudios = [];
+    }
   };
 
   var Alias_AudioManager_stopAll = AudioManager.stopAll;
