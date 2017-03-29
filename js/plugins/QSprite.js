@@ -4,12 +4,10 @@
 
 var Imported = Imported || {};
 Imported.QSprite = '2.1.0';
-Imported.Quasi_Sprite = true; // backwards compatibility
 
 if (!Imported.QPlus) {
-  var msg = 'Error: QSprite requires QPlus to work.';
-  alert(msg);
-  throw new Error(msg);
+  alert('Error: QSprite requires QPlus to work.');
+  throw new Error('Error: QSprite requires QPlus to work.');
 }
 
 //=============================================================================
