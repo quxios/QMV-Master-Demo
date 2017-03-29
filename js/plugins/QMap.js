@@ -3,21 +3,18 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QMap = '1.2.0';
+Imported.QMap = '1.2.1';
 
-if (!Imported.QPlus) {
-  alert('Error: QMap requires QPlus to work.');
-  throw new Error('Error: QMap requires QPlus to work.');
-} else if (!QPlus.versionCheck(Imported.QPlus, '1.1.2')) {
-  alert('Error: QName requires QPlus 1.1.2 or newer to work.');
-  throw new Error('Error: QName requires QPlus 1.1.2 or newer to work.');
+if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.5')) {
+  alert('Error: QMap requires QPlus 1.1.5 or newer to work.');
+  throw new Error('Error: QMap requires QPlus 1.1.5 or newer to work.');
 }
 
 //=============================================================================
  /*:
  * @plugindesc <QMap>
  * Creates maps made with QMap Editor
- * @author Quxios  | Version 1.2.0
+ * @author Quxios  | Version 1.2.1
  *
  * @requires QPlus
  *
@@ -147,6 +144,16 @@ var $dataQMap = null;
 // QMap
 
 (function() {
+
+  QPlus.request('data/QMap.json')
+    .onSuccess(function(json) {
+      $dataQMap = json;
+      DataManager.onLoad($dataQMap);
+    })
+    .onError(function() {
+      throw new Error("Failed to load 'data/QMap.json'");
+    })
+
   //-----------------------------------------------------------------------------
   // Game_Interpreter
 
@@ -186,11 +193,6 @@ var $dataQMap = null;
 
   //-----------------------------------------------------------------------------
   // DataManager
-
-  DataManager._databaseFiles.push({
-    name: '$dataQMap',
-    src: 'QMap.json'
-  })
 
   var Alias_DataManager_isMapLoaded = DataManager.isMapLoaded;
   DataManager.isMapLoaded = function() {
