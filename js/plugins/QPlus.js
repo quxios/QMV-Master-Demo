@@ -3,13 +3,13 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QPlus = '1.1.4';
+Imported.QPlus = '1.1.5';
 
 //=============================================================================
  /*:
  * @plugindesc <QPlus> (Should go above all Q Plugins)
  * Some small changes to MV for easier plugin development.
- * @author Quxios  | Version 1.1.4
+ * @author Quxios  | Version 1.1.5
  *
  * @param Quick Test
  * @desc Enable quick testing.
@@ -221,11 +221,12 @@ QPlus.getCharacter = function(string) {
  *         callback on load, response value is passed as 1st argument
  * @param  {Function} err
  *         callback on error
+ * @return {XMLHttpRequest}
  */
 QPlus.request = function(filePath, callback, err) {
   var xhr = new XMLHttpRequest();
-  var url = filePath;
-  xhr.open('GET', url, true);
+  xhr.url = filePath;
+  xhr.open('GET', filePath, true);
   var type = filePath.split('.').pop().toLowerCase();
   if (type === 'txt') {
     xhr.overrideMimeType('text/plain');
@@ -233,16 +234,26 @@ QPlus.request = function(filePath, callback, err) {
     xhr.overrideMimeType('application/json');
   }
   xhr.onload = function() {
-    if (xhr.status < 400) {
-      var val = xhr.responseText;
+    if (this.status < 400) {
+      var val = this.responseText;
       if (type === 'json') val = JSON.parse(val);
-      callback(val);
+      this._onSuccess(val);
     }
   }
+  xhr.onError = function(func) {
+    this.onerror = func;
+    return this;
+  }
+  xhr.onSuccess = function(func) {
+    this._onSuccess = func;
+    return this;
+  }
+  xhr._onSuccess = callback || function() {};
   xhr.onerror = err || function() {
-    console.error('Error:' + filePath + ' not found');
+    console.error('Error:' + this.url + ' not found');
   }
   xhr.send();
+  return xhr;
 };
 
 /**
