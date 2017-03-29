@@ -3,21 +3,18 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QMovement = '1.1.4';
+Imported.QMovement = '1.1.5';
 
-if (!Imported.QPlus) {
-  alert('Error: QMovement requires QPlus to work.');
-  throw new Error('Error: QMovement requires QPlus to work.');
-} else if (!QPlus.versionCheck(Imported.QPlus, '1.1.3')) {
-  alert('Error: QName requires QPlus 1.1.3 or newer to work.');
-  throw new Error('Error: QName requires QPlus 1.1.3 or newer to work.');
+if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.3')) {
+  alert('Error: Movemente requires QPlus 1.1.3 or newer to work.');
+  throw new Error('Error: QMovement requires QPlus 1.1.3 or newer to work.');
 }
 
 //=============================================================================
  /*:
  * @plugindesc <QMovement>
  * More control over character movement
- * @author Quxios  | Version 1.1.4
+ * @author Quxios  | Version 1.1.5
  *
  * @repo https://github.com/quxios/QMovement
  *
@@ -449,8 +446,8 @@ function Polygon_Collider() {
 (function() {
   Polygon_Collider._counter = 0;
 
-  Polygon_Collider.prototype.initialize = function(points) {
-    this._position = new Point(0, 0);
+  Polygon_Collider.prototype.initialize = function(points, x, y) {
+    this._position = new Point(x || 0, y || 0);
     this._scale = new Point(1, 1);
     this._offset = new Point(0, 0);
     this._pivot = new Point(0, 0);
@@ -479,7 +476,7 @@ function Polygon_Collider() {
 
   Object.defineProperty(Polygon_Collider.prototype, 'ox', {
     get() {
-      return this._offset.x + this._pivot.x;1
+      return this._offset.x + this._pivot.x;
     }
   });
 
@@ -504,14 +501,42 @@ function Polygon_Collider() {
   Polygon_Collider.prototype.makeVertices = function(points) {
     this._vertices = [];
     this._baseVertices = [];
+    this._vectors = [];
+    this._xMin = null;
+    this._xMax = null;
+    this._yMin = null;
+    this._yMax = null;
     for (var i = 0; i < points.length; i++) {
       var x = points[i].x;
       var y = points[i].y;
-      this._vertices.push(new Point(x, y));
+      var x2 = x + this.x + this.ox;
+      var y2 = y + this.y + this.oy;
+      this._vertices.push(new Point(x2, y2));
       this._baseVertices.push(new Point(x, y));
+      var dx = x - this._pivot.x;
+      var dy = y - this._pivot.y;
+      var radian = Math.atan2(dy, dx);
+      radian += radian < 0 ? Math.PI * 2 : 0;
+      var dist = Math.sqrt(dx * dx + dy * dy);
+      this._vectors.push({ radian, dist });
+      if (this._xMin === null || this._xMin > x) {
+        this._xMin = x;
+      }
+      if (this._xMax === null || this._xMax < x) {
+        this._xMax = x;
+      }
+      if (this._yMin === null || this._yMin > y) {
+        this._yMin = y;
+      }
+      if (this._yMax === null || this._yMax < y) {
+        this._yMax = y;
+      }
     }
-    this.makeVectors();
-    this.refreshVertices();
+    this.width = Math.abs(this._xMax - this._xMin);
+    this.height = Math.abs(this._yMax - this._yMin);
+    var x1 = this._xMin + this.x + this.ox;
+    var y1 = this._yMin + this.y + this.oy;
+    this.center = new Point(x1 + this.width / 2, y1 + this.height / 2);
   };
 
   Polygon_Collider.prototype.makeVectors = function() {
@@ -718,6 +743,8 @@ function Polygon_Collider() {
     return odd;
   };
 
+  // TODO Optimize this
+  // Compaire other methods, example atan2 - atan2 or a dot product
   Polygon_Collider.prototype.bestPairFrom = function(point) {
     var vertices = this._vertices;
     var radians = [];
@@ -747,30 +774,29 @@ function Polygon_Collider() {
 
   // returns a new polygon
   Polygon_Collider.prototype.stretchedPoly = function(radian, dist) {
+    var dist2 = dist + Math.max(this.width, this.height);
     var xComponent = Math.cos(radian) * dist;
     var yComponent = Math.sin(radian) * dist;
-    var x1 = this.x + xComponent;
-    var y1 = this.y + yComponent;
-    // TODO func still needs work
-    // not sure if this is incorrect or if bestPairFrom() is
-    // returning incorrect values at certain points
+    var x1 = this.center.x + Math.cos(radian) * dist2;
+    var y1 = this.center.y + Math.sin(radian) * dist2;
     var bestPair = this.bestPairFrom(new Point(x1, y1));
     var vertices = this._vertices;
     var pointsA = [];
     var pointsB = [];
-    for (var i = 0; i < vertices.length; i++) {
+    var i;
+    for (i = 0; i < vertices.length; i++) {
       var x2 = vertices[i].x - this.x;
       var y2 = vertices[i].y - this.y;
       pointsA.push(new Point(x2, y2));
       pointsB.push(new Point(x2 + xComponent, y2 + yComponent));
     }
+    // TODO add the other vertices from collider
     var points = [];
     points.push(pointsA[bestPair[0]]);
     points.push(pointsB[bestPair[0]]);
     points.push(pointsB[bestPair[1]]);
     points.push(pointsA[bestPair[1]]);
-    var polygon = new Polygon_Collider(points);
-    polygon.moveTo(this.x, this.y);
+    var polygon = new Polygon_Collider(points, this.x, this.y);
     return polygon;
   };
 })();
@@ -1698,11 +1724,16 @@ function ColliderManager() {
     type = type || 'collision';
     var x1 = $gameMap.roundPXWithDirection(x, horz, dist);
     var y1 = $gameMap.roundPYWithDirection(y, vert, dist);
-    if (!this.canPixelPass(x1, y1, 5, null, type)) return false;
-    if (QMovement.midPass) {
-      var x2 = $gameMap.roundPXWithDirection(x, horz, dist / 2);
-      var y2 = $gameMap.roundPYWithDirection(y, vert, dist / 2);
-      if (!this.canPixelPass(x2, y2, 5, null, type)) return false;
+    if (dist === this.moveTiles()) {
+      if (!this.canPixelPass(x1, y1, 5, null, type)) return false;
+      if (QMovement.midPass) {
+        var x2 = $gameMap.roundPXWithDirection(x, horz, dist / 2);
+        var y2 = $gameMap.roundPYWithDirection(y, vert, dist / 2);
+        if (!this.canPixelPass(x2, y2, 5, null, type)) return false;
+      }
+    } else {
+      return (this.canPixelPass(x, y, vert, dist, type) && this.canPixelPass(x, y1, horz, dist, type)) &&
+             (this.canPixelPass(x, y, horz, dist, type) && this.canPixelPass(x1, y, vert, dist, type));
     }
     return true;
   };
@@ -1799,31 +1830,28 @@ function ColliderManager() {
     return colors;
   };
 
-  // TODO
-  // this is still incomplete, gives incorrect values in some cases
-  Game_CharacterBase.prototype.canPassToFrom = function(xf, yf, xi, yi, type) {
+  Game_CharacterBase.prototype.canPassToFrom = function(xf, yf, xi, yi, type, ll) {
     xi = xi === undefined ? this._px : xi;
     yi = yi === undefined ? this._py : yi;
     type = type || 'collision';
+    // TODO remove this check by having the start and end colliders
+    // be included in the _stretched collider
     if (!this.canPixelPass(xi, yi, 5, null, type) || !this.canPixelPass(xf, yf, 5, null, type)) {
+      this.collider(type).moveTo(this._px, this._py);
       return false;
     }
-    var collider = this.collider(type);
-    collider.moveTo(xi, yi);
     var dx = xf - xi;
     var dy = yf - yi;
     var radian = Math.atan2(dy, dx);
     if (radian < 0) radian += Math.PI * 2;
     var dist = Math.sqrt(dx * dx + dy * dy);
-    this._colliders['_stretched'] = collider.stretchedPoly(radian, dist);
-    ColliderManager.draw(this._colliders['_stretched'], 240);
-    //if (!this.canPixelPass(xi, yi, 5, null, '_stretched')) {
-    //  delete this._colliders['_stretched'];
-    //  return false;
-    //}
-    //ColliderManager.draw(this._colliders['_stretched'], 240);
+    this._colliders['_stretched'] = this.collider(type).stretchedPoly(radian, dist);
+    if (!this.canPixelPass(xi, yi, 5, null, '_stretched')) {
+      delete this._colliders['_stretched'];
+      return false;
+    }
     delete this._colliders['_stretched'];
-    return false;
+    return true;
   };
 
   Game_CharacterBase.prototype.checkEventTriggerTouchFront = function(d) {
@@ -2082,7 +2110,7 @@ function ColliderManager() {
     var vert = yAxis > 0 ? 2 : yAxis < 0 ? 8 : 0;
     var x2 = $gameMap.roundPXWithDirection(this._px, horz, horzSteps);
     var y2 = $gameMap.roundPYWithDirection(this._py, vert, vertSteps);
-    this.setMovementSuccess(this.canPixelPass(x2, y2, null));
+    this.setMovementSuccess(this.canPassToFrom(x2, y2, this.px, this.py, null, true));
     if (this.isMovementSucceeded() && QMovement.midPass) {
       var x3 = $gameMap.roundPXWithDirection(this._px, horz, horzSteps / 2);
       var y3 = $gameMap.roundPYWithDirection(this._py, vert, vertSteps / 2);
