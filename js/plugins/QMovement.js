@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QMovement = '1.1.5';
+Imported.QMovement = '1.1.6';
 
 if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.3')) {
   alert('Error: Movemente requires QPlus 1.1.3 or newer to work.');
@@ -14,7 +14,7 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.3')) {
  /*:
  * @plugindesc <QMovement>
  * More control over character movement
- * @author Quxios  | Version 1.1.5
+ * @author Quxios  | Version 1.1.6
  *
  * @repo https://github.com/quxios/QMovement
  *
@@ -161,7 +161,7 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.3')) {
  * **Collider Notetag**
  * ----------------------------------------------------------------------------
  * ~~~
- * <collider: shape, width, height, ox, oy>
+ *  <collider: shape, width, height, ox, oy>
  * ~~~
  * This notetag sets all collider types to these values.
  * - Shape: Set to box or circle
@@ -173,9 +173,9 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.3')) {
  * **Colliders Notetag**
  * ----------------------------------------------------------------------------
  * ~~~
- * <colliders>
- * type: shape, width, height, ox, oy
- * </colliders>
+ *  <colliders>
+ *  type: shape, width, height, ox, oy
+ *  </colliders>
  * ~~~
  * This notetag sets all collider types to these values.
  * - Type: The type of collider, set to default, collision or interaction
@@ -190,11 +190,11 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.3')) {
  *
  * Example:
  * ~~~
- * <colliders>
- * default: box, 48, 48
- * collision: circle, 24, 24, 12, 12
- * interaction: box: 32, 32, 8, 8
- * </colliders>
+ *  <colliders>
+ *  default: box, 48, 48
+ *  collision: circle, 24, 24, 12, 12
+ *  interaction: box: 32, 32, 8, 8
+ *  </colliders>
  * ~~~
  * ============================================================================
  * ## Move Routes
@@ -303,6 +303,32 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.3')) {
  *
  * - dirX: Set X to the dir to face after the transfer. Can be 2, 4, 6, 8, or for
  * diagonals 1, 3, 7, 9
+ * ============================================================================
+ * ## Tips
+ * ============================================================================
+ * **No closed open spaces!**
+ * ----------------------------------------------------------------------------
+ * For performance reasons, you should try to avoid having open spaces that are
+ * closed off.
+ * ![Example](https://quxios.github.io/imgs/qmovement/openSpaces.png)
+ * On the left we can see some tiles that have a collider border, but their inside
+ * is "open". This issue is should be corrected when using QPathfind because
+ * if someone was to click inside that "open" space, it is passable and QPathfind
+ * will try to find a way in even though there is no way in and will cause massive
+ * lag. The fix can be pretty simple, you could add a CollisionMap (though that
+ * may be another issue in its own) or add a RegionCollider to fill up the full
+ * tile like I did on the correct side of that image.
+ * ----------------------------------------------------------------------------
+ * **Collision Maps - Heavy**
+ * ----------------------------------------------------------------------------
+ * Try to use collision maps only if you absolutely need to. Collision maps
+ * can be very large images which will make your game use more memory and can
+ * cause some slower pcs to start lagging. The collision checking for collision
+ * maps are also take about 2-4x more time to compute and is a lot less accurate
+ * since it only checks if the colliders edge collided with the collision map.
+ * So using collision maps, might be pretty, but use it with caution as it can
+ * slow down your game! A better solution for this would be to use a PolygonMap
+ * where you create polygon colliders and add them into the map.
  * ============================================================================
  * ## Addons
  * ============================================================================
@@ -1830,7 +1856,7 @@ function ColliderManager() {
     return colors;
   };
 
-  Game_CharacterBase.prototype.canPassToFrom = function(xf, yf, xi, yi, type, ll) {
+  Game_CharacterBase.prototype.canPassToFrom = function(xf, yf, xi, yi, type) {
     xi = xi === undefined ? this._px : xi;
     yi = yi === undefined ? this._py : yi;
     type = type || 'collision';
@@ -2613,6 +2639,7 @@ function ColliderManager() {
   var Alias_Game_Player_initMembers = Game_Player.prototype.initMembers;
   Game_Player.prototype.initMembers = function() {
     Alias_Game_Player_initMembers.call(this);
+    this._lastMouseRequested = 0;
     this._requestMouseMove = false;
     this._movingWithMouse = false;
   };
@@ -2626,17 +2653,21 @@ function ColliderManager() {
   };
 
   Game_Player.prototype.requestMouseMove = function() {
-    this._requestMouseMove = true;
+    var currFrame = Graphics.frameCount;
+    var dt = currFrame - this._lastMouseRequested;
+    if (dt >= 5) {
+      this._lastMouseRequested = currFrame;
+      this._requestMouseMove = true;
+    } else {
+      this._requestMouseMove = false;
+    }
   };
 
   Game_Player.prototype.moveByMouse = function(x, y) {
-    $gameTemp.setPixelDestination(x, y);
     if (this.triggerTouchAction()) {
       return this.clearMouseMove();
     }
-    this._requestMouseMove = false;
     this._movingWithMouse = true;
-    // alias with pathfinding addon
   };
 
   Game_Player.prototype.clearMouseMove = function() {
@@ -2651,14 +2682,17 @@ function ColliderManager() {
       var direction = QMovement.diagonal ? Input.dir8 : Input.dir4;
       if (direction > 0) {
         this.clearMouseMove();
-      } else if ($gameTemp.isDestinationValid() && this._requestMouseMove) {
+      } else if ($gameTemp.isDestinationValid()) {
         if (!QMovement.moveOnClick) {
           $gameTemp.clearDestination();
           return;
         }
-        var x = $gameTemp.destinationPX();
-        var y = $gameTemp.destinationPY();
-        return this.moveByMouse(x, y);
+        this.requestMouseMove();
+        if (this._requestMouseMove) {
+          var x = $gameTemp.destinationPX();
+          var y = $gameTemp.destinationPY();
+          return this.moveByMouse(x, y);
+        }
       }
       if (Imported.QInput && Input.preferGamepad() && QMovement.offGrid) {
         this.moveWithAnalog();
@@ -3000,7 +3034,6 @@ function ColliderManager() {
             y += QMovement.tileSize / 2 - oy;
           }
           $gameTemp.setPixelDestination(x, y);
-          $gamePlayer.requestMouseMove();
         }
         this._touchCount++;
       } else {
