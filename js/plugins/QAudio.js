@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QAudio = '2.2.1';
+Imported.QAudio = '2.2.2';
 
 if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.0.1')) {
   alert('Error: QAudio requires QPlus 1.0.1 or newer to work.');
@@ -14,7 +14,7 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.0.1')) {
  /*:
  * @plugindesc <QAudio>
  * Few new audio features
- * @author Quxios  | Version 2.2.1
+ * @author Quxios  | Version 2.2.2
  *
  * @requires QPlus
  *
@@ -65,7 +65,7 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.0.1')) {
  *
  * (Note: If no x, y or bindTo are set, it will play at players position)
  * ----------------------------------------------------------------------------
- * **Examples**
+ * **Examples 1**
  * ----------------------------------------------------------------------------
  * ~~~
  *   qAudio start Battle1
@@ -105,7 +105,7 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.0.1')) {
  *  qAudio clear
  * ~~~
  * ----------------------------------------------------------------------------
- * **Examples**
+ * **Examples 2**
  * ----------------------------------------------------------------------------
  * First make a qAudio with an Id like:
  * ~~~
@@ -485,6 +485,15 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.0.1')) {
     Alias_Scene_Base_fadeOutAll.call(this);
     var time = this.slowFadeSpeed() / 60;
     AudioManager.fadeOutAllQAudio(time);
+  };
+
+  //-----------------------------------------------------------------------------
+  // Scene_Title
+
+  var Alias_Scene_Title_playTitleMusic = Scene_Title.prototype.playTitleMusic;
+  Scene_Title.prototype.playTitleMusic = function() {
+    Alias_Scene_Title_playTitleMusic.call(this);
+    AudioManager.stopAllQAudio();
   };
 
   //-----------------------------------------------------------------------------
