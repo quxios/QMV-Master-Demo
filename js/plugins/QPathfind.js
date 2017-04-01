@@ -3,21 +3,18 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QPathfind = '1.2.0';
+Imported.QPathfind = '1.3.0';
 
-if (!Imported.QPlus) {
-  alert('Error: QPathfind requires QPlus to work.');
-  throw new Error('Error: QPathfind requires QPlus to work.');
-} else if (!QPlus.versionCheck(Imported.QPlus, '1.1.3')) {
-  alert('Error: QName requires QPlus 1.1.3 or newer to work.');
-  throw new Error('Error: QName requires QPlus 1.1.3 or newer to work.');
+if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.3')) {
+  alert('Error: QPathfind requires QPlus 1.1.3 or newer to work.');
+  throw new Error('Error: QPathfind requires QPlus 1.1.3 or newer to work.');
 }
 
 //=============================================================================
  /*:
  * @plugindesc <QPathfind>
  * A* Pathfinding algorithm
- * @author Quxios  | Version 1.2.0
+ * @author Quxios  | Version 1.3.0
  *
  * @requires QPlus
  *
@@ -26,6 +23,10 @@ if (!Imported.QPlus) {
  * @param Diagonals
  * @desc Set to true to enable diagonals in the route
  * Set to false to disable diagonals
+ * @default false
+ *
+ * @param Any Angle
+ * @desc (Only for QMovement) Set to true to enable moving in any angle
  * @default false
  *
  * @param Intervals
@@ -45,6 +46,11 @@ if (!Imported.QPlus) {
  * @param Half Opt
  * @desc (Only for QMovement) Uses half the value from Optimize Move Tiles.
  * Slightly increases pathfinding accuracy.
+ * @default true
+ *
+ * @param Dash on Mouse
+ * @desc Should player dash when mouse clicking?
+ * MV Default: true
  * @default true
  *
  * @help
@@ -177,10 +183,9 @@ if (!Imported.QPlus) {
  *
  *  https://www.patreon.com/quxios
  *
- * @tags pathfind, chase, character, map
+ * @tags pathfind, chase, character
  */
 //=============================================================================
-
 
 //=============================================================================
 // QPathfind
@@ -191,13 +196,13 @@ function QPathfind() {
 
 (function() {
   var _params = QPlus.getParams('<QPathfind>');
-
   var _diagonals = _params['Diagonals'] === 'true';
   var _intervals = Number(_params['Intervals']);
   var _smartWait = Number(_params['Smart Wait']);
   var _halfOpt = _params['Half Opt'] === 'true';
-  var _jump = false; // Experimental, not complete
-  var _jumpDist = 144;
+  var _dashOnMouse = _params['Dash on Mouse'] === 'true';
+  var _anyAngle = _params['Any Angle'] === 'true'
+  if (_anyAngle && Imported.QMovement && _diagonals) _diagonals = false;
   var _defaultOptions = {
     smart: 0, // 0 no smart, 1 recalc on blocked, 2 recalc at intervals
     chase: null, // charaID of character it's chasing
@@ -224,9 +229,10 @@ function QPathfind() {
   //   QPathfind.onFail > Game_Character.clearPathfind
 
   QPathfind.prototype.initialize = function(charaId, endPoint, options) {
+    console.log('new');
     this.initMembers(charaId, endPoint, options);
     this.beforeStart();
-    this.update();
+    //this.update();
   };
 
   QPathfind.prototype.initMembers = function(charaId, endPoint, options) {
@@ -261,6 +267,7 @@ function QPathfind() {
     this._startNode = this.node(null, startPoint);
     this._startNode.visited = true;
     this._endNode = this.node(null, endPoint);
+    this._originalEnd = this.node(null, endPoint);
     this._openNodes = [this._startNode];
     this._grid = {};
     this._grid[this._startNode.value] = this._startNode;
@@ -460,12 +467,7 @@ function QPathfind() {
     }
     this._openNodes.splice(currI, 1);
     this._closed[this._current.value] = true;
-    var neighbors;
-    if (_jump) {
-      neighbors = this.findSuccessor(this._current);
-    } else {
-      neighbors = this.findNeighbors(this._current);
-    }
+    var neighbors = this.findNeighbors(this._current);
     j = neighbors.length;
     for (i = 0; i < j; i++) {
       if (this._closed[neighbors[i].value]) continue;
@@ -518,6 +520,7 @@ function QPathfind() {
         x2 = $gameMap.roundPXWithDirection(x, horz, tiles);
         y2 = $gameMap.roundPYWithDirection(y, vert, tiles);
         if (i >= 4) {
+          //passed = chara.canPassToFrom(x, y, x2, y2, '_pathfind');
           passed = chara.canPixelPassDiagonally(x, y, horz, vert, tiles, '_pathfind');
         } else {
           passed = chara.canPixelPass(x, y, dir, tiles, '_pathfind');
@@ -547,98 +550,6 @@ function QPathfind() {
     return neighbors;
   };
 
-  QPathfind.prototype.findSuccessor = function(current) {
-    var successors = [];
-    var neighbors = this.findNeighbors(current);
-    for (var i = 0; i < neighbors.length; i++) {
-      var dx = neighbors[i].x - current.x;
-      var dy = neighbors[i].y - current.y;
-      var rad = Math.atan2(dy, dx);
-      rad += rad < 0 ? Math.PI * 2 : 0;
-      var dir = this.character().radianToDirection(rad, true);
-      if (dir === current.from) {
-        continue;
-      }
-      var jump = this.jump(neighbors[i], dir);
-      var rad2 = rad - Math.PI;
-      rad2 += rad2 < 0 ? Math.PI * 2 : 0;
-      jump.from = this.character().radianToDirection(rad2, true);
-      successors.push(jump);
-    }
-    return successors;
-  };
-
-  // Similar idea from jump point search
-  QPathfind.prototype.jump = function(current, dir) {
-    var chara = this.character();
-    var x = current.x;
-    var y = current.y;
-    var xf = this._endNode.x;
-    var yf = this._endNode.y;
-    var stepDist = 1;
-    if (Imported.QMovement) {
-      stepDist = chara.moveTiles();
-      var nearEnd = Math.abs(x - xf) < chara.optTiles() &&
-                    Math.abs(y - yf) < chara.optTiles();
-      var tiles = nearEnd ? chara.moveTiles() : chara.optTiles();
-    }
-    var diags = {
-      1: [4, 2], 3: [6, 2],
-      7: [4, 8], 9: [6, 8]
-    }
-    var horz = dir;
-    var vert = dir;
-    var isDiag = [1, 3, 7, 9].contains(dir);
-    if (isDiag) {
-      horz = diags[dir][0];
-      vert = diags[dir][1];
-    }
-    var passed = true;
-    var totalDist = 0;
-    while (true) {
-      if (Imported.QMovement) {
-        if (isDiag) {
-          passed = chara.canPixelPassDiagonally(x, y, horz, vert, tiles, '_pathfind');
-        } else {
-          passed = chara.canPixelPass(x, y, dir, tiles, '_pathfind');
-        }
-        if (passed) {
-          x = $gameMap.roundPXWithDirection(x, horz, tiles);
-          y = $gameMap.roundPYWithDirection(y, vert, tiles);
-          // TODO check for edges
-        }
-      } else {
-        if (isDiag) {
-          passed = chara.canPassDiagonally(x, y, horz, vert);
-        } else {
-          passed = chara.canPass(x, y, dir);
-        }
-        if (passed) {
-          x = $gameMap.roundXWithDirection(x, horz);
-          y = $gameMap.roundYWithDirection(y, vert);
-          // TODO check for edges
-        }
-      }
-      totalDist += stepDist;
-      if (totalDist > _jumpDist) {
-        break;
-      }
-      if (Math.abs(x - xf) < stepDist || Math.abs(y - yf) < stepDist) {
-        break;
-      }
-      if (!passed) {
-        break;
-      }
-    }
-    var node = this.getNodeAt(current, x, y);
-    if (Imported.QMovement) {
-      if (Math.abs(x - xf) < stepDist && Math.abs(y - yf) < stepDist) {
-        node.value = this._endNode.value; // force early end
-      }
-    }
-    return node;
-  };
-
   QPathfind.prototype.onComplete = function() {
     //console.timeEnd('Pathfind');
     this._completed = true;
@@ -665,7 +576,13 @@ function QPathfind() {
     var node = this._current;
     var path = [node];
     while (node.parent) {
-      node = node.parent;
+      var next = node.parent;
+      if (_anyAngle) {
+        while (next.parent && this.character().canPassToFrom(node.x, node.y, next.parent.x, next.parent.y)) {
+          next = next.parent;
+        }
+      }
+      node = next;
       path.unshift(node);
     }
     return path;
@@ -720,8 +637,16 @@ function QPathfind() {
       }
       var command = {};
       if (Imported.QMovement) {
-        command.code = Game_Character.ROUTE_SCRIPT;
-        command.parameters = ['qmove(' + dir + ',' + dist + ')'];
+        if (_anyAngle) {
+          var radian = Math.atan2(-sy, -sx);
+          if (radian < 0) radian += Math.PI * 2;
+          dist = Math.sqrt(sx * sx + sy * sy);
+          command.code = Game_Character.ROUTE_SCRIPT;
+          command.parameters = ['qmove2(' + radian + ',' + dist + ')'];
+        } else {
+          command.code = Game_Character.ROUTE_SCRIPT;
+          command.parameters = ['qmove(' + dir + ',' + dist + ')'];
+        }
       } else {
         command.code = codes[dir];
       }
@@ -902,12 +827,21 @@ function QPathfind() {
 
   // if using QMovement, x and y are pixel values
   Game_Character.prototype.initPathfind = function(x, y, options) {
+    if (this._pathfind) {
+      var oldX = this._pathfind._originalEnd.x;
+      var oldY = this._pathfind._originalEnd.y;
+      if (x === oldX && y === oldY) {
+        // TODO check if any options changed
+        return;
+      }
+    }
     if (this._isPathfinding) {
       this.clearPathfind();
     }
     options = options || {};
     this._pathfind = new QPathfind(this.charaId(), new Point(x, y), options);
     this._isChasing = options.chase !== null ? options.chase : false;
+    this._pathfind.update();
   };
 
   Game_Character.prototype.initChase = function(charaId) {
@@ -987,12 +921,11 @@ function QPathfind() {
   if (Imported.QMovement) {
     var Alias_Game_Player_requestMouseMove = Game_Player.prototype.requestMouseMove;
     Game_Player.prototype.requestMouseMove = function() {
-      Alias_Game_Player_requestMouseMove.call(this);
-      if (this._isPathfinding) {
-        this._isPathfinding = false;
-        this.processRouteEnd();
+      if (this._pathfind && !this._pathfind._completed) {
+        this._requestMouseMove = false;
+        return;
       }
-      this._pathfind = null;
+      Alias_Game_Player_requestMouseMove.call(this);
     };
 
     var Alias_Game_Player_moveByMouse = Game_Player.prototype.moveByMouse;
@@ -1003,6 +936,7 @@ function QPathfind() {
         breakable: true,
         adjustEnd: true
       })
+      $gameTemp.setPixelDestination(x, y);
       Alias_Game_Player_moveByMouse.call(this, x, y);
     };
 
@@ -1010,13 +944,6 @@ function QPathfind() {
     Game_Player.prototype.clearMouseMove = function() {
       Alias_Game_Player_clearMouseMove.call(this);
       this.clearPathfind();
-    };
-
-    Game_Player.prototype._clearPathfind = function() {
-      Game_Character.prototype.clearPathfind.call(this);
-      if (this._movingWithMouse) {
-        this.clearMouseMove();
-      }
     };
 
     Game_Player.prototype.onPathfindComplete = function() {
@@ -1033,6 +960,19 @@ function QPathfind() {
         this.clearMouseMove();
       }
       return triggered;
+    };
+  }
+
+  if (!_dashOnMouse) {
+    Game_Player.prototype.updateDashing = function() {
+      if (Imported.QMovement ? this.startedMoving() : this.isMoving()) {
+        return;
+      }
+      if (this.canMove() && !this.isInVehicle() && !$gameMap.isDashDisabled()) {
+        this._dashing = this.isDashButtonPressed();
+      } else {
+        this._dashing = false;
+      }
     };
   }
 
