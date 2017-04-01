@@ -229,10 +229,8 @@ function QPathfind() {
   //   QPathfind.onFail > Game_Character.clearPathfind
 
   QPathfind.prototype.initialize = function(charaId, endPoint, options) {
-    console.log('new');
     this.initMembers(charaId, endPoint, options);
     this.beforeStart();
-    //this.update();
   };
 
   QPathfind.prototype.initMembers = function(charaId, endPoint, options) {
