@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QMap = '1.2.1';
+Imported.QMap = '1.2.2';
 
 if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.5')) {
   alert('Error: QMap requires QPlus 1.1.5 or newer to work.');
@@ -14,7 +14,7 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.5')) {
  /*:
  * @plugindesc <QMap>
  * Creates maps made with QMap Editor
- * @author Quxios  | Version 1.2.1
+ * @author Quxios  | Version 1.2.2
  *
  * @requires QPlus
  *
@@ -282,11 +282,11 @@ var $dataQMap = null;
     var Alias_Game_CharacterBase_collideWithCharacter = Game_CharacterBase.prototype.collideWithCharacter;
     Game_CharacterBase.prototype.collideWithCharacter = function(type) {
       if (Alias_Game_CharacterBase_collideWithCharacter.call(this, type)) return true;
-      return this.collideWithMapObj();
+      return this.collideWithMapObj(type);
     };
 
-    Game_CharacterBase.prototype.collideWithMapObj = function() {
-      var collider = this.collider('collision');
+    Game_CharacterBase.prototype.collideWithMapObj = function(type) {
+      var collider = this.collider(type);
       var collided = false;
       ColliderManager.getCollidersNear(collider, (function(mapObj) {
         if (!mapObj.isMapObj) return false;
