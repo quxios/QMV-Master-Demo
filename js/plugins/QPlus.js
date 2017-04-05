@@ -3,13 +3,13 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QPlus = '1.1.5';
+Imported.QPlus = '1.2.0';
 
 //=============================================================================
  /*:
  * @plugindesc <QPlus> (Should go above all Q Plugins)
  * Some small changes to MV for easier plugin development.
- * @author Quxios  | Version 1.1.5
+ * @author Quxios  | Version 1.2.0
  *
  * @param Quick Test
  * @desc Enable quick testing.
@@ -36,9 +36,23 @@ Imported.QPlus = '1.1.5';
  * Adding the following to the notes or in a comment will make that event retain
  * its direction when changing pages.
  * ~~~
- *   <retainDir>
+ *  <retainDir>
  * ~~~
  * This will be ignored if the next page has direction fix enabled
+ *
+ * ----------------------------------------------------------------------------
+ * **No tilemap**
+ * ----------------------------------------------------------------------------
+ * You can disable the tile map by adding this note to a map
+ * ~~~
+ *  <noTilemap>
+ * ~~~
+ * This will replace the tilemap with a simple light weight sprite container.
+ * Using this may increase performance. So if you have a map that doesn't use
+ * any tiles and is all parallax, then you should considering using this.
+ *
+ * * Note, there's a chance this may break some plugins if they call functions in
+ * the original tilemap class.
  *
  * ============================================================================
  * ## Plugin Commands
@@ -47,7 +61,7 @@ Imported.QPlus = '1.1.5';
  * ----------------------------------------------------------------------------
  * This plugin command will insert a random wait between x and y frames.
  * ~~~
- *   wait X Y
+ *  wait X Y
  * ~~~
  * If Y is left empty, it will make a random wait between 0 - X
  *
@@ -77,20 +91,20 @@ Imported.QPlus = '1.1.5';
  *
  * Possible options:
  *
- *  - only  - Will only apply to the characters listed
+ *  - only - Will only apply to the characters listed
  *
  * ----------------------------------------------------------------------------
- * **Examples**
+ * **Global lock Examples**
  * ----------------------------------------------------------------------------
  * ~~~
- *   globalLock 2
+ *  globalLock 2
  * ~~~
  * Will lock all characters movement and animations.
  *
  * ~~~
- *   globalLock 1 0 1 4
- *   globalLock 1 p e1 e4
- *   globalLock 1 player event1 event4
+ *  globalLock 1 0 1 4
+ *  globalLock 1 p e1 e4
+ *  globalLock 1 player event1 event4
  * ~~~
  * (Note: All 3 are the same, just using a different character id method)
  *
@@ -98,9 +112,9 @@ Imported.QPlus = '1.1.5';
  * Player, event 1 and event 4
  *
  * ~~~
- *   globalLock 1 0 1 4 only
- *   globalLock 1 p e1 e4 only
- *   globalLock 1 player event1 event4 only
+ *  globalLock 1 0 1 4 only
+ *  globalLock 1 p e1 e4 only
+ *  globalLock 1 player event1 event4 only
  * ~~~
  * Will Lock the movements for only these characters:
  * Player, event 1 and event 4
@@ -109,12 +123,15 @@ Imported.QPlus = '1.1.5';
  * ## Links
  * ============================================================================
  * RPGMakerWebs:
+ *
  *  http://forums.rpgmakerweb.com/index.php?threads/qplugins.73023/
  *
  * Terms of use:
+ *
  *  https://github.com/quxios/QMV-Master-Demo/blob/master/readme.md
  *
  * Like my plugins? Support me on Patreon!
+ *
  *  https://www.patreon.com/quxios
  *
  * @tags core, character
@@ -128,7 +145,7 @@ function QPlus() {
  throw new Error('This is a static class');
 }
 
-QPlus._params  = {};
+QPlus._params = {};
 
 QPlus.getParams = function(id) {
   if (!this._params[id]) {
@@ -369,6 +386,13 @@ QPlus.freeImgCache = function(files) {
   }
 };
 
+//-----------------------------------------------------------------------------
+// SimpleTilemap
+
+function SimpleTilemap() {
+    this.initialize.apply(this, arguments);
+}
+
 //=============================================================================
 // QPlus edits to existing classes
 
@@ -557,6 +581,10 @@ QPlus.freeImgCache = function(files) {
     this.globalLock(charas, 0, 0);
   };
 
+  Game_Map.prototype.noTilemap = function() {
+    return !!$dataMap.meta.noTilemap;
+  };
+
   //-----------------------------------------------------------------------------
   // Game_CharacterBase
 
@@ -608,14 +636,23 @@ QPlus.freeImgCache = function(files) {
   };
 
   Game_CharacterBase.prototype.radianToDirection = function(radian, useDiag) {
+    while (radian < 0) {
+      radian += Math.PI * 2;
+    }
+    while (radian > Math.PI * 2) {
+      radian -= Math.PI * 2;
+    }
     if (useDiag) {
-      if (radian >= Math.PI / 6 && radian < Math.PI / 3) {
+      // use degrees for diagonals
+      // since I don't know clean PI numbers for these degrees
+      var deg = radian * 180 / Math.PI;
+      if (deg >= 22.5  && deg <= 67.5) {
         return 3;
-      } else if (radian >= Math.PI * 2 / 3 && radian < Math.PI * 5 / 6) {
+      } else if (deg >= 112.5 && deg <= 157.5) {
         return 1;
-      } else if (radian >= Math.PI * 7 / 6 && radian < Math.PI * 4 / 3) {
+      } else if (deg >= 202.5 && deg <= 247.5) {
         return 7;
-      } else if (radian >= Math.PI * 5 / 3 && radian < Math.PI * 11 / 6) {
+      } else if (deg >= 292.5 && deg <= 337.5) {
         return 9;
       }
     }
@@ -632,6 +669,10 @@ QPlus.freeImgCache = function(files) {
     }
   };
 
+  Game_CharacterBase.prototype.setSelfSwitch = function() {
+    return;
+  };
+
   var Alias_Game_Character_updateRoutineMove = Game_Character.prototype.updateRoutineMove;
   Game_Character.prototype.updateRoutineMove = function() {
     if (this._globalLocked >= 1) {
@@ -639,6 +680,7 @@ QPlus.freeImgCache = function(files) {
     }
     Alias_Game_Character_updateRoutineMove.call(this);
   };
+
 
   //-----------------------------------------------------------------------------
   // Game_Player
@@ -724,5 +766,91 @@ QPlus.freeImgCache = function(files) {
   Game_Event.prototype.setupPageSettings = function() {
     Alias_Game_Event_setupPageSettings.call(this);
     this.setupComments();
+  };
+
+  Game_Event.prototype.setSelfSwitch = function(selfSwitch, bool) {
+    var mapId = this._mapId;
+    var eventId = this._eventId;
+    if (!mapId || !eventId) return;
+    var key = [mapId, eventId, selfSwitch];
+    $gameSelfSwitches.setValue(key, bool);
+  };
+
+  //-----------------------------------------------------------------------------
+  // Spriteset_Map
+
+  var Alias_Spriteset_Map_createTilemap = Spriteset_Map.prototype.createTilemap;
+  Spriteset_Map.prototype.createTilemap = function() {
+    if ($gameMap.noTilemap()) {
+      this._tilemap = new SimpleTilemap();
+      this._baseSprite.addChild(this._tilemap);
+    } else {
+      Alias_Spriteset_Map_createTilemap.call(this);
+    }
+  };
+
+  var Alias_Spriteset_Map_loadTileset = Spriteset_Map.prototype.loadTileset;
+  Spriteset_Map.prototype.loadTileset = function() {
+    if (!$gameMap.noTilemap()) {
+      Alias_Spriteset_Map_loadTileset.call(this);
+    }
+  };
+
+  var Alias_Spriteset_Map_updateTilemap = Spriteset_Map.prototype.updateTilemap;
+  Spriteset_Map.prototype.updateTilemap = function() {
+    if (!$gameMap.noTilemap()) {
+      Alias_Spriteset_Map_updateTilemap.call(this);
+    }
+  };
+
+  //-----------------------------------------------------------------------------
+  // Sprite_Character
+
+  var Alias_Sprite_Character_updatePosition = Sprite_Character.prototype.updatePosition;
+  Sprite_Character.prototype.updatePosition = function() {
+    var prevY = this.y;
+    var prevZ = this.z;
+    Alias_Sprite_Character_updatePosition.call(this);
+    if (this.y !== prevY || this.z !== prevZ) {
+      if ($gameMap.noTilemap && this.parent && this.parent.requestSort) {
+        this.parent.requestSort();
+      }
+    }
+  };
+
+  //-----------------------------------------------------------------------------
+  // SimpleTilemap
+
+  SimpleTilemap.prototype = Object.create(Sprite.prototype);
+  SimpleTilemap.prototype.constructor = SimpleTilemap;
+
+  SimpleTilemap.prototype.initialize = function() {
+    Sprite.prototype.initialize.call(this);
+    this._requestSort = false;
+  };
+
+  SimpleTilemap.prototype.requestSort = function() {
+    this._requestSort = true;
+  };
+
+  SimpleTilemap.prototype.update = function() {
+    Sprite.prototype.update.call(this);
+    if (this._requestSort) {
+      this._sortChildren();
+    }
+  };
+
+  SimpleTilemap.prototype._sortChildren = function() {
+    this.children.sort(this._compareChildOrder.bind(this));
+  };
+
+  SimpleTilemap.prototype._compareChildOrder = function(a, b) {
+    if (a.z !== b.z) {
+      return a.z - b.z;
+    } else if (a.y !== b.y) {
+      return a.y - b.y;
+    } else {
+      return a.spriteId - b.spriteId;
+    }
   };
 })()
