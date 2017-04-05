@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QMovement = '1.1.6';
+Imported.QMovement = '1.1.7';
 
 if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.3')) {
   alert('Error: Movemente requires QPlus 1.1.3 or newer to work.');
@@ -14,13 +14,13 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.3')) {
  /*:
  * @plugindesc <QMovement>
  * More control over character movement
- * @author Quxios  | Version 1.1.6
+ * @author Quxios  | Version 1.1.7
  *
  * @repo https://github.com/quxios/QMovement
  *
  * @requires QPlus
  *
- * @video
+ * @video TODO
  *
  * @param Grid
  * @desc The amount of pixels you want to move per Movement.
@@ -1593,13 +1593,13 @@ function ColliderManager() {
 
   Game_Map.prototype.canvasToMapPX = function(x) {
     var tileWidth = this.tileWidth();
-    var originX = this._displayX * tileWidth;
+    var originX = this.displayX() * tileWidth;
     return this.roundPX(originX + x);
   };
 
   Game_Map.prototype.canvasToMapPY = function(y) {
     var tileHeight = this.tileHeight();
-    var originY = this._displayY * tileHeight;
+    var originY = this.displayY() * tileHeight;
     return this.roundPY(originY + y);
   };
 })();
@@ -3039,6 +3039,19 @@ function ColliderManager() {
       } else {
         this._touchCount = 0;
       }
+    }
+  };
+
+  Scene_Map.prototype.updateCallMenu = function() {
+    if (this.isMenuEnabled()) {
+      if (this.isMenuCalled()) {
+        this.menuCalling = true;
+      }
+      if (this.menuCalling && !$gamePlayer.startedMoving()) {
+        this.callMenu();
+      }
+    } else {
+      this.menuCalling = false;
     }
   };
 })();
