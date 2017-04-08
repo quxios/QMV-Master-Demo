@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QCamera = '1.1.1';
+Imported.QCamera = '1.1.2';
 
 if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.0.2')) {
   alert('Error: QCamera requires QPlus 1.0.2 or newer to work.');
@@ -14,7 +14,7 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.0.2')) {
  /*:
  * @plugindesc <QCamera>
  * Better Camera control
- * @author Quxios  | Version 1.1.1
+ * @author Quxios  | Version 1.1.2
  *
  * @requires QPlus
  *
@@ -230,6 +230,8 @@ function Sprite_Bars() {
   };
 
   Game_Map.prototype.startQScroll = function(distanceX, distanceY, speed, frames) {
+    if (Math.abs(distanceX * this.tileWidth()) < 1) distanceX = 0;
+    if (Math.abs(distanceY * this.tileHeight()) < 1) distanceY = 0;
     var directionX = distanceX > 0 ? 6 : distanceX < 0 ? 4 : 0;
     var directionY = distanceY > 0 ? 2 : distanceY < 0 ? 8 : 0;
     this._scrollDirection = [directionX, directionY];
@@ -245,8 +247,8 @@ function Sprite_Bars() {
     var centerY = this.displayCenterY();
     var distanceX = (chara._realX + 0.5) - centerX;
     var distanceY = (chara._realY + 0.5) - centerY;
-    distanceX = Math.floor(distanceX * 1000) / 1000;
-    distanceY = Math.floor(distanceY * 1000) / 1000;
+    distanceX = Math.floor(distanceX * this.tileWidth()) / this.tileWidth();
+    distanceY = Math.floor(distanceY * this.tileHeight()) / this.tileHeight();
     if (Math.abs(distanceX) >= this.width() - 1) {
       distanceX -= this.width() * Math.sign(distanceX);
     }
@@ -281,28 +283,30 @@ function Sprite_Bars() {
   Game_Map.prototype.displayX = function() {
     var x = Alias_Game_Map_displayX.call(this);
     x += _cameraOX / this.tileWidth();
-    return Math.floor(x * 1000) / 1000;
+    return Math.round(x * this.tileWidth()) / this.tileWidth();
   };
 
   var Alias_Game_Map_displayY = Game_Map.prototype.displayY;
   Game_Map.prototype.displayY = function() {
     var y = Alias_Game_Map_displayY.call(this);
     y += _cameraOY / this.tileHeight();
-    return Math.floor(y * 1000) / 1000;
+    return Math.round(y * this.tileHeight()) / this.tileHeight();
   };
 
   Game_Map.prototype.displayCenterX = function() {
     var half = this.screenTileX() / 2;
     var x = this.displayX() + half;
     x -= _cameraOX / this.tileWidth()
-    return this.roundX(x);
+    x = this.roundX(x);
+    return Math.round(x * this.tileWidth()) / this.tileWidth();
   };
 
   Game_Map.prototype.displayCenterY = function() {
     var half = this.screenTileY() / 2;
     var y = this.displayY() + half;
     y -= _cameraOY / this.tileHeight()
-    return this.roundY(y);
+    y = this.roundY(y);
+    return Math.round(y * this.tileHeight()) / this.tileHeight();
   };
 
   var Alias_Game_Map_parallaxOx = Game_Map.prototype.parallaxOx;
@@ -403,6 +407,7 @@ function Sprite_Bars() {
   };
 
   Game_CharacterBase.prototype.updateQScroll = function() {
+    if ($gameMap.isScrolling()) return;
     var x1 = this._lastX;
     var y1 = this._lastY;
     var x2 = this._realX;
@@ -410,7 +415,6 @@ function Sprite_Bars() {
     var dx = $gameMap.deltaX(x2, x1);
     var dy = $gameMap.deltaY(y2, y1);
     if (dx !== 0 || dy !== 0) {
-      if ($gameMap.isScrolling()) return;
       this._lastX = x2;
       this._lastY = y2;
       var frames = _offset / 0.0625; // 0.0625 is the distance per frame at speed 4
