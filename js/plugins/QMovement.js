@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QMovement = '1.1.7';
+Imported.QMovement = '1.1.8';
 
 if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.3')) {
   alert('Error: Movemente requires QPlus 1.1.3 or newer to work.');
@@ -14,7 +14,7 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.3')) {
  /*:
  * @plugindesc <QMovement>
  * More control over character movement
- * @author Quxios  | Version 1.1.7
+ * @author Quxios  | Version 1.1.8
  *
  * @repo https://github.com/quxios/QMovement
  *
@@ -1946,7 +1946,6 @@ function ColliderManager() {
   };
 
   Game_CharacterBase.prototype.updateMove = function() {
-    if (this.isArcing()) return;
     var xSpeed = 1;
     var ySpeed = 1;
     if (this._adjustFrameSpeed) {
@@ -1965,10 +1964,8 @@ function ColliderManager() {
     if (this._py > this._realPY) {
       this._realPY = Math.min(this._realPY + this.frameSpeed(ySpeed), this._py);
     }
-    this._x = Math.floor(this._px / QMovement.tileSize);
-    this._y = Math.floor(this._py / QMovement.tileSize);
-    this._realX = this._realPX / QMovement.tileSize;
-    this._realY = this._realPY / QMovement.tileSize;
+    this._x = this._realX = this._realPX / QMovement.tileSize;
+    this._y = this._realY = this._realPY / QMovement.tileSize;
     this._freqCount += this.frameSpeed();
   };
 
@@ -1984,10 +1981,8 @@ function ColliderManager() {
     this._currentRad = newRad;
     this._px = this._realPX = x1;
     this._py = this._realPY = y1;
-    this._x = Math.floor(this._px / QMovement.tileSize);
-    this._y = Math.floor(this._py / QMovement.tileSize);
-    this._realX = this._realPX / QMovement.tileSize;
-    this._realY = this._realPY / QMovement.tileSize;
+    this._x = this._realX = this._realPX / QMovement.tileSize;
+    this._y = this._realY = this._realPY / QMovement.tileSize;
     this.moveColliders(x1, y1);
     this.checkEventTriggerTouchFront(this._direction);
   };
