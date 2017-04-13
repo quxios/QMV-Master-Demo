@@ -3,18 +3,21 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QPathfind = '1.4.0';
+Imported.QPathfind = '1.4.1';
 
 if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.3')) {
   alert('Error: QPathfind requires QPlus 1.1.3 or newer to work.');
   throw new Error('Error: QPathfind requires QPlus 1.1.3 or newer to work.');
+} else if (Imported.QMovement && !QPlus.versionCheck(Imported.QMovement, '1.1.9')) {
+  alert('Error: QPathfind requires QMovement 1.1.9 or newer to work.');
+  throw new Error('Error: QPathfind requires QMovement 1.1.9 or newer to work.');
 }
 
 //=============================================================================
  /*:
  * @plugindesc <QPathfind>
  * A* Pathfinding algorithm
- * @author Quxios  | Version 1.4.0
+ * @author Quxios  | Version 1.4.1
  *
  * @requires QPlus
  *
