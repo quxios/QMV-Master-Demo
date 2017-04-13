@@ -3,18 +3,21 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QMap = '1.2.2';
+Imported.QMap = '1.2.3';
 
 if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.5')) {
   alert('Error: QMap requires QPlus 1.1.5 or newer to work.');
   throw new Error('Error: QMap requires QPlus 1.1.5 or newer to work.');
+} else if (Imported.QMovement && !QPlus.versionCheck(Imported.QMovement, '1.1.9')) {
+  alert('Error: QMap requires QMovement 1.1.9 or newer to work.');
+  throw new Error('Error: QMap requires QMovement 1.1.9 or newer to work.');
 }
 
 //=============================================================================
  /*:
  * @plugindesc <QMap>
  * Creates maps made with QMap Editor
- * @author Quxios  | Version 1.2.2
+ * @author Quxios  | Version 1.2.3
  *
  * @requires QPlus
  *
@@ -230,19 +233,28 @@ var $dataQMap = null;
     this._mapObjs = [];
   };
 
-  var Alias_Game_Map_setup = Game_Map.prototype.setup;
-  Game_Map.prototype.setup = function(mapId) {
-    Alias_Game_Map_setup.call(this, mapId);
+  var Alias_Game_Map_setupEvents = Game_Map.prototype.setupEvents;
+  Game_Map.prototype.setupEvents = function() {
+    Alias_Game_Map_setupEvents.call(this);
     this.setupMapObjs();
   };
 
   if (Imported.QMovement) {
-    var Alias_Game_Map_reloadAllColliders = Game_Map.prototype.reloadAllColliders;
-    Game_Map.prototype.reloadAllColliders = function() {
-      Alias_Game_Map_reloadAllColliders.call(this);
+    var Alias_Game_Map_reloadColliders = Game_Map.prototype.reloadColliders;
+    Game_Map.prototype.reloadColliders = function() {
+      Alias_Game_Map_reloadColliders.call(this);
       var i, j;
       for (i = 0, j = this._mapObjs.length; i < j; i++) {
         this._mapObjs[i].reloadColliders();
+      }
+    };
+
+    var Alias_Game_Map_clearColliders = Game_Map.prototype.clearColliders;
+    Game_Map.prototype.clearColliders = function() {
+      Alias_Game_Map_clearColliders.call(this);
+      var i, j;
+      for (i = 0, j = this._mapObjs.length; i < j; i++) {
+        this._mapObjs[i].clearColliders();
       }
     };
   }
@@ -452,6 +464,11 @@ var $dataQMap = null;
   };
 
   Game_MapObj.prototype.reloadColliders = function() {
+    this.removeColliders();
+    this.setupColliders();
+  };
+
+  Game_MapObj.prototype.removeColliders = function() {
     for (var collider in this._colliders) {
       if (!this._colliders.hasOwnProperty(collider)) continue;
       if (Imported.QMovement) {
@@ -459,7 +476,6 @@ var $dataQMap = null;
       }
       this._colliders[collider] = null;
     }
-    this.setupColliders();
   };
 
   Game_MapObj.prototype.setupColliders = function() {
