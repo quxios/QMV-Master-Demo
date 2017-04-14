@@ -256,16 +256,14 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.3')) {
  * ~~~
  *  qMovement transfer [MAPID] [X] [Y] [OPTIONS]
  * ~~~
- * MAPID - The id of the map to transfer to
- *
- * X - The x position to transfer to, in pixels
- *
- * Y - The y position to transfer to, in pixels
+ * - MAPID: The id of the map to transfer to
+ * - X: The x position to transfer to, in pixels
+ * - Y: The y position to transfer to, in pixels
  *
  * Possible options:
  *
- * - dirX: Set X to the dir to face after the transfer. Can be 2, 4, 6, 8, or for
- * diagonals 1, 3, 7, 9
+ * - dirX: Set X to the dir to face after the transfer.
+ *   - Can be 2, 4, 6, 8, or for diagonals 1, 3, 7, 9
  * - fadeBlack: Will fade black when transfering
  * - fadeWhite: Will fade white when transfering
  *
@@ -289,20 +287,16 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.3')) {
  * ~~~
  *  qMovement setPos [CHARAID] [X] [Y] [OPTIONS]
  * ~~~
- * CHARAID - The character identifier.
- *
- *  - For player: 0, p, or player
- *  - For events: EVENTID, eEVENTID, eventEVENTID or this for the event that called this
- *  (replace EVENTID with a number)
- *
- * X - The x position to set to, in pixels
- *
- * Y - The y position to set to, in pixels
+ * - CHARAID - The character identifier.
+ *   - For player: 0, p, or player
+ *   - For events: EVENTID, eEVENTID, eventEVENTID or this for the event that called this (replace EVENTID with a number)
+ * - X - The x position to set to, in pixels
+ * - Y - The y position to set to, in pixels
  *
  * Possible options:
  *
- * - dirX: Set X to the dir to face after the transfer. Can be 2, 4, 6, 8, or for
- * diagonals 1, 3, 7, 9
+ * - dirX: Set X to the dir to face after the transfer.
+ *   - Can be 2, 4, 6, 8, or for diagonals 1, 3, 7, 9
  * ============================================================================
  * ## Tips
  * ============================================================================
@@ -373,17 +367,28 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.3')) {
  *
  * Region Colliders is an addon for this plugin that lets you add colliders
  * to regions by creating a json file.
+ * ============================================================================
+ * ## Videos
+ * ============================================================================
+ * Great example of using the collision map addon:
+ * https://www.youtube.com/watch?v=-BN4Pyr5IBo
+ *
+ * If you have a video you'd like to have listed here, feel free to send me a
+ * link in the RPGMakerWebs thread! (link below)
  *
  * ============================================================================
  * ## Links
  * ============================================================================
  * RPGMakerWebs:
+ *
  *  http://forums.rpgmakerweb.com/index.php?threads/qplugins.73023/
  *
  * Terms of use:
+ *
  *  https://github.com/quxios/QMV-Master-Demo/blob/master/readme.md
  *
  * Like my plugins? Support me on Patreon!
+ *
  *  https://www.patreon.com/quxios
  *
  * @tags movement, pixel, character
