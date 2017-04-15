@@ -3,18 +3,18 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QSprite = '2.1.0';
+Imported.QSprite = '2.1.1';
 
-if (!Imported.QPlus) {
-  alert('Error: QSprite requires QPlus to work.');
-  throw new Error('Error: QSprite requires QPlus to work.');
+if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.2.0')) {
+  alert('Error: QSprite requires QPlus 1.2.0 or newer to work.');
+  throw new Error('Error: QSprite requires QPlus 1.2.0 or newer to work.');
 }
 
 //=============================================================================
  /*:
  * @plugindesc <QSprite>
  * Lets you configure Spritesheets
- * @author Quxios  | Version 2.1.0
+ * @author Quxios  | Version 2.1.1
  *
  * @requires QPlus
  *
@@ -37,7 +37,7 @@ if (!Imported.QPlus) {
  * ============================================================================
  * ## About
  * ============================================================================
- * This plugin lets you use sprites that are set up with Quasi Sprite Animator
+ * This plugin lets you use sprites that are set up with QSprite Editor
  *
  * https://github.com/quxios/SpriteAnimator
  *
@@ -48,7 +48,7 @@ if (!Imported.QPlus) {
  * sprites by identifying it as a QSprite. To do so, just name your sprite file
  * by using the File Name Identifier format. By default this is:
  * ~~~
- *   %{config}-
+ *  %{config}-
  * ~~~
  * You would replace {config} with the config you made inside the Sprite
  * Animator. For example, if I made a config named: `Hero` then I would name
@@ -65,16 +65,16 @@ if (!Imported.QPlus) {
  *
  * Where X is the direction:
  *
- *  - 2 - down
- *  - 4 - left
- *  - 6 - right
- *  - 8 - up
- *  - 1 - lower left
- *  - 3 - lower right
- *  - 7 - upper left
- *  - 9 - upper right
+ *  - 2: down
+ *  - 4: left
+ *  - 6: right
+ *  - 8: up
+ *  - 1: lower left
+ *  - 3: lower right
+ *  - 7: upper left
+ *  - 9: upper right
  *
- * (Diagonals only work if you are using this with Quasi Movement)
+ * (Diagonals only work if you are using this with QMovement)
  *
  * Default pose is used when and idleX or moveX is not found. Note that default
  * does not have an X at the end, it's just default. Has no directions tied to
@@ -96,10 +96,10 @@ if (!Imported.QPlus) {
  * Lets say I want 4 `idle[A-Z]` poses, and I want one of them to have a 4 times
  * better chance of appearing then the rest. My idle names would be:
  *
- *   - idleA2
- *   - idleB2
- *   - idleC2
- *   - idleD4x2
+ *  - idleA2
+ *  - idleB2
+ *  - idleC2
+ *  - idleD4x2
  *
  * (Note: all their directions are 2(down))
  * ============================================================================
@@ -111,7 +111,7 @@ if (!Imported.QPlus) {
  * direction. To fix that, you can add a comment in that event that will set
  * it's default direction.
  * ~~~
- *   <direction:X>
+ *  <direction:X>
  * ~~~
  * Set X to direction. 2 for down, 4 left, 6 right, 8 up.
  * ============================================================================
@@ -121,7 +121,7 @@ if (!Imported.QPlus) {
  * ----------------------------------------------------------------------------
  * Play a pose.
  * ~~~
- *   qSprite [CHARAID] play [POSE] [list of options]
+ *  qSprite [CHARAID] play [POSE] [list of options]
  * ~~~
  * CHARAID - The character identifier.
  *
@@ -129,21 +129,21 @@ if (!Imported.QPlus) {
  *  - For events: EVENTID, eEVENTID, eventEVENTID or this for the event that called this
  *  (replace EVENTID with a number)
  *
- * POSE    - The pose to play (Don’t add the direction! ex: atk, not atk2)
+ * POSE - The pose to play (Don’t add the direction! ex: atk, not atk2)
  *
  * Possible options:
  *
- *  - lock      - Disable character movement while pose is playing
- *  - pause     - Pause the pose on the last frame
- *  - breakable - If character moves, the pose will end
- *  - wait      - Next Event Command runs once pose is complete
+ *  - lock: Disable character movement while pose is playing
+ *  - pause: Pause the pose on the last frame
+ *  - breakable: If character moves, the pose will end
+ *  - wait: Next Event Command runs once pose is complete
  *
  * ----------------------------------------------------------------------------
  * **Looping a Pose**
  * ----------------------------------------------------------------------------
  * Loop a pose until it's cleared, broken out of or played over.
  * ~~~
- *   qSprite [CHARAID] loop [POSE] [list of options]
+ *  qSprite [CHARAID] loop [POSE] [list of options]
  * ~~~
  * CHARAID - The character identifier.
  *
@@ -155,15 +155,15 @@ if (!Imported.QPlus) {
  *
  * Possible options:
  *
- *  - lock      - Disable character movement while pose is playing
- *  - breakable - If character moves, the loop will end
- *  - wait      - Next Event Command runs once first loop has is complete
+ *  - lock: Disable character movement while pose is playing
+ *  - breakable: If character moves, the loop will end
+ *  - wait: Next Event Command runs once first loop has is complete
  * ----------------------------------------------------------------------------
  * **Clearing**
  * ----------------------------------------------------------------------------
  * Clear current playing/looping pose.
  * ~~~
- *   qSprite [CHARAID] clear
+ *  qSprite [CHARAID] clear
  * ~~~
  * CHARAID - The character identifier.
  * ----------------------------------------------------------------------------
@@ -172,9 +172,9 @@ if (!Imported.QPlus) {
  * Maybe you only want to play an idle[A-Z] during certain scenes. So you can
  * add and remove them whenever you want!
  * ~~~
- *   qSprite [CHARAID] addIdleAZ [POSE]
+ *  qSprite [CHARAID] addIdleAZ [POSE]
  *
- *   qSprite [CHARAID] removeIdleAZ [POSE]
+ *  qSprite [CHARAID] removeIdleAZ [POSE]
  * ~~~
  * CHARAID - The character identifier.
  *
@@ -186,7 +186,7 @@ if (!Imported.QPlus) {
  * would recommend just using a different spritesheet, but I added a plugin
  * command to let you change your idle!
  * ~~~
- *   qSprite [CHARAID] changeIdle [POSE]
+ *  qSprite [CHARAID] changeIdle [POSE]
  * ~~~
  * CHARAID - The character identifier.
  *
@@ -196,9 +196,9 @@ if (!Imported.QPlus) {
  * **Examples**
  * ----------------------------------------------------------------------------
  * ~~~
- *   qSprite 0 play confused pause breakable
- *   qSprite p play confused pause breakable
- *   qSprite player play confused pause breakable
+ *  qSprite 0 play confused pause breakable
+ *  qSprite p play confused pause breakable
+ *  qSprite player play confused pause breakable
  * ~~~
  * (Note: All 3 are the same, just using a different character id method)
  *
@@ -207,11 +207,10 @@ if (!Imported.QPlus) {
  * and the next event command will run immediatly after this command with no
  * wait.
  *
- *
  * ~~~
- *   qSprite 1 play hug wait
- *   qSprite e1 play hug wait
- *   qSprite event1 play hug wait
+ *  qSprite 1 play hug wait
+ *  qSprite e1 play hug wait
+ *  qSprite event1 play hug wait
  * ~~~
  * Event 1 will run the hug pose. The event can't move until the pose is
  * complete, and the next event command will run once the pose is complete.
@@ -256,22 +255,14 @@ QSprite.json = null;
   var _useNewAdjust = _params['Use New Adjust'] === 'true';
   var _hasQMovement = Imported.Quasi_Movement || Imported.QMovement;
 
-  (function() {
-    var xhr = new XMLHttpRequest();
-    var url = 'data/SpriteAnim.json';
-    xhr.open('GET', url, true);
-    xhr.overrideMimeType('application/json');
-    xhr.onload = function() {
-      if (xhr.status < 400) {
-        QSprite.json = JSON.parse(xhr.responseText);
-      }
-    }
-    xhr.onerror = function() {
+  QPlus.request('data/QSprite.json')
+    .onSuccess(function(data) {
+      QSprite.json = data;
+    })
+    .onError(function() {
+      alert('Error:' + this.url + ' not found.');
       QSprite.json = {};
-      alert('Error: data/SpriteAnim.json could not be loaded.');
-    }
-    xhr.send();
-  })();
+    })
 
   var Alias_Scene_Base_isReady = Scene_Base.prototype.isReady;
   Scene_Base.prototype.isReady = function() {
@@ -280,8 +271,6 @@ QSprite.json = null;
 
   //-----------------------------------------------------------------------------
   // Game_Interpreter
-  //
-  // The interpreter for running event commands.
 
   var Alias_Game_Interpreter_pluginCommand = Game_Interpreter.prototype.pluginCommand;
   Game_Interpreter.prototype.pluginCommand = function(command, args) {
@@ -368,9 +357,6 @@ QSprite.json = null;
 
   //-----------------------------------------------------------------------------
   // Game_CharacterBase
-  //
-  // The superclass of Game_Character. It handles basic information, such as
-  // coordinates and images, shared by all characters.
 
   var Alias_Game_CharacterBase_initMembers = Game_CharacterBase.prototype.initMembers;
   Game_CharacterBase.prototype.initMembers = function() {
@@ -682,9 +668,6 @@ QSprite.json = null;
 
   //-----------------------------------------------------------------------------
   // Game_Player
-  //
-  // The game object class for the player. It contains event starting
-  // determinants and map scrolling functions.
 
   var Alias_Game_Player_canMove = Game_Player.prototype.canMove;
   Game_Player.prototype.canMove = function() {
@@ -694,9 +677,6 @@ QSprite.json = null;
 
   //-----------------------------------------------------------------------------
   // Game_Event
-  //
-  // The game object class for an event. It contains functionality for event page
-  // switching and running parallel process events.
 
   var Alias_Game_Event_setupPageSettings = Game_Event.prototype.setupPageSettings;
   Game_Event.prototype.setupPageSettings = function() {
@@ -709,8 +689,6 @@ QSprite.json = null;
 
   //-----------------------------------------------------------------------------
   // Sprite_Character
-  //
-  // The sprite for displaying a character.
 
   var Alias_Sprite_Character_updateBitmap = Sprite_Character.prototype.updateBitmap;
   Sprite_Character.prototype.updateBitmap = function() {
@@ -824,8 +802,6 @@ QSprite.json = null;
 
   //-----------------------------------------------------------------------------
   // Sprite_Actor
-  //
-  // The sprite for displaying an actor.
 
   Sprite_Actor.prototype.isQCharacter = function() {
     if (this._isQChara === undefined) {
@@ -953,7 +929,7 @@ QSprite.json = null;
           this._motionCount = 0;
         }
       } else {
-        Alias_Sprite_Actor_forcetMotion.call(this, motionType);
+        Alias_Sprite_Actor_forceMotion.call(this, motionType);
       }
     };
   }
@@ -977,10 +953,9 @@ QSprite.json = null;
       return false;
     };
   }
+
   //-----------------------------------------------------------------------------
   // Game_Actor
-  //
-  // The game object class for an actor.
 
   var Alias_Game_Actor_performAction = Game_Actor.prototype.performAction;
   Game_Actor.prototype.performAction = function(action) {
