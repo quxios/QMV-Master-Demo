@@ -2,7 +2,7 @@
  /*:
  * @plugindesc <QUpdate>
  * Checks QPlugins for updates
- * @author Quxios  | Version 1.1.1
+ * @author Quxios  | Version 1.2.0
  *
  * @help
  * ============================================================================
@@ -96,23 +96,19 @@ function Window_QUpdate() {
       }
     }, this)
   };
-  QUpdate.getPlugins();
 
-  QUpdate.getRepoPlugins = function() {
+  QUpdate.getRepoPlugins = function(cb) {
     var xhr = new XMLHttpRequest();
     var url = `https://quxios.github.io/data/plugins.json`;
     xhr.open('GET', url);
     xhr.overrideMimeType('application/json');
-    xhr.onload = this.onLoad.bind(this, xhr);
+    xhr.onload = function() {
+      if (xhr.status < 400) {
+        this.comparePlugins(JSON.parse(xhr.responseText));
+        if (cb) cb();
+      }
+    }.bind(this);
     xhr.send();
-  };
-
-  QUpdate.onLoad = function(xhr) {
-    if (xhr.status < 400) {
-      var data = xhr.responseText;
-      this.comparePlugins(JSON.parse(data));
-      xhr = null;
-    }
   };
 
   QUpdate.comparePlugins = function(data) {
@@ -124,11 +120,13 @@ function Window_QUpdate() {
           this._plugins[plugin].latest = data[i].version;
           this._plugins[plugin].url = data[i].download;
           if (!this.hasUpdates) {
-            this.hasUpdates = versionCheck(this._plugins[plugin].current, data[i].version);
+            var check = !versionCheck(this._plugins[plugin].current, data[i].version);
+            this.hasUpdates = check;
           }
           break;
         }
       }
+
     }
     this.hasUpdated = true;
   };
@@ -179,7 +177,6 @@ function Window_QUpdate() {
       QUpdate.hasUpdated = false;
     }
   };
-
 
   //-----------------------------------------------------------------------------
   // Window_QUpdate
@@ -238,4 +235,23 @@ function Window_QUpdate() {
       SceneManager.push(Scene_QUpdate);
     }
   };
+
+  //-----------------------------------------------------------------------------
+  // Autorun onload
+
+  QUpdate.getPlugins();
+  QUpdate.getRepoPlugins(function() {
+    if (QUpdate.hasUpdates) {
+      var div = document.createElement('div');
+      div.style.cssText = 'position:absolute; top: 2px; right: 2px; z-index: 10; background-color: #ffffff; border-radius: 3px; padding: 5px;';
+      div.id = 'hasQUpdates';
+      div.innerHTML = 'Updates available for some QPlugins.';
+      div.addEventListener('click', function() {
+        SceneManager.push(Scene_QUpdate);
+        document.body.removeChild(div);
+      })
+      document.body.appendChild(div);
+    }
+  });
+
 })()
