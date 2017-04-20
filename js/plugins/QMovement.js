@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QMovement = '1.1.9';
+Imported.QMovement = '1.2.0';
 
 if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.3')) {
   alert('Error: Movemente requires QPlus 1.1.3 or newer to work.');
@@ -14,7 +14,7 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.3')) {
  /*:
  * @plugindesc <QMovement>
  * More control over character movement
- * @author Quxios  | Version 1.1.9
+ * @author Quxios  | Version 1.2.0
  *
  * @repo https://github.com/quxios/QMovement
  *
@@ -402,23 +402,23 @@ function QMovement() {
 }
 
 (function() {
-  var _params = QPlus.getParams('<QMovement>');
+  var _PARAMS = QPlus.getParams('<QMovement>');
 
-  QMovement.grid = Number(_params['Grid']) || 1;
-  QMovement.tileSize = Number(_params['Tile Size']);
-  QMovement.offGrid = _params['Off Grid'] === 'true';
-  QMovement.smartMove = Number(_params['Smart Move']);
-  QMovement.midPass = _params['Mid Pass'] === 'true';
-  QMovement.moveOnClick = _params['Move on click'] === 'true';
-  QMovement.diagonal = _params['Diagonal'] === 'true';
+  QMovement.grid = Number(_PARAMS['Grid']) || 1;
+  QMovement.tileSize = Number(_PARAMS['Tile Size']);
+  QMovement.offGrid = _PARAMS['Off Grid'] === 'true';
+  QMovement.smartMove = Number(_PARAMS['Smart Move']);
+  QMovement.midPass = _PARAMS['Mid Pass'] === 'true';
+  QMovement.moveOnClick = _PARAMS['Move on click'] === 'true';
+  QMovement.diagonal = _PARAMS['Diagonal'] === 'true';
   QMovement.collision = '#FF0000'; // will be changable in a separate addon
   QMovement.water1 = '#00FF00'; // will be changable in a separate addon
   QMovement.water2 = '#0000FF'; // will be changable in a separate addon
   QMovement.water1Tag = 1; // will be changable in a separate addon
   QMovement.water2Tag = 2; // will be changable in a separate addon
-  QMovement.playerCollider = _params['Player Collider'];
-  QMovement.eventCollider = _params['Event Collider'];
-  QMovement.showColliders = _params['Show Colliders'] === 'true';
+  QMovement.playerCollider = _PARAMS['Player Collider'];
+  QMovement.eventCollider = _PARAMS['Event Collider'];
+  QMovement.showColliders = _PARAMS['Show Colliders'] === 'true';
   QMovement.tileBoxes = {
     1537: [48, 6, 0, 42],
     1538: [6, 48],
@@ -461,7 +461,9 @@ function QMovement() {
       }
     }
   }
-  QMovement.regionColliders = {}; // will be changable in a separate addon
+  // following will be changable in a separate addon
+  QMovement.regionColliders = {};
+  QMovement.colliderMap = {};
 })();
 
 //=============================================================================
@@ -1220,11 +1222,11 @@ function ColliderManager() {
   };
 
   ColliderManager.show = function() {
-    this.container.alpha = 0.3;
+    this.container.visible = true;
   };
 
   ColliderManager.hide = function() {
-    this.container.alpha = 0;
+    this.container.visible = false;
   };
 
   ColliderManager.convertToCollider = function(arr) {
@@ -1368,7 +1370,7 @@ function ColliderManager() {
   Game_Map.prototype.setup = function(mapId) {
     Alias_Game_Map_setup.call(this, mapId);
     if (!$dataMap) return;
-    this.reloadColliders();
+    this.reloadColliders(true);
     ColliderManager._needsRefresh = false;
   };
 
@@ -1428,8 +1430,8 @@ function ColliderManager() {
     }
   };
 
-  Game_Map.prototype.reloadColliders = function() {
-    this.setupColliders();
+  Game_Map.prototype.reloadColliders = function(skipSetup) {
+    if (!skipSetup) this.setupColliders();
     this.reloadTileMap();
     var events = this.events();
     var i, j;
@@ -1466,7 +1468,8 @@ function ColliderManager() {
 
   Game_Map.prototype.reloadTileMap = function() {
     this.setupMapColliders();
-    // load collision maps here
+    // collider map is also loaded here
+    // collision map is also loaded here
   };
 
   Game_Map.prototype.setupMapColliders = function() {
@@ -1670,6 +1673,7 @@ function ColliderManager() {
     this._angularSpeed;
     this._passabilityLevel = 0; // todo
     this._isMoving = false;
+    this._smartMove = 0;
   };
 
   Game_CharacterBase.prototype.direction8 = function(horz, vert) {
@@ -1828,8 +1832,7 @@ function ColliderManager() {
     var collider = this.collider(type);
     var collided = false;
     ColliderManager.getCollidersNear(collider, (function(tile) {
-      if (!tile.isTile) return false;
-      if (this.passableColors().contains(tile.color)) {
+      if (tile.isTile && this.passableColors().contains(tile.color)) {
         return false;
       }
       collided = tile.intersects(collider);
@@ -2134,20 +2137,21 @@ function ColliderManager() {
   };
 
   Game_CharacterBase.prototype.moveRadian = function(radian, dist) {
+    dist = dist || this.moveTiles();
     this.fixedRadianMove(radian, dist);
+    // TODO make this better instead of using realDir
+    // try using different angles between +- 45 degrees
     if (!this.isMovementSucceeded() && this.smartMove() > 1) {
       var realDir = this.radianToDirection(radian, true);
       var xAxis = Math.cos(radian);
       var yAxis = Math.sin(radian);
-      var horzSteps = Math.abs(xAxis) * dist;
-      var vertSteps = Math.abs(yAxis) * dist;
       var horz = xAxis > 0 ? 6 : xAxis < 0 ? 4 : 0;
       var vert = yAxis > 0 ? 2 : yAxis < 0 ? 8 : 0;
       if ([1, 3, 7, 9].contains(realDir)) {
-        if (this.canPixelPass(this._px, this._py, horz, horzSteps)) {
-          this.moveStraight(horz, horzSteps);
-        } else if (this.canPixelPass(this._px, this._py, vert, vertSteps)) {
-          this.moveStraight(vert, vertSteps);
+        if (this.canPixelPass(this._px, this._py, horz, dist)) {
+          this.moveStraight(horz, dist);
+        } else if (this.canPixelPass(this._px, this._py, vert, dist)) {
+          this.moveStraight(vert, dist);
         }
       } else {
         var dir = this.radianToDirection(radian);
@@ -2168,12 +2172,7 @@ function ColliderManager() {
     var vert = yAxis > 0 ? 2 : yAxis < 0 ? 8 : 0;
     var x2 = $gameMap.roundPXWithDirection(this._px, horz, horzSteps);
     var y2 = $gameMap.roundPYWithDirection(this._py, vert, vertSteps);
-    this.setMovementSuccess(this.canPassToFrom(x2, y2, this.px, this.py, null, true));
-    if (this.isMovementSucceeded() && QMovement.midPass) {
-      var x3 = $gameMap.roundPXWithDirection(this._px, horz, horzSteps / 2);
-      var y3 = $gameMap.roundPYWithDirection(this._py, vert, vertSteps / 2);
-      this.setMovementSuccess(this.canPixelPass(x3, y3, null));
-    }
+    this.setMovementSuccess(this.canPassToFrom(x2, y2, this._px, this._py, null, true));
     this.setDirection(realDir);
     if (this.isMovementSucceeded()) {
       this._adjustFrameSpeed = true;
@@ -2249,7 +2248,7 @@ function ColliderManager() {
   };
 
   Game_CharacterBase.prototype.smartMove = function() {
-    return 0;
+    return this._smartMove;
   };
 
   Game_CharacterBase.prototype.smartMoveDir8 = function(dir) {
@@ -2408,7 +2407,6 @@ function ColliderManager() {
     var w = maxX - minX + 1;
     var h = maxY - minY + 1;
     this._colliders['bounds'] = new Box_Collider(w, h, minX, minY);
-    this._colliders['bounds'].isTile = false;
     this._colliders['bounds']._charaId = String(this.charaId());
     ColliderManager.addCharacter(this, 0);
   };
@@ -2618,8 +2616,40 @@ function ColliderManager() {
 
   Game_Character.prototype.moveRandom = function() {
     var d = 2 + Math.randomInt(4) * 2;
-    if (this.canPixelPass(this.px, this.py, d)) {
+    if (this.canPixelPass(this._px, this._py, d)) {
       this.moveStraight(d);
+    }
+  };
+
+  var Alias_Game_Character_moveTowardCharacter = Game_Character.prototype.moveTowardCharacter;
+  Game_Character.prototype.moveTowardCharacter = function(character) {
+    if (QMovement.offGrid) {
+      var dx = character.cx() - this.cx();
+      var dy = character.cy() - this.cy();
+      var radian = Math.atan2(dy, dx);
+      if (radian < 0) radian += Math.PI * 2;
+      var oldSM = this._smartMove;
+      if (oldSM <= 1) this._smartMove = 2;
+      this.moveRadian(radian);
+      this._smartMove = oldSM;
+    } else {
+      Alias_Game_Character_moveTowardCharacter.call(this, character);
+    }
+  };
+
+  var Alias_Game_Character_moveAwayFromCharacter = Game_Character.prototype.moveAwayFromCharacter;
+  Game_Character.prototype.moveAwayFromCharacter = function(character) {
+    if (QMovement.offGrid) {
+      var dx = character.cx() - this.cx();
+      var dy = character.cy() - this.cy();
+      var radian = Math.atan2(-dy, -dx);
+      if (radian < 0) radian += Math.PI * 2;
+      var oldSM = this._smartMove;
+      if (oldSM <= 1) this._smartMove = 2;
+      this.moveRadian(radian);
+      this._smartMove = oldSM;
+    } else {
+      Alias_Game_Character_moveAwayFromCharacter.call(this, character);
     }
   };
 
@@ -2658,13 +2688,13 @@ function ColliderManager() {
   // Returns the px, py needed for this character to be center aligned
   // with the character passed in (align is based off collision collider)
   Game_Character.prototype.centerWith = function(character) {
-    var dx1 = this.cx() - this.px;
-    var dy1 = this.cy() - this.py;
-    var dx2 = character.cx() - character.px;
-    var dy2 = character.cy() - character.py;
+    var dx1 = this.cx() - this._px;
+    var dy1 = this.cy() - this._py;
+    var dx2 = character.cx() - character._px;
+    var dy2 = character.cy() - character._py;
     var dx = dx1 - dx2;
     var dy = dy1 - dy2;
-    return new Point(character.px + dx, character.py + dy);
+    return new Point(character._px + dx, character._py + dy);
   };
 })();
 
@@ -2678,14 +2708,11 @@ function ColliderManager() {
     this._lastMouseRequested = 0;
     this._requestMouseMove = false;
     this._movingWithMouse = false;
+    this._smartMove = QMovement.smartMove;
   };
 
   Game_Player.prototype.defaultColliderConfig = function() {
     return QMovement.playerCollider;
-  };
-
-  Game_Player.prototype.smartMove = function() {
-    return QMovement.smartMove;
   };
 
   Game_Player.prototype.requestMouseMove = function() {
@@ -2967,7 +2994,8 @@ function ColliderManager() {
   Game_Event.prototype.setupPageSettings = function() {
     Alias_Game_Event_setupPageSettings.call(this);
     this.reloadColliders();
-    this._randomDir = null;
+    this._typeRandomDir = null;
+    this._typeTowardPlayer = null;
   };
 
   Game_Event.prototype.defaultColliderConfig = function() {
@@ -3008,13 +3036,37 @@ function ColliderManager() {
 
   // TODO stop random dir from reseting every frame if event can't move
   Game_Event.prototype.moveTypeRandom = function() {
-    if (this._freqCount === 0 || !this._randomDir) {
-      this._randomDir = 2 * (Math.randomInt(4) + 1);
+    if (this._freqCount === 0 || this._typeRandomDir === null) {
+      this._typeRandomDir = 2 * (Math.randomInt(4) + 1);
     }
-    if (!this.canPixelPass(this.px, this.py, this._randomDir)) {
-      this._randomDir = 2 * (Math.randomInt(4) + 1);
+    if (!this.canPixelPass(this._px, this._py, this._typeRandomDir)) {
+      this._typeRandomDir = 2 * (Math.randomInt(4) + 1);
     }
-    this.moveStraight(this._randomDir);
+    this.moveStraight(this._typeRandomDir);
+  };
+
+  Game_Event.prototype.moveTypeTowardPlayer = function() {
+    if (this.isNearThePlayer()) {
+      if (this._freqCount === 0 || this._typeTowardPlayer === null) {
+        this._typeTowardPlayer = Math.randomInt(6);
+      }
+      switch (this._typeTowardPlayer) {
+        case 0: case 1: case 2: case 3: {
+          this.moveTowardPlayer();
+          break;
+        }
+        case 4: {
+          this.moveTypeRandom();
+          break;
+        }
+        case 5: {
+          this.moveForward();
+          break;
+        }
+      }
+    } else {
+      this.moveTypeRandom();
+    }
   };
 
   Game_Event.prototype.checkEventTriggerTouch = function(x, y) {
@@ -3157,7 +3209,7 @@ function Sprite_Collider() {
   };
 
   Sprite_Collider.prototype.checkChanges = function() {
-    this.alpha = this._collider._isHidden ? 0 : 1;
+    this.visible = !this._collider._isHidden;
     this.x = this._collider.x + this._collider.ox;
     this.x -= $gameMap.displayX() * QMovement.tileSize;
     this.y = this._collider.y + this._collider.oy;
@@ -3169,7 +3221,7 @@ function Sprite_Collider() {
       this.drawCollider();
     }
     this._colliderSprite.z = this.z;
-    this._colliderSprite.alpha = this.alpha;
+    this._colliderSprite.visible = this.visible;
   };
 
   Sprite_Collider.prototype.updateDecay = function() {
