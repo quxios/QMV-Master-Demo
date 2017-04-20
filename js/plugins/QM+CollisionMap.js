@@ -169,7 +169,7 @@ if (!Imported.QMovement || !QPlus.versionCheck(Imported.QMovement, '1.0.2')) {
       'right': {
         x1: edgePoints.x2, x2: edgePoints.x2,
         y1: edgePoints.y1, y2: edgePoints.y2
-      },
+      }
     }
     var x1 = Math.floor(edges[dir].x1);
     var x2 = Math.floor(edges[dir].x2);
