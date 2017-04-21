@@ -1,9 +1,9 @@
 //=============================================================================
-// QImport DEV
+// QImport
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QImport = '1.0.0';
+Imported.QImport = '1.0.1';
 
 if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.5')) {
   alert('Error: QImport requires QPlus 1.1.5 or newer to work.');
@@ -14,7 +14,7 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.5')) {
  /*:
  * @plugindesc <QImport>
  * Lets you import text from other game objects or txt files
- * @author Quxios  | Version 1.0.0
+ * @author Quxios  | Version 1.0.1
  *
  * @requires QPlus
  *
@@ -214,6 +214,7 @@ function QImport() {
           if (cmd.code === 108 || cmd.code === 408) {
             if (/^event\,/i.test(match[1])) {
               var args = match[1].split(',');
+              args.shift();
               var newEvent = {
                 id: $dataMap.events.length,
                 name: 'IMPORTED_EVENT',
@@ -223,7 +224,9 @@ function QImport() {
                 y: Number(args[3]) || 0
               }
               $dataMap.events.push(newEvent);
-              this.import(newEvent, 'note', match);
+              this.importEvent(newEvent, 'note', '', args);
+              cmd.parameters[0] = cmd.parameters[0].replace(match[0], '');
+              if (this._wait) break;
               continue;
             }
           }
