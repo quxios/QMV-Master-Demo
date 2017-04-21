@@ -3,18 +3,21 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QInputRemap = '2.0.0';
+Imported.QInputRemap = '2.1.0';
 
-if (!Imported.QInput) {
-  alert('Error: QInputRemap requires QInput to work.');
-  throw new Error(msg);
+if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.2.1')) {
+  alert('Error: QInputRemap requires QPlus 1.2.1 or newer to work.');
+  throw new Error('Error: QInputRemap requires QPlus 1.2.1 or newer to work.');
+} else if (!Imported.QInput || !QPlus.versionCheck(Imported.QInput, '2.1.1')) {
+  alert('Error: QInputRemap requires QInput 2.1.1 or newer to work.');
+  throw new Error('Error: QInputRemap requires QInput 2.1.1 or newer to work.');
 }
 
 //=============================================================================
  /*:
  * @plugindesc <QInputRemap>
  * Quasi Input Addon: Adds Key remapping to Options menu
- * @author Quxios  | Version 2.0.0
+ * @author Quxios  | Version 2.1.0
  *
  * @requires QInput
  *
@@ -124,19 +127,22 @@ function Window_InputRemap() {
 // QInputRemap
 
 (function() {
-  var _params = $plugins.filter(function(p) {
-    return p.description.contains('<QInputRemap>') && p.status;
-  })[0].parameters;
-
-  var _hide = QInput.stringToAry(_params['Hide Keys']);
-  _hide     = _hide.concat(["fps", "console", "restart", "debug", "streched", "fullscreen"]);
-  var _disable = QInput.stringToAry(_params['Disable Keys']);
-  var _vocab   = {};
-  for (var key in _params) {
-    if (!_params.hasOwnProperty(key)) continue;
+  var _PARAMS = QPlus.getParams('<QInputRemap>');
+  var _HIDE = QPlus.stringToAry(_PARAMS['Hide Keys']).concat([
+    'fps',
+    'console',
+    'restart',
+    'debug',
+    'streched',
+    'fullscreen'
+  ]);
+  var _DISABLE = QPlus.stringToAry(_PARAMS['Disable Keys']);
+  var _VOCAB = {};
+  for (var key in _PARAMS) {
+    if (!_PARAMS.hasOwnProperty(key)) continue;
     var match = /^Vocab: (.*)/.exec(key);
     if (match) {
-      _vocab[match[1].toLowerCase()] = _params[key];
+      _VOCAB[match[1].toLowerCase()] = _PARAMS[key];
     }
   }
 
@@ -178,32 +184,21 @@ function Window_InputRemap() {
 
   Scene_Options.prototype.startInputSet = function() {
     var ext = this._inputWindow.currentExt();
-    ConfigManager.keys[ext] = "";
-    this._waitForInput = true;
+    this._inputWindow._waitForInput = true;
     this._inputWindow.refresh();
   };
 
-  Scene_Options.prototype.setInput = function() {
-    var ext   = this._inputWindow.currentExt();
-    var input = "#" + Input._lastTriggered;
+  Scene_Options.prototype.setInput = function(input) {
+    var ext = this._inputWindow.currentExt();
     var fail;
     for (var key in ConfigManager.keys) {
       if (!ConfigManager.keys.hasOwnProperty(key)) continue;
-      if (ConfigManager.keys[key].constructor === Array) {
-        var index = ConfigManager.keys[key].indexOf(input);
-        if (index > -1) {
-          if (_disable.contains(key)) {
-            fail = true;
-            break;
-          }
-          ConfigManager.keys[key] = "";
-        }
-      } else if (ConfigManager.keys[key] === input) {
-        if (_disable.contains(key)) {
+      var index = ConfigManager.keys[key].indexOf(input);
+      if (index > -1) {
+        if (_DISABLE.contains(key)) {
           fail = true;
           break;
         }
-        ConfigManager.keys[key] = "";
       }
     }
     if (fail) {
@@ -211,21 +206,48 @@ function Window_InputRemap() {
       return;
     }
     SoundManager.playOk();
-    ConfigManager.keys[ext] = input;
-    this._waitForInput = false;
+    fail = true;
+    var regex = /./;
+    if (Input.preferKeyboard()) {
+      regex = /^#(.*)/;
+    } else if (Input.preferGamepad()) {
+      regex = /^\$(.*)/;
+    }
+    for (var i = 0; i < ConfigManager.keys[ext].length; i++) {
+      var key = ConfigManager.keys[ext][i];
+      if (regex.test(key)) {
+        ConfigManager.keys[ext][i] = input;
+        fail = false;
+        break;
+      }
+    }
+    if (fail) {
+      ConfigManager.keys[ext].push(input);
+    }
+    ConfigManager.save();
+    this._inputWindow._waitForInput = false;
     this._inputWindow.activate();
     this._inputWindow.refresh();
-    ConfigManager.save();
   };
 
   var Alias_Scene_Options_update = Scene_Options.prototype.update;
   Scene_Options.prototype.update = function() {
     Alias_Scene_Options_update.call(this);
-    if (this._waitForInput) this.updateWaitForInput();
+    if (this._inputWindow._waitForInput) this.updateWaitForInput();
   };
 
   Scene_Options.prototype.updateWaitForInput = function() {
-    if (Input.anyTriggered()) this.setInput();
+    if (Input.preferKeyboard()) {
+      if (Input.anyTriggered()) {
+        this.setInput('#' + Input._lastTriggered);
+      }
+    } else if (Input.preferGamepad()) {
+      var anyGamepad = Input.anyGamepadTriggered();
+      if (anyGamepad) {
+        this.setInput(anyGamepad);
+      }
+    }
+
   };
 
   //-----------------------------------------------------------------------------
@@ -290,6 +312,14 @@ function Window_InputRemap() {
     this.y = (Graphics.boxHeight - this.height) / 2;
   };
 
+  Window_InputRemap.prototype.update = function() {
+    Window_Command.prototype.update.call(this);
+    if (this._lastUsed !== Input._lastUsed) {
+      this._lastUsed = Input._lastUsed;
+      this.refresh();
+    }
+  };
+
   Window_InputRemap.prototype.makeCommandList = function() {
     // Commands added in seperate methods so you
     // can easily swap their places / add different
@@ -317,14 +347,14 @@ function Window_InputRemap() {
 
   Window_InputRemap.prototype.addKey = function(key) {
     if (!ConfigManager.keys.hasOwnProperty(key)) return;
-    if (_hide.contains(key)) return;
-    var enabled = !_disable.contains(key);
-    var vocab = _vocab[key];
+    if (_HIDE.contains(key)) return;
+    var enabled = !_DISABLE.contains(key);
+    var vocab = _VOCAB[key];
     this.addCommand(vocab, 'set', enabled, key);
   };
 
   Window_InputRemap.prototype.processOk = function() {
-    var sym   = this.commandSymbol(this.index());
+    var sym = this.commandSymbol(this.index());
     if (sym === 'spaceholder') return;
     Window_Command.prototype.processOk.call(this);
   };
@@ -332,16 +362,30 @@ function Window_InputRemap() {
   Window_InputRemap.prototype.drawItem = function(index) {
     var rect = this.itemRectForText(index);
     var statusWidth = this.statusWidth();
-    var titleWidth  = rect.width - statusWidth;
-    var name  = this.commandName(index);
-    var key   = this._list[index].ext;
-    var sym   = this.commandSymbol(index);
+    var titleWidth = rect.width - statusWidth;
+    var name = this.commandName(index);
+    var ext = this._list[index].ext;
+    var sym = this.commandSymbol(index);
     this.resetTextColor();
     this.changePaintOpacity(true);
     if (sym === 'set') {
-      var value = ConfigManager.keys[key];
-      value = value.constructor === Array ? value[0] || '' : value;
-      value = value.replace(/^#/, '');
+      var value = '';
+      if (!this._waitForInput || index !== this._index) {
+        var regex = /./;
+        if (Input.preferKeyboard()) {
+          regex = /^#(.*)/;
+        } else if (Input.preferGamepad()) {
+          regex = /^\$(.*)/;
+        }
+        for (var i = 0; i < ConfigManager.keys[ext].length; i++) {
+          var key = ConfigManager.keys[ext][i];
+          if (regex.test(key)) {
+            value = ConfigManager.keys[ext][i];
+            break;
+          }
+        }
+      }
+      value = value.replace(/^[\#|\$]/, '');
       // Should probably format special characters so they
       // show the character instead of the name for it,
       // Ex ";" instead of "semicolon"
