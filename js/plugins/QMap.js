@@ -3,21 +3,21 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QMap = '1.2.3';
+Imported.QMap = '1.2.4';
 
 if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.5')) {
   alert('Error: QMap requires QPlus 1.1.5 or newer to work.');
   throw new Error('Error: QMap requires QPlus 1.1.5 or newer to work.');
-} else if (Imported.QMovement && !QPlus.versionCheck(Imported.QMovement, '1.1.9')) {
-  alert('Error: QMap requires QMovement 1.1.9 or newer to work.');
-  throw new Error('Error: QMap requires QMovement 1.1.9 or newer to work.');
+} else if (Imported.QMovement && !QPlus.versionCheck(Imported.QMovement, '1.2.1')) {
+  alert('Error: QMap requires QMovement 1.2.1 or newer to work.');
+  throw new Error('Error: QMap requires QMovement 1.2.1 or newer to work.');
 }
 
 //=============================================================================
  /*:
  * @plugindesc <QMap>
  * Creates maps made with QMap Editor
- * @author Quxios  | Version 1.2.3
+ * @author Quxios  | Version 1.2.4
  *
  * @requires QPlus
  *
@@ -290,26 +290,7 @@ var $dataQMap = null;
   //-----------------------------------------------------------------------------
   // Game_CharacterBase
 
-  if (Imported.QMovement) {
-    var Alias_Game_CharacterBase_collideWithCharacter = Game_CharacterBase.prototype.collideWithCharacter;
-    Game_CharacterBase.prototype.collideWithCharacter = function(type) {
-      if (Alias_Game_CharacterBase_collideWithCharacter.call(this, type)) return true;
-      return this.collideWithMapObj(type);
-    };
-
-    Game_CharacterBase.prototype.collideWithMapObj = function(type) {
-      var collider = this.collider(type);
-      var collided = false;
-      ColliderManager.getCollidersNear(collider, (function(mapObj) {
-        if (!mapObj.isMapObj) return false;
-        if (mapObj.type === 'collision') {
-          collided = mapObj.intersects(collider);
-          if (collided) return 'break';
-        }
-      }).bind(this));
-      return collided;
-    };
-  } else {
+  if (!Imported.QMovement) {
     var Alias_Game_CharacterBase_isCollidedWithCharacters = Game_CharacterBase.prototype.isCollidedWithCharacters;
     Game_CharacterBase.prototype.isCollidedWithCharacters = function(x, y) {
       return Alias_Game_CharacterBase_isCollidedWithCharacters.call(this, x, y) || this.isCollidedWithMapObj(x, y);
