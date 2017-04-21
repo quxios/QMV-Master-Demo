@@ -365,7 +365,7 @@ QSprite.json = null;
     this._idlePose = 'idle';
     this._availableIdlePoses = [];
     this._idleTimer = 0;
-    this._IDLEINTERVALWait = Math.randomIntBetween(_IDLEINTERVAL[0], _IDLEINTERVAL[1]);
+    this._idleIntervalWait = Math.randomIntBetween(_IDLEINTERVAL[0], _IDLEINTERVAL[1]);
   };
 
   Game_CharacterBase.prototype.moveSpeedMultiplier = function() {
@@ -460,18 +460,18 @@ QSprite.json = null;
       this.updateIdleInterval();
     } else if (!this._isIdle) {
       this._idleTimer = 0;
-      this._IDLEINTERVALWait = Math.randomIntBetween(_IDLEINTERVAL[0], _IDLEINTERVAL[1])
+      this._idleIntervalWait = Math.randomIntBetween(_IDLEINTERVAL[0], _IDLEINTERVAL[1])
     }
   };
 
   Game_CharacterBase.prototype.updateIdleInterval = function() {
     this._idleTimer++;
     if (this._availableIdlePoses.length > 0) {
-      if (this._idleTimer >= this._IDLEINTERVALWait) {
+      if (this._idleTimer >= this._idleIntervalWait) {
         var i = Math.randomInt(this._availableIdlePoses.length);
         var pose = this._availableIdlePoses[i];
         this.playPose(pose, false, false, false, true);
-        this._IDLEINTERVALWait = Math.randomIntBetween(_IDLEINTERVAL[0], _IDLEINTERVAL[1])
+        this._idleIntervalWait = Math.randomIntBetween(_IDLEINTERVAL[0], _IDLEINTERVAL[1])
         this._idleTimer = 0;
       }
     }
@@ -565,7 +565,7 @@ QSprite.json = null;
   Game_CharacterBase.prototype.setImage = function(characterName, characterIndex) {
     Alias_Game_CharacterBase_setImage.call(this, characterName, characterIndex);
     this._isQChara = undefined;
-    this._isIdle   = null;
+    this._isIdle = null;
     this._posePlaying = null;
     this.getAvailableIdlePoses();
   };
