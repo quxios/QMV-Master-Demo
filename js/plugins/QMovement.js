@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QMovement = '1.2.0';
+Imported.QMovement = '1.2.1';
 
 if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.3')) {
   alert('Error: QMovement requires QPlus 1.1.3 or newer to work.');
@@ -14,7 +14,7 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.3')) {
  /*:
  * @plugindesc <QMovement>
  * More control over character movement
- * @author Quxios  | Version 1.2.0
+ * @author Quxios  | Version 1.2.1
  *
  * @repo https://github.com/quxios/QMovement
  *
@@ -1700,6 +1700,10 @@ function ColliderManager() {
     return this._currentRad !== this._targetRad;
   };
 
+  Game_CharacterBase.prototype.setPixelPosition = function(x, y) {
+    this.setPosition(x / QMovement.tileSize, y / QMovement.tileSize);
+  };
+
   var Alias_Game_CharacterBase_setPosition = Game_CharacterBase.prototype.setPosition;
   Game_CharacterBase.prototype.setPosition = function(x, y) {
     Alias_Game_CharacterBase_setPosition.call(this, x, y);
@@ -1832,7 +1836,10 @@ function ColliderManager() {
     var collider = this.collider(type);
     var collided = false;
     ColliderManager.getCollidersNear(collider, (function(tile) {
-      if (tile.isTile && this.passableColors().contains(tile.color)) {
+      if (tile.color && this.passableColors().contains(tile.color)) {
+        return false;
+      }
+      if (tile.type && tile.type !== 'collision') {
         return false;
       }
       collided = tile.intersects(collider);
@@ -2994,8 +3001,17 @@ function ColliderManager() {
   Game_Event.prototype.setupPageSettings = function() {
     Alias_Game_Event_setupPageSettings.call(this);
     this.reloadColliders();
+    this.initialPosition();
     this._typeRandomDir = null;
     this._typeTowardPlayer = null;
+  };
+
+  Game_Event.prototype.initialPosition = function() {
+    var ox = /<ox[=|:](-?[0-9]+)>/.exec(this.comments(true)) || 0;
+    var oy = /<oy[=|:](-?[0-9]+)>/.exec(this.comments(true)) || 0;
+    if (ox) ox = Number(ox[1]) || 0;
+    if (oy) oy = Number(oy[1]) || 0;
+    this.setPixelPosition(this.px + ox, this.py + oy);
   };
 
   Game_Event.prototype.defaultColliderConfig = function() {
