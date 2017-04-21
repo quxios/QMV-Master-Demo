@@ -1,0 +1,12 @@
+This message is loaded from a txt file by using QImport.
+Each line is a new line in the message. If you
+pass the line limit (Default: 4) then it the next
+lines are passed into a new message
+For example, this should be in a 2nd message box!\!
+Message codes can also be used here because all
+it's doing is place all this text for that Show Text's
+text.
+To do this, you need to make sure the event has the
+<importing> tag in its note!
+I can also do another import from an import!\!
+<import:text/QImport2.txt>
