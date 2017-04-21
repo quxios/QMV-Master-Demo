@@ -138,10 +138,10 @@ function Sprite_Bars() {
 // QCamera
 
 (function() {
-  var _params = QPlus.getParams('<QCamera>');
-  var _offset = Number(_params['Offset']) || 0.5;
-  var _cameraOX = Number(_params['Shift X']) || 0;
-  var _cameraOY = Number(_params['Shift Y']) || 0;
+  var _PARAMS = QPlus.getParams('<QCamera>');
+  var _OFFSET = Number(_PARAMS['Offset']) || 0.5;
+  var _CAMERAOX = Number(_PARAMS['Shift X']) || 0;
+  var _CAMERAOY = Number(_PARAMS['Shift Y']) || 0;
 
   //-----------------------------------------------------------------------------
   // Game_Interpreter
@@ -282,21 +282,21 @@ function Sprite_Bars() {
   var Alias_Game_Map_displayX = Game_Map.prototype.displayX;
   Game_Map.prototype.displayX = function() {
     var x = Alias_Game_Map_displayX.call(this);
-    x += _cameraOX / this.tileWidth();
+    x += _CAMERAOX / this.tileWidth();
     return Math.round(x * this.tileWidth()) / this.tileWidth();
   };
 
   var Alias_Game_Map_displayY = Game_Map.prototype.displayY;
   Game_Map.prototype.displayY = function() {
     var y = Alias_Game_Map_displayY.call(this);
-    y += _cameraOY / this.tileHeight();
+    y += _CAMERAOY / this.tileHeight();
     return Math.round(y * this.tileHeight()) / this.tileHeight();
   };
 
   Game_Map.prototype.displayCenterX = function() {
     var half = this.screenTileX() / 2;
     var x = this.displayX() + half;
-    x -= _cameraOX / this.tileWidth()
+    x -= _CAMERAOX / this.tileWidth()
     x = this.roundX(x);
     return Math.round(x * this.tileWidth()) / this.tileWidth();
   };
@@ -304,7 +304,7 @@ function Sprite_Bars() {
   Game_Map.prototype.displayCenterY = function() {
     var half = this.screenTileY() / 2;
     var y = this.displayY() + half;
-    y -= _cameraOY / this.tileHeight()
+    y -= _CAMERAOY / this.tileHeight()
     y = this.roundY(y);
     return Math.round(y * this.tileHeight()) / this.tileHeight();
   };
@@ -312,13 +312,13 @@ function Sprite_Bars() {
   var Alias_Game_Map_parallaxOx = Game_Map.prototype.parallaxOx;
   Game_Map.prototype.parallaxOx = function() {
     var ox = Alias_Game_Map_parallaxOy.call(this);
-    return ox + _cameraOX;
+    return ox + _CAMERAOX;
   };
 
   var Alias_Game_Map_parallaxOy = Game_Map.prototype.parallaxOy;
   Game_Map.prototype.parallaxOy = function() {
     var oy = Alias_Game_Map_parallaxOy.call(this);
-    return oy + _cameraOY;
+    return oy + _CAMERAOY;
   };
 
   Game_Map.prototype._setDisplayPos = function(x, y) {
@@ -398,7 +398,7 @@ function Sprite_Bars() {
     var lastScrolledY = this.scrolledY();
     Alias_Game_CharacterBase_update.call(this);
     if ($gameMap._scrollTarget === this.charaId()) {
-      if (_offset === 0) {
+      if (_OFFSET === 0) {
         this.updateNormalScroll(lastScrolledX, lastScrolledY);
       } else {
         this.updateQScroll();
@@ -417,7 +417,7 @@ function Sprite_Bars() {
     if (dx !== 0 || dy !== 0) {
       this._lastX = x2;
       this._lastY = y2;
-      var frames = _offset / 0.0625; // 0.0625 is the distance per frame at speed 4
+      var frames = _OFFSET / 0.0625; // 0.0625 is the distance per frame at speed 4
       $gameMap.scrollTo(this, null, Math.round(frames) || 1);
     }
   };

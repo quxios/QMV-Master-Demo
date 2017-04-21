@@ -55,12 +55,15 @@ if (!Imported.QMovement || !QPlus.versionCheck(Imported.QMovement, '1.0.2')) {
  * ## Links
  * ============================================================================
  * RPGMakerWebs:
+ *
  *  http://forums.rpgmakerweb.com/index.php?threads/qplugins.73023/
  *
  * Terms of use:
+ *
  *  https://github.com/quxios/QMV-Master-Demo/blob/master/readme.md
  *
  * Like my plugins? Support me on Patreon!
+ *
  *  https://www.patreon.com/quxios
  *
  * @tags QM-Addon, collision
@@ -71,9 +74,9 @@ if (!Imported.QMovement || !QPlus.versionCheck(Imported.QMovement, '1.0.2')) {
 // QM CollisionMap
 
 (function() {
-  var _params = QPlus.getParams('<QMCollisionMap>');
-  var _cmFolder = _params['Folder'];
-  var _scanSize = Number(_params['Scan Size']);
+  var _PARAMS = QPlus.getParams('<QMCollisionMap>');
+  var _CMFOLDER = _PARAMS['Folder'];
+  var _SCANSIZE = Number(_PARAMS['Scan Size']);
 
   //-----------------------------------------------------------------------------
   // ColliderManager
@@ -89,7 +92,7 @@ if (!Imported.QMovement || !QPlus.versionCheck(Imported.QMovement, '1.0.2')) {
   };
 
   ColliderManager.setCollisionMap = function(collisionMap) {
-    ColliderManager.collisionMap.bitmap = ImageManager.loadBitmap(_cmFolder, collisionMap);
+    ColliderManager.collisionMap.bitmap = ImageManager.loadBitmap(_CMFOLDER, collisionMap);
   };
 
   ColliderManager.clearCollisionMap = function() {
@@ -180,9 +183,9 @@ if (!Imported.QMovement || !QPlus.versionCheck(Imported.QMovement, '1.0.2')) {
         if (!passableColors.contains(ColliderManager.collisionMap.bitmap.getColor(x, y))) {
           return false;
         }
-        y = Math.min(y2 + 1, y + _scanSize);
+        y = Math.min(y2 + 1, y + _SCANSIZE);
       }
-      x = Math.min(x2 + 1, x + _scanSize);
+      x = Math.min(x2 + 1, x + _SCANSIZE);
     }
     return true;
   };
@@ -223,7 +226,7 @@ if (!Imported.QMovement || !QPlus.versionCheck(Imported.QMovement, '1.0.2')) {
       if (!passableColors.contains(ColliderManager.collisionMap.bitmap.getColor(x, y))) {
         return false;
       }
-      r1 += s * _scanSize;
+      r1 += s * _SCANSIZE;
     }
     return true;
   };
@@ -256,11 +259,11 @@ if (!Imported.QMovement || !QPlus.versionCheck(Imported.QMovement, '1.0.2')) {
       var y2 = points[i + 1].y;
       var rad = Math.atan2(y1 - y2, x2 - x1);
       if (horz) {
-        var steps = Math.abs(y2 - y1) / _scanSize;
+        var steps = Math.abs(y2 - y1) / _SCANSIZE;
         var slope  = (x2 - x1) / steps;
         var inc = y1 > y2 ? -1 : 1;
       } else {
-        var steps = Math.abs(x2 - x1) / _scanSize;
+        var steps = Math.abs(x2 - x1) / _SCANSIZE;
         var slope  = (y2 - y1) / steps;
         var inc = x1 > x2 ? -1 : 1;
       }

@@ -57,11 +57,11 @@ if (!Imported.QInput) {
 // QNameInput
 
 (function() {
-  var _params = $plugins.filter(function(p) {
+  var _PARAMS = $plugins.filter(function(p) {
     return p.description.contains('<QNameInput>') && p.status
   })[0].parameters;
-  var _show  = _params["Show Window with Keys"] === 'true';
-  var _width = Number(_params["Window Width"]) || 480;
+  var _SHOW  = _PARAMS["Show Window with Keys"] === 'true';
+  var _WIDTH = Number(_PARAMS["Window Width"]) || 480;
 
   //-----------------------------------------------------------------------------
   // Scene_Name
@@ -74,7 +74,7 @@ if (!Imported.QInput) {
   var Alias_Scene_Name_createInputWindow = Scene_Name.prototype.createInputWindow;
   Scene_Name.prototype.createInputWindow = function() {
     Alias_Scene_Name_createInputWindow .call(this);
-    if (!_show) {
+    if (!_SHOW) {
       this._inputWindow.hide();
       this._inputWindow.deactivate();
       this._editWindow.setHandler('#enter', this.onInputOk.bind(this));
@@ -99,7 +99,7 @@ if (!Imported.QInput) {
     var width = this.windowWidth();
     var height = this.windowHeight();
     var x = (Graphics.boxWidth - width) / 2;
-    if (!_show) {
+    if (!_SHOW) {
       var y = (Graphics.boxHeight - height) / 2;
     } else {
       var y = (Graphics.boxHeight - (height + this.fittingHeight(9) + 8)) / 2;
@@ -112,7 +112,7 @@ if (!Imported.QInput) {
   };
 
   Window_NameEditInput.prototype.windowWidth = function() {
-    return _width;
+    return _WIDTH;
   };
 
   Window_NameEditInput.prototype.windowHeight = function() {

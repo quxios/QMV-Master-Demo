@@ -246,14 +246,14 @@ QSprite.json = null;
 // QSprite
 
 (function() {
-  var _params = QPlus.getParams('<QSprite>');
-  var _identifier   = _params['File Name Identifier'] || '%{config}-';
-  var _idleInterval = _params['Random Idle Interval'].trim().split(' ').map(Number);
-  if (!_idleInterval[1] || _idleInterval[1] < _idleInterval[0]) {
-    _idleInterval[1] = _idleInterval[0];
+  var _PARAMS = QPlus.getParams('<QSprite>');
+  var _IDENTIFIER   = _PARAMS['File Name Identifier'] || '%{config}-';
+  var _IDLEINTERVAL = _PARAMS['Random Idle Interval'].trim().split(' ').map(Number);
+  if (!_IDLEINTERVAL[1] || _IDLEINTERVAL[1] < _IDLEINTERVAL[0]) {
+    _IDLEINTERVAL[1] = _IDLEINTERVAL[0];
   }
-  var _useNewAdjust = _params['Use New Adjust'] === 'true';
-  var _hasQMovement = Imported.Quasi_Movement || Imported.QMovement;
+  var _USENEWADJUST = _PARAMS['Use New Adjust'] === 'true';
+  var _HASQMOVEMENT = Imported.Quasi_Movement || Imported.QMovement;
 
   QPlus.request('data/QSprite.json')
     .onSuccess(function(data) {
@@ -365,7 +365,7 @@ QSprite.json = null;
     this._idlePose = 'idle';
     this._availableIdlePoses = [];
     this._idleTimer = 0;
-    this._idleIntervalWait = Math.randomIntBetween(_idleInterval[0], _idleInterval[1]);
+    this._IDLEINTERVALWait = Math.randomIntBetween(_IDLEINTERVAL[0], _IDLEINTERVAL[1]);
   };
 
   Game_CharacterBase.prototype.moveSpeedMultiplier = function() {
@@ -386,7 +386,7 @@ QSprite.json = null;
     if (this.qSprite() && this.qSprite().poses[this._pose]) {
       var pose = this.qSprite().poses[this._pose];
       if (pose.adjust) {
-        if (_useNewAdjust) {
+        if (_USENEWADJUST) {
           return pose.speed / this.moveSpeedMultiplier();
         } else {
           return (pose.speed - this.realMoveSpeed()) * 3;
@@ -423,7 +423,7 @@ QSprite.json = null;
       this.clearPose();
     }
     var dir = this._direction;
-    if (_hasQMovement && this.isDiagonal()) {
+    if (_HASQMOVEMENT && this.isDiagonal()) {
       var diag = this.isDiagonal();
     }
     if (!isMoving && this.hasPose(this._idlePose + dir)) {
@@ -460,18 +460,18 @@ QSprite.json = null;
       this.updateIdleInterval();
     } else if (!this._isIdle) {
       this._idleTimer = 0;
-      this._idleIntervalWait = Math.randomIntBetween(_idleInterval[0], _idleInterval[1])
+      this._IDLEINTERVALWait = Math.randomIntBetween(_IDLEINTERVAL[0], _IDLEINTERVAL[1])
     }
   };
 
   Game_CharacterBase.prototype.updateIdleInterval = function() {
     this._idleTimer++;
     if (this._availableIdlePoses.length > 0) {
-      if (this._idleTimer >= this._idleIntervalWait) {
+      if (this._idleTimer >= this._IDLEINTERVALWait) {
         var i = Math.randomInt(this._availableIdlePoses.length);
         var pose = this._availableIdlePoses[i];
         this.playPose(pose, false, false, false, true);
-        this._idleIntervalWait = Math.randomIntBetween(_idleInterval[0], _idleInterval[1])
+        this._IDLEINTERVALWait = Math.randomIntBetween(_IDLEINTERVAL[0], _IDLEINTERVAL[1])
         this._idleTimer = 0;
       }
     }
@@ -622,7 +622,7 @@ QSprite.json = null;
   Game_CharacterBase.prototype.playPose = function(pose, lock, pause, looping, canBreak) {
     if (!this.qSprite()) return;
     var dir = this._direction;
-    if (_hasQMovement && this.isDiagonal()) {
+    if (_HASQMOVEMENT && this.isDiagonal()) {
       var diag = this.isDiagonal();
       if (this.hasPose(pose + diag)) {
         dir = diag;
@@ -655,7 +655,7 @@ QSprite.json = null;
 
   Game_CharacterBase.prototype.isQCharacter = function() {
     if (this._isQChara === undefined) {
-      var string = _identifier.replace('{config}', '(.+)?');
+      var string = _IDENTIFIER.replace('{config}', '(.+)?');
       var regex  = new RegExp(string);
       this._isQChara = this._characterName.match(regex);
     }
@@ -805,7 +805,7 @@ QSprite.json = null;
 
   Sprite_Actor.prototype.isQCharacter = function() {
     if (this._isQChara === undefined) {
-      var string = _identifier.replace('{config}', '(.+?)');
+      var string = _IDENTIFIER.replace('{config}', '(.+?)');
       var regex  = new RegExp(string);
       this._isQChara = this._battlerName.match(regex);
     }

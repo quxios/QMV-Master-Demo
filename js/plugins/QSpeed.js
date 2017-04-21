@@ -165,11 +165,11 @@ if (!Imported.QPlus) {
 // QSpeed
 
 (function() {
-  var _params = QPlus.getParams('<QSpeed>');
-  var _accel = _params['Acceleration'] === 'true';
-  var _defaultDur = Number(_params['Duration']) || 1;
-  if (_defaultDur < 1) _defaultDur = 1;
-  var _dash = Number(_params['Dash Inc']) || 1;
+  var _PARAMS = QPlus.getParams('<QSpeed>');
+  var _ACCEL = _PARAMS['Acceleration'] === 'true';
+  var _DEFAULTDURATION = Number(_PARAMS['Duration']) || 1;
+  if (_DEFAULTDURATION < 1) _DEFAULTDURATION = 1;
+  var _DASH = Number(_PARAMS['Dash Inc']) || 1;
 
   //-----------------------------------------------------------------------------
   // Game_Interpreter
@@ -215,9 +215,9 @@ if (!Imported.QPlus) {
   Game_CharacterBase.prototype.initMembers = function() {
     Alias_Game_CharacterBase_initMembers.call(this);
     this._realMoveSpeed = 4;
-    this._moveSpeedDuration = _defaultDur;
+    this._moveSpeedDuration = _DEFAULTDURATION;
     this._moveSpeedSpd  = 0;
-    this._useAccel   = _accel;
+    this._useAccel   = _ACCEL;
     this._wasDashing = false;
   };
 
@@ -250,10 +250,10 @@ if (!Imported.QPlus) {
     }
     var isDashing = this.isDashing();
     if (!this._wasDashing && isDashing) {
-      this.setMoveSpeed(this._moveSpeed + _dash);
+      this.setMoveSpeed(this._moveSpeed + _DASH);
     }
     if (this._wasDashing && !isDashing) {
-      this.setMoveSpeed(this._moveSpeed - _dash);
+      this.setMoveSpeed(this._moveSpeed - _DASH);
     }
     this._wasDashing = isDashing;
   };

@@ -144,9 +144,9 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.0.1')) {
 // QAudio
 
 (function() {
-  var _params = QPlus.getParams('<QAudio>');
-  var _defaultRadius = Number(_params['Default Radius']) || 1;
-  var _defaultVolume = Number(_params['Default Max Volume']) || 100;
+  var _PARAMS = QPlus.getParams('<QAudio>');
+  var _DEFAULTRADIUS = Number(_PARAMS['Default Radius']) || 1;
+  var _DEFAULTVOLUME = Number(_PARAMS['Default Max Volume']) || 100;
 
   //-----------------------------------------------------------------------------
   // Game_Interpreter
@@ -178,12 +178,12 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.0.1')) {
       type = type.toLowerCase();
       var max = QPlus.getArg(args2, /^max(\d+)/i);
       if (max === null) {
-        max = _defaultVolume;
+        max = _DEFAULTVOLUME;
       }
       max /= 100;
       var radius = QPlus.getArg(args2, /^radius(\d+)/i) ;
       if (radius === null) {
-        radius = _defaultRadius;
+        radius = _DEFAULTRADIUS;
       }
       var bindTo = QPlus.getArg(args2, /^bindTo(.+)/i);
       if (bindTo) {

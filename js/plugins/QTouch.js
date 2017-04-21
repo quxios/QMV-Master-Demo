@@ -74,11 +74,11 @@ function Sprite_QButton() {
 // QTouch
 
 (function() {
-  var _params = QPlus.getParams('<QTouch>');
-  var _mouseDecay = Number(_params['Mouse Decay']) || 0;
-  var _cursorImgs = {
-    default: _params['Default Cursor'],//'icon/cursor-default.png',
-    pointer: _params['Pointer Cursor']//'icon/cursor-pointer.png'
+  var _PARAMS = QPlus.getParams('<QTouch>');
+  var _MOUSEDECAY = Number(_PARAMS['Mouse Decay']) || 0;
+  var _CURSORIMGS = {
+    default: _PARAMS['Default Cursor'],
+    pointer: _PARAMS['Pointer Cursor']
   };
 
   //-----------------------------------------------------------------------------
@@ -88,7 +88,7 @@ function Sprite_QButton() {
   TouchInput.clear = function() {
     Alias_TouchInput_clear.call(this);
     this._cursor = 'default';
-    this._cursorDecay = _mouseDecay;
+    this._cursorDecay = _MOUSEDECAY;
     this._cursorHidden = false;
     this.setCursor();
   };
@@ -96,7 +96,7 @@ function Sprite_QButton() {
   var Alias_TouchInput_update = TouchInput.update;
   TouchInput.update = function() {
     Alias_TouchInput_update.call(this);
-    if (_mouseDecay > 0) this.updateCursorDecay();
+    if (_MOUSEDECAY > 0) this.updateCursorDecay();
   };
 
   TouchInput.updateCursorDecay = function() {
@@ -114,7 +114,7 @@ function Sprite_QButton() {
     var x = Graphics.pageToCanvasX(event.pageX);
     var y = Graphics.pageToCanvasY(event.pageY);
     this._onMove(x, y);
-    this._cursorDecay = _mouseDecay;
+    this._cursorDecay = _MOUSEDECAY;
   };
 
   TouchInput.hideCursor = function() {
@@ -130,7 +130,7 @@ function Sprite_QButton() {
   TouchInput.setCursor = function(cursor) {
     if (this._cursor === cursor) return;
     this._cursor = cursor || this._cursor;
-    var cursorImg = _cursorImgs[this._cursor];
+    var cursorImg = _CURSORIMGS[this._cursor];
     if (cursorImg) {
       document.body.style.cursor = `url('${cursorImg}'), ${this._cursor}`;
     } else {
