@@ -3,13 +3,13 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QPlus = '1.2.0';
+Imported.QPlus = '1.2.1';
 
 //=============================================================================
  /*:
  * @plugindesc <QPlus> (Should go above all Q Plugins)
  * Some small changes to MV for easier plugin development.
- * @author Quxios  | Version 1.2.0
+ * @author Quxios  | Version 1.2.1
  *
  * @param Quick Test
  * @desc Enable quick testing.
@@ -145,15 +145,15 @@ function QPlus() {
  throw new Error('This is a static class');
 }
 
-QPlus._params = {};
+QPlus._PARAMS = {};
 
 QPlus.getParams = function(id) {
-  if (!this._params[id]) {
-    this._params[id] = $plugins.filter(function(p) {
+  if (!this._PARAMS[id]) {
+    this._PARAMS[id] = $plugins.filter(function(p) {
       return p.description.contains(id) && p.status
     })[0].parameters;
   }
-  return this._params[id];
+  return this._PARAMS[id];
 };
 
 QPlus.versionCheck = function(version, targetVersion) {
@@ -400,9 +400,9 @@ function SimpleTilemap() {
   //-----------------------------------------------------------------------------
   // Get QPlus params
 
-  var _params    = QPlus.getParams('<QPlus>');
-  var _quickTest = _params['Quick Test'].toLowerCase() == 'true';
-  var _switches  = _params['Default Enabled Switches'].split(',').map(Number);
+  var _PARAMS    = QPlus.getParams('<QPlus>');
+  var _QUICKTEST = _PARAMS['Quick Test'].toLowerCase() == 'true';
+  var _SWITCHES  = _PARAMS['Default Enabled Switches'].split(',').map(Number);
 
   //-----------------------------------------------------------------------------
   // Graphics
@@ -414,7 +414,7 @@ function SimpleTilemap() {
     if (Utils.isNwjs()) {
       var consoleKey = 'F8';
       if (Imported.QInput) {
-        consoleKey = QInput.remapped.console.toUpperCase();
+        consoleKey = QInput.remapped.console[0].toUpperCase();
       }
       extraMsg = `<br /><font color="white">For more information, push ${consoleKey}</font>`;
     }
@@ -467,7 +467,7 @@ function SimpleTilemap() {
   Scene_Boot.prototype.start = function() {
     if (DataManager.isBattleTest() || DataManager.isEventTest()) {
       Alias_Scene_Boot_start.call(this);
-    } else if (_quickTest && Utils.isOptionValid('test')) {
+    } else if (_QUICKTEST && Utils.isOptionValid('test')) {
       Scene_Base.prototype.start.call(this);
       SoundManager.preloadImportantSounds();
       this.checkPlayerLocation();
@@ -485,8 +485,8 @@ function SimpleTilemap() {
   var Alias_DataManager_setupNewGame = DataManager.setupNewGame;
   DataManager.setupNewGame = function() {
     Alias_DataManager_setupNewGame.call(this);
-    for (var i = 0; i < _switches.length; i++) {
-      $gameSwitches.setValue(_switches[i], true);
+    for (var i = 0; i < _SWITCHES.length; i++) {
+      $gameSwitches.setValue(_SWITCHES[i], true);
     }
   };
 
