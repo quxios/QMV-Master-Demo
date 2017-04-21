@@ -5,6 +5,11 @@
 var Imported = Imported || {};
 Imported.QInput = '2.1.1';
 
+if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.2.1')) {
+  alert('Error: QInput requires QPlus 1.2.1 or newer to work.');
+  throw new Error('Error: QInput requires QPlus 1.2.1 or newer to work.');
+}
+
 //=============================================================================
  /*:
  * @plugindesc <QInput>
@@ -184,6 +189,14 @@ Imported.QInput = '2.1.1';
  *   #slash         #grave      #openbracket   #backslash    #closedbracket
  *   #singlequote
  * ============================================================================
+ * ## Gamepad Keys
+ * ============================================================================
+ * Gamepad keys begin with $ and are in all caps. Here's the list of gamepad keys:
+ *
+ * - Buttons: $A, $B, $X, $Y, $SELECT, $START
+ * - Triggers: $L1, $L2, $L3, $R1, $R2, $R3
+ * - DPad: $UP, $DOWN, $LEFT, $RIGHT
+ * ============================================================================
  * ## Using QKeys
  * ============================================================================
  * If you haven't noticed by now, Qkeys have a # identifier. So if you want
@@ -205,14 +218,6 @@ Imported.QInput = '2.1.1';
  * Keylist is a string with keys seperated by commas.
  * You can also set it to a-z, a-z0-9 or sym.
  * If keylist is left empty it will return true when any key is pressed
- * ============================================================================
- * ## Gamepad Keys
- * ============================================================================
- * Gamepad keys begin with $ and are in all caps. Here's the list of gamepad keys:
- *
- * - Buttons: $A, $B, $X, $Y, $SELECT, $START
- * - Triggers: $L1, $L2, $L3, $R1, $R2, $R3
- * - DPad: $UP, $DOWN, $LEFT, $RIGHT
  * =============================================================================
  * ## Advanced Users: Using Window_TextInput
  * =============================================================================
@@ -234,12 +239,15 @@ Imported.QInput = '2.1.1';
  * ## Links
  * ============================================================================
  * RPGMakerWebs:
+ *
  *  http://forums.rpgmakerweb.com/index.php?threads/qplugins.73023/
  *
  * Terms of use:
+ *
  *  https://github.com/quxios/QMV-Master-Demo/blob/master/readme.md
  *
  * Like my plugins? Support me on Patreon!
+ *
  *  https://www.patreon.com/quxios
  *
  * @tags input, keyboard
@@ -260,63 +268,53 @@ function QInput() {
  throw new Error('This is a static class');
 }
 
-QInput.stringToAry = function(string) {
-  var ary = string.split(',');
-  ary = ary.map(function(s) {
-    return s.trim();
-  });
-  return ary;
-};
-
 //=============================================================================
 // QInput
 
 (function() {
-  var _params = $plugins.filter(function(p) {
-    return p.description.contains('<QInput>') && p.status;
-  })[0].parameters;
-  var _threshold = Number(_params['Threshold']) || 0.1;
+  var _PARAMS = QPlus.getParams('<QInput>');
+  var _THRESHOLD = Number(_PARAMS['Threshold']) || 0.2;
 
   QInput.remapped = {};
-  QInput.remapped['ok']       = QInput.stringToAry(_params['Ok']);
-  QInput.remapped['escape']   = QInput.stringToAry(_params['Escape / Cancel']);
-  QInput.remapped['menu']     = QInput.stringToAry(_params['Menu']);
-  QInput.remapped['shift']    = QInput.stringToAry(_params['Shift']);
-  QInput.remapped['control']  = QInput.stringToAry(_params['Control']);
-  QInput.remapped['tab']      = QInput.stringToAry(_params['Tab']);
-  QInput.remapped['pageup']   = QInput.stringToAry(_params['Pageup']);
-  QInput.remapped['pagedown'] = QInput.stringToAry(_params['Pagedown']);
-  QInput.remapped['left']     = QInput.stringToAry(_params['Left']);
-  QInput.remapped['right']    = QInput.stringToAry(_params['Right']);
-  QInput.remapped['up']       = QInput.stringToAry(_params['Up']);
-  QInput.remapped['down']     = QInput.stringToAry(_params['Down']);
-  QInput.remapped['debug']    = QInput.stringToAry(_params['Debug']);
-  QInput.remapped['fps']        = _params['FPS'];
-  QInput.remapped['streched']   = _params['Streched'];
-  QInput.remapped['fullscreen'] = _params['FullScreen'];
-  QInput.remapped['restart']    = _params['Restart'];
-  QInput.remapped['console']    = _params['Console'];
+  QInput.remapped['ok']       = QPlus.stringToAry(_PARAMS['Ok']);
+  QInput.remapped['escape']   = QPlus.stringToAry(_PARAMS['Escape / Cancel']);
+  QInput.remapped['menu']     = QPlus.stringToAry(_PARAMS['Menu']);
+  QInput.remapped['shift']    = QPlus.stringToAry(_PARAMS['Shift']);
+  QInput.remapped['control']  = QPlus.stringToAry(_PARAMS['Control']);
+  QInput.remapped['tab']      = QPlus.stringToAry(_PARAMS['Tab']);
+  QInput.remapped['pageup']   = QPlus.stringToAry(_PARAMS['Pageup']);
+  QInput.remapped['pagedown'] = QPlus.stringToAry(_PARAMS['Pagedown']);
+  QInput.remapped['left']     = QPlus.stringToAry(_PARAMS['Left']);
+  QInput.remapped['right']    = QPlus.stringToAry(_PARAMS['Right']);
+  QInput.remapped['up']       = QPlus.stringToAry(_PARAMS['Up']);
+  QInput.remapped['down']     = QPlus.stringToAry(_PARAMS['Down']);
+  QInput.remapped['debug']    = QPlus.stringToAry(_PARAMS['Debug']);
+  QInput.remapped['fps']        = [_PARAMS['FPS']];
+  QInput.remapped['streched']   = [_PARAMS['Streched']];
+  QInput.remapped['fullscreen'] = [_PARAMS['FullScreen']];
+  QInput.remapped['restart']    = [_PARAMS['Restart']];
+  QInput.remapped['console']    = [_PARAMS['Console']];
 
   // Key codes from
   // https://msdn.microsoft.com/en-us/library/dd375731(v=VS.85).aspx
   QInput.keys = {
-    14: "0E",
-    8: "backspace", 9: "tab", 13: "enter", 16: "shift", 17: "ctrl", 18: "alt",
-    27: "esc", 32: "space", 33: "pageup", 34: "pagedown", 37: "left",
-    38: "up",  39: "right", 40: "down", 45: "escape",
-    48: "0",  49: "1",  50: "2",  51: "3",  52: "4",  53: "5",  54: "6",
-    55: "7",  56: "8",  57: "9",
-    96: "num0",   97: "num1",   98: "num2",   99: "num3",  100: "num4",
-    101: "num5", 102: "num6",  103: "num7",  104: "num8",  105: "num9",
-    65: "a",  66: "b",  67: "c",  68: "d",  69: "e",  70: "f",  71: "g",
-    72: "h",  73: "i",  74: "j",  75: "k",  76: "l",  77: "m",  78: "n",
-    79: "o",  80: "p",  81: "q",  82: "r",  83: "s",  84: "t",  85: "u",
-    86: "v",  87: "w",  88: "x",  89: "y",  90: "z",
-    112: "f1", 113: "f2", 114: "f3", 115: "f4", 116: "f5", 117: "f6",
-    118: "f7", 119: "f8", 120: "f9", 121: "f10", 122: "f11", 123: "f12",
-    186: "semicolon",  187: "equal", 188: "comma", 189: "minus", 190: "period",
-    191: "slash", 192: "grave", 219: "openbracket", 220: "backslash",
-    221: "closedbracket", 222: "singlequote"
+    14: '0E',
+    8: 'backspace', 9: 'tab', 13: 'enter', 16: 'shift', 17: 'ctrl', 18: 'alt',
+    27: 'esc', 32: 'space', 33: 'pageup', 34: 'pagedown', 37: 'left',
+    38: 'up',  39: 'right', 40: 'down', 45: 'escape',
+    48: '0',  49: '1',  50: '2',  51: '3',  52: '4',  53: '5',  54: '6',
+    55: '7',  56: '8',  57: '9',
+    96: 'num0',   97: 'num1',   98: 'num2',   99: 'num3',  100: 'num4',
+    101: 'num5', 102: 'num6',  103: 'num7',  104: 'num8',  105: 'num9',
+    65: 'a',  66: 'b',  67: 'c',  68: 'd',  69: 'e',  70: 'f',  71: 'g',
+    72: 'h',  73: 'i',  74: 'j',  75: 'k',  76: 'l',  77: 'm',  78: 'n',
+    79: 'o',  80: 'p',  81: 'q',  82: 'r',  83: 's',  84: 't',  85: 'u',
+    86: 'v',  87: 'w',  88: 'x',  89: 'y',  90: 'z',
+    112: 'f1', 113: 'f2', 114: 'f3', 115: 'f4', 116: 'f5', 117: 'f6',
+    118: 'f7', 119: 'f8', 120: 'f9', 121: 'f10', 122: 'f11', 123: 'f12',
+    186: 'semicolon',  187: 'equal', 188: 'comma', 189: 'minus', 190: 'period',
+    191: 'slash', 192: 'grave', 219: 'openbracket', 220: 'backslash',
+    221: 'closedbracket', 222: 'singlequote'
   };
 
   // returns key code based off the key name
@@ -432,7 +430,7 @@ QInput.stringToAry = function(string) {
     this._ranPress = false;
     this._lastPressed = null;
     this._lastTriggered = null;
-    this._lastGamepadDown = null;
+    this._lastGamepadTriggered = null;
     this._dirAxesA = new Point(0, 0);
     this._dirAxesB = new Point(0, 0);
   };
@@ -566,7 +564,7 @@ QInput.stringToAry = function(string) {
     var buttonName = QInput.keys[event.keyCode];
     this._lastTriggered = buttonName;
     if (buttonName) {
-      this._currentState["#" + buttonName] = true;
+      this._currentState['#' + buttonName] = true;
     } else {
       buttonName = Input.keyMapper[event.keyCode];
       if (buttonName) {
@@ -578,7 +576,7 @@ QInput.stringToAry = function(string) {
   Input._onKeyUp = function(event) {
     var buttonName = QInput.keys[event.keyCode];
     if (buttonName) {
-      this._currentState["#" + buttonName] = false;
+      this._currentState['#' + buttonName] = false;
     } else {
       buttonName = Input.keyMapper[event.keyCode];
       if (buttonName) {
@@ -600,7 +598,7 @@ QInput.stringToAry = function(string) {
   // Based off
   // http://www.codeproject.com/Articles/17180/Detect-Caps-Lock-with-Javascript
   Input._setCapsLock = function(event) {
-    var key   = event.keyCode;
+    var key = event.keyCode;
     var shift = event.shiftKey ? event.shiftKey : key === 16;
     if ((key >= 65 && key <= 90 && !shift) || (key >= 97 && key <= 122 && shift)) {
       this.capsLock = true;
@@ -615,7 +613,7 @@ QInput.stringToAry = function(string) {
     var buttons = gamepad.buttons;
     var axes = gamepad.axes;
     this._usingGamepad = false;
-    this._lastGamepadDown = null;
+    this._lastGamepadTriggered = null;
     this._dirAxesA.x = 0;
     this._dirAxesA.y = 0;
     this._dirAxesB.x = 0;
@@ -641,39 +639,42 @@ QInput.stringToAry = function(string) {
       this._dirAxesA.x = 1;
     }
     // left stick
-    if (axes[0] < -_threshold) {
+    if (axes[0] < -_THRESHOLD) {
       this._dirAxesA.x = axes[0];
       newState[14] = true;    // left
       this._lastUsed = 'gamepad';
-    } else if (axes[0] > _threshold) {
+    } else if (axes[0] > _THRESHOLD) {
       this._dirAxesA.x = axes[0];
       newState[15] = true;    // right
       this._lastUsed = 'gamepad';
     }
-    if (axes[1] < -_threshold) {
+    if (axes[1] < -_THRESHOLD) {
       this._dirAxesA.y = axes[1];
       newState[12] = true;    // up
       this._lastUsed = 'gamepad';
-    } else if (axes[1] > _threshold) {
+    } else if (axes[1] > _THRESHOLD) {
       this._dirAxesA.y = axes[1];
       newState[13] = true;    // down
       this._lastUsed = 'gamepad';
     }
     // right stick
-    if (Math.abs(axes[2]) > _threshold) {
+    if (Math.abs(axes[2]) > _THRESHOLD) {
       this._dirAxesB.x = axes[2];
       this._lastUsed = 'gamepad';
     }
-    if (Math.abs(axes[3]) > _threshold) {
+    if (Math.abs(axes[3]) > _THRESHOLD) {
       this._dirAxesB.y = axes[3];
       this._lastUsed = 'gamepad';
     }
+    this._lastGamepadTriggered = null;
     for (var j = 0; j < newState.length; j++) {
       if (newState[j] !== lastState[j]) {
         var buttonName = this.gamepadKeys[j];
         if (buttonName) {
           this._lastUsed = 'gamepad';
-          this._lastGamepadDown = this.gamepadKeys[j];
+          if (newState[j]) {
+            this._lastGamepadTriggered = buttonName;
+          }
           this._currentState[buttonName] = newState[j];
         }
       }
@@ -682,10 +683,16 @@ QInput.stringToAry = function(string) {
   };
 
   Input.anyGamepadTriggered = function() {
-    var states = this._gamepadStates;
-    for (var i = 0; i < states.length; i++) {
-      if (states[i]) {
-        return this.gamepadKeys[i];
+    return this._lastGamepadTriggered;
+  };
+
+  Input.anyGamepadPressed = function() {
+    for (var i = 0; i < this._gamepadStates.length; i++) {
+      var states = this._gamepadStates[i];
+      for (var j = 0; j < states.length; j++) {
+        if (states[i]) {
+          return this.gamepadKeys[i];
+        }
       }
     }
     return false;
@@ -729,20 +736,22 @@ QInput.stringToAry = function(string) {
   SceneManager.onKeyDown = function(event) {
     if (!event.ctrlKey && !event.altKey) {
       switch (event.keyCode) {
-      case QInput.remap('restart'):
-        if (Utils.isNwjs()) {
-          location.reload();
-        }
-        break;
-      case QInput.remap('console'):
-        if (Utils.isNwjs() && Utils.isOptionValid('test')) {
-          if (Imported.QElectron) {
-            require('electron').ipcRenderer.send('open-DevTools');
-          } else {
-            require('nw.gui').Window.get().showDevTools();
+        case QInput.remap('restart'): {
+          if (Utils.isNwjs()) {
+            location.reload();
           }
+          break;
         }
-        break;
+        case QInput.remap('console'): {
+          if (Utils.isNwjs() && Utils.isOptionValid('test')) {
+            if (Imported.QElectron) {
+              require('electron').ipcRenderer.send('open-DevTools');
+            } else {
+              require('nw.gui').Window.get().showDevTools();
+            }
+          }
+          break;
+        }
       }
     }
   };
@@ -760,18 +769,17 @@ QInput.stringToAry = function(string) {
 
   Window_TextInput.prototype.initialize = function(x, y, width, height) {
     Window_Base.prototype.initialize.call(this, x || 0, y || 0, width || this.windowWidth(), height || this.windowHeight());
-    this._text = "";
-    this._title = "";
+    this._text = '';
+    this._title = '';
     this._index = 0;
     this._maxLength = 1;
-    this._mode = "a-z0-9"; // mode currently does nothing
+    this._mode = 'a-z0-9'; // mode currently does nothing
     this._handlers = {};
-    this._default = {name: "", mode: "a-z0-9"};
+    this._default = {name: '', mode: 'a-z0-9'};
     Input.clear();
     this.deactivate();
     this.refresh();
   };
-
 
   Window_TextInput.prototype.windowWidth = function() {
     return 480;
@@ -860,9 +868,9 @@ QInput.stringToAry = function(string) {
   };
 
   Window_TextInput.prototype.restoreDefault = function() {
-    this._text      = this._default.name;
-    this._index     = this._default.name.length;
-    this._mode      = this._default.mode;
+    this._text = this._default.name;
+    this._index = this._default.name.length;
+    this._mode = this._default.mode;
     this._maxLength = this._default.max;
     this.refresh();
     return this._text.length > 0;
