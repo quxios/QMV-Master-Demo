@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QMap = '1.2.4';
+Imported.QMap = '1.3.0';
 
 if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.5')) {
   alert('Error: QMap requires QPlus 1.1.5 or newer to work.');
@@ -17,7 +17,7 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.5')) {
  /*:
  * @plugindesc <QMap>
  * Creates maps made with QMap Editor
- * @author Quxios  | Version 1.2.4
+ * @author Quxios  | Version 1.3.0
  *
  * @requires QPlus
  *
@@ -28,7 +28,7 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.5')) {
  * ## About
  * ============================================================================
  * Similar to a parallax plugin. This plugin creates maps you created using
- * QMapEditor.
+ * QMap Editor.
  * ============================================================================
  * ## How to use
  * ============================================================================
@@ -48,11 +48,11 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.5')) {
  * ~~~
  *  <collider:SHAPE,WIDTH,HEIGHT,OX,OY>
  * ~~~
- * - SHAPE  - box or circle (only box works unless QMovement is installed)
- * - WIDTH  - The width of the collider, in pixels
- * - HEIGHT - The height of the collider, in pixels
- * - OX     - The X Offset of the collider, in pixels
- * - OY     - The Y Offset of the collider, in pixels
+ * - SHAPE: box or circle (only box works unless QMovement is installed)
+ * - WIDTH: The width of the collider, in pixels
+ * - HEIGHT: The height of the collider, in pixels
+ * - OX: The X Offset of the collider, in pixels
+ * - OY: The Y Offset of the collider, in pixels
  *
  * This will set the default collider to these settings.
  *
@@ -67,15 +67,15 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.5')) {
  * You can include as many different colliders as you want, as long as TYPE
  * is different on each line.
  *
- * - TYPE   - When this collider will be used. Set to default when you want that
+ * - TYPE: When this collider will be used. Set to default when you want that
  *  collider to be used when ever the type isn't found. Set to collision, for
  *  that collider to be used as a collision. Set to other values if needed
  *  for example, if a certain type is needed for a plugin feature.
- * - SHAPE  - Box or circle (only box works unless QMovement is installed)
- * - WIDTH  - The width of the collider, in pixels
- * - HEIGHT - The height of the collider, in pixels
- * - OX     - The X Offset of the collider, in pixels
- * - OY     - The Y Offset of the collider, in pixels
+ * - SHAPE: Box or circle (only box works unless QMovement is installed)
+ * - WIDTH: The width of the collider, in pixels
+ * - HEIGHT: The height of the collider, in pixels
+ * - OX: The X Offset of the collider, in pixels
+ * - OY: The Y Offset of the collider, in pixels
  * ----------------------------------------------------------------------------
  * **OnPlayer**
  * ----------------------------------------------------------------------------
@@ -97,33 +97,36 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.5')) {
  * ~~~
  *  <breath:OFFSET,DURATION,INITIALTIME?>
  * ~~~
- * - OFFSET      - How much to scale. 1 is 100%, 0.5 is 50%. So 0.5 means its
+ * - OFFSET: How much to scale. 1 is 100%, 0.5 is 50%. So 0.5 means its
  *  scale will go between 0.5 and 1.5;
- * - DURATION    - How long it takes for 1 cycle, in frames. 60 frames = 1 second
- * - INITIALTIME - (Optional, Default: 0) Which frame should it start at. Ex;
+ * - DURATION: How long it takes for 1 cycle, in frames. 60 frames = 1 second
+ * - INITIALTIME: (Optional, Default: 0) Which frame should it start at. Ex;
  *  if DURATION was 60 and this is set at 30, it'll start in the middle of the
  *  cycle.
  * ----------------------------------------------------------------------------
- * **Tone**
+ * **Tint**
  * ----------------------------------------------------------------------------
  * Change the tint of the map object. Similar to the Tint Screen event command.
  * ~~~
  *  <tint:RED,GREEN,BLUE,GRAY>
  * ~~~
- * RED   - Red value of tint, set between -255 to 255. Default: 0
- * GREEN - Red value of tint, set between -255 to 255. Default: 0
- * BLUE  - Red value of tint, set between -255 to 255. Default: 0
- * GRAY  - Red value of tint, set between -255 to 255. Default: 0
+ * - RED: Red value of tint, set between -255 to 255. Default: 0
+ * - GREEN: Red value of tint, set between -255 to 255. Default: 0
+ * - BLUE: Red value of tint, set between -255 to 255. Default: 0
+ * - GRAY: Red value of tint, set between -255 to 255. Default: 0
  * ============================================================================
  * ## Links
  * ============================================================================
  * RPGMakerWebs:
+ *
  *  http://forums.rpgmakerweb.com/index.php?threads/qplugins.73023/
  *
  * Terms of use:
+ *
  *  https://github.com/quxios/QMV-Master-Demo/blob/master/readme.md
  *
  * Like my plugins? Support me on Patreon!
+ *
  *  https://www.patreon.com/quxios
  *
  * @tags sprite, map, parallax
@@ -189,7 +192,6 @@ var $dataQMap = null;
           }
         }
         QPlus.freeImgCache(files);
-
       }
     }
   };
@@ -320,11 +322,14 @@ var $dataQMap = null;
      *  @param cols [int]
      *  @param rows [int]
      *  @param index [int]
+     *  @param speed [int]
      *  @param width [int]
      *  @param height [int]
      *  @param anchorX [int]
      *  @param anchorY [int]
-     *  @param notes [string]
+     *  @param note [string]
+     *  @param isQSprite [string]
+     *  @param pose [string]
      */
     for (var prop in objData) {
       if (objData.hasOwnProperty(prop)) {
@@ -339,7 +344,21 @@ var $dataQMap = null;
       }
     }
     this.meta = this.qmeta || {};
+    if (Imported.QSprite && this.isQSprite) {
+      this.convertQSprite();
+    }
     this.initMembers();
+  };
+
+  Game_MapObj.prototype.convertQSprite = function() {
+    var config = QSprite.json[this.isQSprite];
+    if (!config) return;
+    this.anchorX = config.anchorX;
+    this.anchorY = config.anchorY;
+    this.cols = config.cols;
+    this.rows = config.rows;
+    this.type = 'QSprite';
+    this._qSprite = config.poses[this.pose];
   };
 
   Game_MapObj.prototype.initMembers = function() {
@@ -356,9 +375,9 @@ var $dataQMap = null;
   Game_MapObj.prototype.setupBreath = function() {
     if (!this.meta.breath) return;
     var args = this.meta.breath.split(',').map(Number);
-    this._breathS = args[0] === undefined ? 0 : args[0] / 100;
+    this._breathS = args[0] === undefined ? 1 : args[0] / 100;
     this._breathT = args[1] === undefined ? 60 : args[1];
-    this._breathTick = args[2] === undefined ? 60 : args[2];
+    this._breathOT = args[2] === undefined ? 0 : args[2];
   };
 
   Game_MapObj.prototype.setupTone = function() {
@@ -411,11 +430,10 @@ var $dataQMap = null;
   };
 
   Game_MapObj.prototype.updateBreath = function() {
-    var t = this._breathTick % this._breathT;
-    var dt = t / this._breathT * Math.PI * 2;
-    var s = Math.sin(dt) * this._breathS;
+    var rt = (this._breathTick % this._breathT) / this._breathT;
+    var s = Math.sin(rt * Math.PI * 2) * this._breathS;
     this.scale = new Point(1 + s, 1 + s);
-    this._breathTick++;
+    this._breathTick = (this._breathTick + 1) % this._breathT;
   };
 
   Game_MapObj.prototype.intersectsWith = function(type, chara) {
@@ -479,20 +497,12 @@ var $dataQMap = null;
     if (!Imported.QMovement) {
       return this.toSimpleCollider(arr);
     }
-    var type = arr[0];
-    var w = arr[1] || 0;
-    var h = arr[2] || 0;
-    var ox = arr[3] || 0;
-    var oy = arr[4] || 0;
-    if (type === 'box') {
-      var collider = new Box_Collider(w, h, ox, oy);
-    } else if (type === 'circle') {
-      var collider = new Circle_Collider(w, h, ox, oy);
-    }
-    var x1 = this.px + (this.width * -this.anchorX);
-    var y1 = this.py + (this.height * -this.anchorY);
+    var collider = ColliderManager.convertToCollider(arr);
+    collider.note = this.note;
     collider.isMapObj = true;
     collider.type = ctype;
+    var x1 = this.px + (this.width * -this.anchorX);
+    var y1 = this.py + (this.height * -this.anchorY);
     collider.moveTo(x1, y1);
     ColliderManager.addCollider(collider, -1, false);
     return collider;
@@ -552,33 +562,68 @@ var $dataQMap = null;
   Sprite_MapObject.prototype.initialize = function(mapObj) {
     Sprite_Base.prototype.initialize.call(this);
     this._mapObj = mapObj;
+    this._tick = 0;
+    this._lastFrameI = null;
+    this._frameI = this._mapObj.index || 0;
+    this._patternI = 0;
+    this._maxFrames = this._mapObj.cols * this._mapObj.rows;
     this.z = 0;
   };
 
   Sprite_MapObject.prototype.update = function() {
     Sprite_Base.prototype.update.call(this);
+    if (this._mapObj.type === 'animated') {
+      this.updateAnimation();
+    }
+    if (this._mapObj.type === 'QSprite') {
+      this.updateQSprite();
+    }
     this.updateBitmap();
     this.updateFrame();
     this.updatePosition();
     this.updateOther();
   };
 
+  Sprite_MapObject.prototype.updateAnimation = function() {
+    if (this._tick % this._mapObj.speed === 0) {
+      this._frameI = (this._frameI + 1) % this._maxFrames;
+    }
+    this._tick = (this._tick + 1) % this._mapObj.speed;
+  };
+
+  Sprite_MapObject.prototype.updateQSprite = function() {
+    var speed = this._mapObj._qSprite.speed;
+    if (this._tick % speed === 0) {
+      var pattern = this._mapObj._qSprite.pattern;
+      this._patternI = (this._patternI + 1) % pattern.length;
+      this._frameI = pattern[this._patternI];
+    }
+    this._tick = (this._tick + 1) % speed;
+  };
+
   Sprite_MapObject.prototype.updateBitmap = function() {
     if (this._filePath !== this._mapObj.filePath) {
       this._filePath = this._mapObj.filePath;
-      var paths = this._filePath.split('\\');
-      var fileName = paths.pop();
-      fileName = fileName.replace(/(\.png|\.jpg)/i, '');
-      var path = paths.join('\\');
-      path = path.replace('\\', '/');
-      path += '/';
-      this.bitmap = ImageManager.loadBitmap(path, fileName, null, false);
+      var path = this._filePath.split(/\/|\\/);
+      var fileName = path.pop().split('.');
+      var ext = fileName.pop();
+      path.push(encodeURIComponent(fileName.join('.')) + '.' + ext);
+      path = path.join('/');
+      this.bitmap = ImageManager.loadNormalBitmap(path, 0);
+      this.bitmap.smooth = this._mapObj.meta.smooth;
+      this._lastFrameI = null;
+      this.bitmap.addLoadListener(function() {
+        this._lastFrameI = null;
+      }.bind(this))
     }
   };
 
   Sprite_MapObject.prototype.updateFrame = function() {
+    if (this._lastFrameI !== null) {
+      if (this._lastFrameI === this._frameI) return;
+    }
     if (this._mapObj.type !== 'full') {
-      var i = this._mapObj.index;
+      var i = this._frameI;
       var cols = this._mapObj.cols;
       var rows = this._mapObj.rows;
       var pw = this.bitmap.width / cols;
@@ -587,6 +632,7 @@ var $dataQMap = null;
       var sx = point.x * pw;
       var sy = point.y * ph;
       this.setFrame(sx, sy, pw, ph);
+      this._lastFrameI = i;
     }
   };
 
