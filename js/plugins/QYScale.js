@@ -35,8 +35,8 @@ if (!Imported.QPlus) {
  * ~~~
  *  <scale:MIN,MAX>
  * ~~~
- *  - Min: The zoom value at the top of the map (0 Y position)
- *  - Max: The zoom value at the bottom of the map
+ * - Min: The zoom value at the top of the map (0 Y position)
+ * - Max: The zoom value at the bottom of the map
  * ============================================================================
  * ## Notetags / Comments
  * ============================================================================

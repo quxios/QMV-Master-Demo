@@ -44,15 +44,15 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.5')) {
  * Json template:
  * ~~~
  * {
- *   "REGIONID": [COLLIDER1, COLLIDER2, ..., COLLIDERX],
- *   "REGIONID2": [COLLIDER1, COLLIDER2, ..., COLLIDERX]
+ *   "REGIONID": [COLLIDER1, COLLIDER2, ..., COLLIDER N],
+ *   "REGIONID2": [COLLIDER1, COLLIDER2, ..., COLLIDER N]
  * }
  * ~~~
  * * Note that at the end of the 3rd line there's no comma!
  *
- * COLLIDERX are objects in this format:
+ * COLLIDER N are objects in this format:
  * ~~~
- *  {"type": type, "width": W, "height", H, "ox": ox, "oy": oy, "note": string}
+ * {"type": type, "width": W, "height", H, "ox": ox, "oy": oy, "note": string}
  * ~~~
  * - Set type to the type of collider ("box" or "circle", default is "box")
  * - Set W to the width of the collider
@@ -70,20 +70,20 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.5')) {
  *   "1": [{"width": 48, "height": 48}]
  * }
  * ~~~
- * * Note that I left out some of the stuff in the COLLIDER obj. This is because
+ * *Note that I left out some of the stuff in the COLLIDER obj. This is because
  * we didn't need to use ox/oy since we're leaving it at 0. And the default type
- * is box, which is what we want.
+ * is box, which is what we want.&
  *
- * Here's an example of having colliders on region 1 and 2 with one of them having
- * 2 colliders.
+ * Here's an example of having colliders on region 1 and 2 with one of them
+ * having 2 colliders.
  * ~~~
  * {
  *   "1": [{"width": 0, "height": 0}],
  *   "2": [{"width": 48, "height": 4, "type": "box"}, {"width": 32, "height": 32, ox: 8, oy: 8, "type": "circle"}]
  * }
  * ~~~
- * * Note if the width and/or height are set to 0, that region will be marked as
- * passable.
+ * *Note if the width and/or height are set to 0, that region will be marked as
+ * passable.*
  *
  * When play testing and if you feel like it's not work, push F8. If the json
  * file isn't configured correct you will have an error in the console.

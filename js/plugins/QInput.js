@@ -132,7 +132,6 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.2.1')) {
  * You can set them to multiple keys by seperating each key with a comma.
  * You must use a QKey (Available keys listed below)
  * Keys are case sensative!!! Means #C is not the same as #c !!IMPORTANT!!
- *
  * ----------------------------------------------------------------------------
  *  **Example of changing to wasd format**
  * ----------------------------------------------------------------------------
@@ -145,10 +144,12 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.2.1')) {
  * Set the parameter for down to: `#s`
  *
  * Set the parameter for pagedown to: (page down uses w, so we'll change to e)
- *   `#pagedown, #e`
+ *
+ *  `#pagedown, #e`
  *
  * Optional: Use f key instead of z in enter input
- *   `#enter, #space, #f`
+ *
+ *  `#enter, #space, #f`
  *
  * For FPS, Streched, FullScreen, Restart, Console you can only put 1 key!
  * Do not use the # idetifier.

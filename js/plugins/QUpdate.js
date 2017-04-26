@@ -13,18 +13,24 @@
  * ============================================================================
  * ## How to use
  * ============================================================================
- * Push F9 while in title screen to enter the QUpdate Scene. You will need
- * to be play testing locally and have internet access.
+ * When the game first runs it'll show a notification on the top right if
+ * there's any updates avalible.
+ *
+ * You can also push F9 while in title screen to enter the QUpdate Scene.
+ * You will need to be play testing locally and have internet access.
  * ============================================================================
  * ## Links
  * ============================================================================
  * RPGMakerWebs:
+ *
  *  http://forums.rpgmakerweb.com/index.php?threads/qplugins.73023/
  *
  * Terms of use:
+ *
  *  https://github.com/quxios/QMV-Master-Demo/blob/master/readme.md
  *
  * Like my plugins? Support me on Patreon!
+ *
  *  https://www.patreon.com/quxios
  *
  * @tags updater
@@ -34,12 +40,6 @@
 if (!Utils.isNwjs() && !Utils.isOptionValid('test')) {
   throw new Error('QUpdate only works in desktop playtest.');
 }
-
-require('dns').lookup('quxios.github.io', function(error) {
-  if (error && error.code == 'ENOTFOUND') {
-    throw new Error("Couldn't connect to: quxios.github.io");
-  }
-})
 
 function QUpdate() {
  throw new Error('This is a static class');

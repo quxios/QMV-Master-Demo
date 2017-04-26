@@ -55,11 +55,11 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.0.2')) {
  * ~~~
  * Possible options:
  *
- *  - xX      - Set X to the distance, in grid tiles, to travel in x direction
- *  - yY      - Set Y to the distance, in grid tiles, to travel in y direction
- *  - speedX  - Set X to the camera speed value. Default: 4
- *  - framesX - Set X to the amount of time, in frames, it takes to reach the
- *    scroll. Ignores speedX if frames is set.
+ * - xX: Set X to the distance, in grid tiles, to travel in x direction
+ * - yY: Set Y to the distance, in grid tiles, to travel in y direction
+ * - speedX: Set X to the camera speed value. Default: 4
+ * - framesX: Set X to the amount of time, in frames, it takes to reach the
+ *  scroll. Ignores speedX if frames is set.
  * ----------------------------------------------------------------------------
  * **Scroll to**
  * ----------------------------------------------------------------------------
@@ -67,17 +67,15 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.0.2')) {
  * ~~~
  *  qCamera scrollTo [CHARAID] [List of options]
  * ~~~
- * CHARAID - The character identifier.
- *
+ * - CHARAID - The character identifier.
  *  - For player: 0, p, or player
  *  - For events: EVENTID, eEVENTID, eventEVENTID or this for the event that called this
  *  (replace EVENTID with a number)
  *
  * Possible options:
- *
- *  - speedX  - Set X to the camera speed value. Default: 4
- *  - framesX - Set X to the amount of time, in frames, it takes to reach the
- *    scroll. Ignores speedX if frames is set.
+ * - speedX: Set X to the camera speed value. Default: 4
+ * - framesX: Set X to the amount of time, in frames, it takes to reach the
+ *  scroll. Ignores speedX if frames is set.
  * ----------------------------------------------------------------------------
  * **Focus**
  * ----------------------------------------------------------------------------
@@ -85,17 +83,15 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.0.2')) {
  * ~~~
  *  qCamera focus [CHARAID] [List of options]
  * ~~~
- * CHARAID - The character identifier.
- *
+ * - CHARAID - The character identifier.
  *  - For player: 0, p, or player
  *  - For events: EVENTID, eEVENTID, eventEVENTID or this for the event that called this
  *  (replace EVENTID with a number)
  *
  * Possible options:
- *
- *  - speedX  - Set X to the camera speed value. (Default is 4)
- *  - framesX - Set X to the amount of time, in frames, it takes to reach the
- *    scroll. Ignores speedX if frames is set. Default: 15
+ * - speedX: Set X to the camera speed value. (Default is 4)
+ * - framesX: Set X to the amount of time, in frames, it takes to reach the
+ *  scroll. Ignores speedX if frames is set. Default: 15
  * ----------------------------------------------------------------------------
  * **Bars**
  * ----------------------------------------------------------------------------
@@ -105,9 +101,9 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.0.2')) {
  * ~~~
  *
  * Possible options:
- *  - heightX - Set X to the height of the bars in pixels. Default: 0
- *  - framesX - Set X to the amount of time, in frames, it takes to reach the
- *    scroll.
+ * - heightX: Set X to the height of the bars in pixels. Default: 0
+ * - framesX: Set X to the amount of time, in frames, it takes to reach the
+ *  scroll.
  * ============================================================================
  * ## Links
  * ============================================================================

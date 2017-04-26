@@ -39,42 +39,41 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.2.0')) {
  * ============================================================================
  * This plugin lets you use sprites that are set up with QSprite Editor
  *
- * https://github.com/quxios/SpriteAnimator
+ * https://github.com/quxios/QSpriteEditor
  *
  * ============================================================================
  * ## How to use
  * ============================================================================
- * First configure your sprite with the Sprite Animator. Then you can use your
+ * First configure your sprite with the QSprite Editor. Then you can use your
  * sprites by identifying it as a QSprite. To do so, just name your sprite file
  * by using the File Name Identifier format. By default this is:
  * ~~~
  *  %{config}-
  * ~~~
- * You would replace {config} with the config you made inside the Sprite
- * Animator. For example, if I made a config named: `Hero` then I would name
+ * You would replace {config} with the config you made inside the QSprite
+ * Editor. For example, if I made a config named: `Hero` then I would name
  * the file something like: `%Hero-Example.png`
  * ============================================================================
  * ## Built-in Poses
  * ============================================================================
  * This plugin adds a few built in poses:
- *  - moveX
- *  - dashX
- *  - idleX
- *  - idle[A-Z]X ( more info for this below )
- *  - default
+ * - moveX
+ * - dashX
+ * - idleX
+ * - idle[A-Z]X ( more info for this below )
+ * - default
  *
  * Where X is the direction:
+ * - 2: down
+ * - 4: left
+ * - 6: right
+ * - 8: up
+ * - 1: lower left
+ * - 3: lower right
+ * - 7: upper left
+ * - 9: upper right
  *
- *  - 2: down
- *  - 4: left
- *  - 6: right
- *  - 8: up
- *  - 1: lower left
- *  - 3: lower right
- *  - 7: upper left
- *  - 9: upper right
- *
- * (Diagonals only work if you are using this with QMovement)
+ * *(Diagonals only work if you are using this with QMovement)*
  *
  * Default pose is used when and idleX or moveX is not found. Note that default
  * does not have an X at the end, it's just default. Has no directions tied to
@@ -96,12 +95,12 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.2.0')) {
  * Lets say I want 4 `idle[A-Z]` poses, and I want one of them to have a 4 times
  * better chance of appearing then the rest. My idle names would be:
  *
- *  - idleA2
- *  - idleB2
- *  - idleC2
- *  - idleD4x2
+ * - idleA2
+ * - idleB2
+ * - idleC2
+ * - idleD4x2
  *
- * (Note: all their directions are 2(down))
+ * *Note: all their directions are 2(down)*
  * ============================================================================
  * ## Notetags / Comments
  * ============================================================================
@@ -123,20 +122,17 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.2.0')) {
  * ~~~
  *  qSprite [CHARAID] play [POSE] [list of options]
  * ~~~
- * CHARAID - The character identifier.
- *
+ * - CHARAID: The character identifier.
  *  - For player: 0, p, or player
  *  - For events: EVENTID, eEVENTID, eventEVENTID or this for the event that called this
  *  (replace EVENTID with a number)
- *
- * POSE - The pose to play (Don’t add the direction! ex: atk, not atk2)
+ * - POSE: The pose to play (Don’t add the direction! ex: atk, not atk2)
  *
  * Possible options:
- *
- *  - lock: Disable character movement while pose is playing
- *  - pause: Pause the pose on the last frame
- *  - breakable: If character moves, the pose will end
- *  - wait: Next Event Command runs once pose is complete
+ * - lock: Disable character movement while pose is playing
+ * - pause: Pause the pose on the last frame
+ * - breakable: If character moves, the pose will end
+ * - wait: Next Event Command runs once pose is complete
  *
  * ----------------------------------------------------------------------------
  * **Looping a Pose**
@@ -145,19 +141,16 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.2.0')) {
  * ~~~
  *  qSprite [CHARAID] loop [POSE] [list of options]
  * ~~~
- * CHARAID - The character identifier.
- *
+ * - CHARAID: The character identifier.
  *  - For player: 0, p, or player
  *  - For events: EVENTID, eEVENTID, eventEVENTID or this for the event that called this
  *  (replace EVENTID with a number)
- *
- * POSE    - The pose to play (Don’t add the direction! ex: atk, not atk2)
+ * - POSE: The pose to play (Don’t add the direction! ex: atk, not atk2)
  *
  * Possible options:
- *
- *  - lock: Disable character movement while pose is playing
- *  - breakable: If character moves, the loop will end
- *  - wait: Next Event Command runs once first loop has is complete
+ * - lock: Disable character movement while pose is playing
+ * - breakable: If character moves, the loop will end
+ * - wait: Next Event Command runs once first loop has is complete
  * ----------------------------------------------------------------------------
  * **Clearing**
  * ----------------------------------------------------------------------------
@@ -165,7 +158,10 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.2.0')) {
  * ~~~
  *  qSprite [CHARAID] clear
  * ~~~
- * CHARAID - The character identifier.
+ * - CHARAID: The character identifier.
+ *  - For player: 0, p, or player
+ *  - For events: EVENTID, eEVENTID, eventEVENTID or this for the event that called this
+ *  (replace EVENTID with a number)
  * ----------------------------------------------------------------------------
  * **Add / Remove an idle[A-Z]**
  * ----------------------------------------------------------------------------
@@ -176,9 +172,11 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.2.0')) {
  *
  *  qSprite [CHARAID] removeIdleAZ [POSE]
  * ~~~
- * CHARAID - The character identifier.
- *
- * POSE    - The idle[A-Z] to add (Don’t add the direction! ex: idleA not idleA2)
+ * - CHARAID: The character identifier.
+ *  - For player: 0, p, or player
+ *  - For events: EVENTID, eEVENTID, eventEVENTID or this for the event that called this
+ *  (replace EVENTID with a number)
+ * - POSE: The idle[A-Z] to add (Don’t add the direction! ex: idleA not idleA2)
  * ----------------------------------------------------------------------------
  * **Change idle pose**
  * ----------------------------------------------------------------------------
@@ -188,10 +186,10 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.2.0')) {
  * ~~~
  *  qSprite [CHARAID] changeIdle [POSE]
  * ~~~
- * CHARAID - The character identifier.
- *
- * POSE    - The new pose to use when idle
- *           (Don’t add the direction! ex: idleA not idleA2)
+ * - CHARAID: The character identifier.
+ *  - For player: 0, p, or player
+ *  - For events: EVENTID, eEVENTID, eventEVENTID or this for the event that called this
+ * - POSE: The new pose to use when idle (Don’t add the direction! ex: idleA not idleA2)
  * ----------------------------------------------------------------------------
  * **Examples**
  * ----------------------------------------------------------------------------
@@ -200,7 +198,7 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.2.0')) {
  *  qSprite p play confused pause breakable
  *  qSprite player play confused pause breakable
  * ~~~
- * (Note: All 3 are the same, just using a different character id method)
+ * *Note: All 3 are the same, just using a different character id method*
  *
  * The player will run the `confused` pose. The pose will stop on the last frame.
  * Once the player moves, the pose will end. The player can move during this pose
@@ -247,7 +245,9 @@ QSprite.json = null;
 
 (function() {
   var _PARAMS = QPlus.getParams('<QSprite>');
-  var _IDENTIFIER   = _PARAMS['File Name Identifier'] || '%{config}-';
+  var _IDENTIFIER = _PARAMS['File Name Identifier'] || '%{config}-';
+  _IDENTIFIER = _IDENTIFIER.replace('{config}', '(.+?)');
+  _IDENTIFIER = new RegExp(_IDENTIFIER);
   var _IDLEINTERVAL = _PARAMS['Random Idle Interval'].trim().split(' ').map(Number);
   if (!_IDLEINTERVAL[1] || _IDLEINTERVAL[1] < _IDLEINTERVAL[0]) {
     _IDLEINTERVAL[1] = _IDLEINTERVAL[0];
@@ -655,9 +655,7 @@ QSprite.json = null;
 
   Game_CharacterBase.prototype.isQCharacter = function() {
     if (this._isQChara === undefined) {
-      var string = _IDENTIFIER.replace('{config}', '(.+)?');
-      var regex  = new RegExp(string);
-      this._isQChara = this._characterName.match(regex);
+      this._isQChara = this._characterName.match(_IDENTIFIER);
     }
     return this._isQChara ? this._isQChara[1] : false;
   };

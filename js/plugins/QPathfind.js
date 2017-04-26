@@ -66,21 +66,20 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.3')) {
  * ~~~
  *  qPathfind [CHARAID] [list of options]
  * ~~~
- * CHARAID - The character identifier.
- *
+ * - CHARAID: The character identifier.
  *  - For player: 0, p, or player
  *  - For events: EVENTID, eEVENTID, eventEVENTID or this for the event that called this
  *  (replace EVENTID with a number)
  *
  * Possible options:
- *  - xX     - where X is the x position in grid terms
- *  - yY     - where Y is the y position in grid terms
- *  - pxX    - where X is the x position in pixel terms (QMovement only)
- *  - pyY    - where Y is the y position in pixel terms (QMovement only)
- *  - smartX - where X is 1 or 2.
- *   When 1, pathfind will recalculate when its path is blocked
- *   When 2, pathfind will also recalucate at a set interval
- *  - wait   - the event that called this will wait until the pathfind is complete
+ * - xX: where X is the x position in grid terms
+ * - yY: where Y is the y position in grid terms
+ * - pxX: where X is the x position in pixel terms (QMovement only)
+ * - pyY: where Y is the y position in pixel terms (QMovement only)
+ * - smartX: where X is 1 or 2.
+ *  - When 1, pathfind will recalculate when its path is blocked
+ *  - When 2, pathfind will also recalucate at a set interval
+ * - wait: the event that called this will wait until the pathfind is complete
  * ----------------------------------------------------------------------------
  * **Pathfind Towards**
  * ----------------------------------------------------------------------------
@@ -88,23 +87,21 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.3')) {
  * ~~~
  *  qPathfind [CHARAID] towards [TARGETCHARAID] [list of options]
  * ~~~
- * CHARAID - The character identifier.
- *
+ * - CHARAID: The character identifier.
  *  - For player: 0, p, or player
  *  - For events: EVENTID, eEVENTID, eventEVENTID or this for the event that called this
  *  (replace EVENTID with a number)
- *
- * TARGETCHARAID - The CharaID of who you want the CHARAID to move towards
+ * - TARGETCHARAID: The CharaID of who you want the CHARAID to move towards
  *
  * Possible options:
- *  - xX     - where X is the x position in grid terms
- *  - yY     - where Y is the y position in grid terms
- *  - pxX    - where X is the x position in pixel terms (QMovement only)
- *  - pyY    - where Y is the y position in pixel terms (QMovement only)
- *  - smartX - where X is 1 or 2.
- *   When 1, pathfind will recalculate when its path is blocked
- *   When 2, pathfind will also recalucate at a set interval
- *  - wait   - the event that called this will wait until the pathfind is complete
+ * - xX: where X is the x position in grid terms
+ * - yY: where Y is the y position in grid terms
+ * - pxX: where X is the x position in pixel terms (QMovement only)
+ * - pyY: where Y is the y position in pixel terms (QMovement only)
+ * - smartX: where X is 1 or 2.
+ *  - When 1, pathfind will recalculate when its path is blocked
+ *  - When 2, pathfind will also recalucate at a set interval
+ * - wait: the event that called this will wait until the pathfind is complete
  * ----------------------------------------------------------------------------
  * **Chase**
  * ----------------------------------------------------------------------------
@@ -112,13 +109,11 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.3')) {
  * ~~~
  *  qPathfind [CHARAID] chase [TARGETCHARAID]
  * ~~~
- * CHARAID - The character identifier.
- *
+ * - CHARAID: The character identifier.
  *  - For player: 0, p, or player
  *  - For events: EVENTID, eEVENTID, eventEVENTID or this for the event that called this
  *  (replace EVENTID with a number)
- *
- * TARGETCHARAID - The CharaID of who you want the CHARAID to chase
+ * - TARGETCHARAID: The CharaID of who you want the CHARAID to chase
  *
  * * Chasing ends when event page changes.
  * * To force end a chase, you'll need to clear it.
@@ -130,8 +125,7 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.3')) {
  * ~~~
  *  qPathfind [CHARAID] clear
  * ~~~
- * CHARAID - The character identifier.
- *
+ * - CHARAID: The character identifier.
  *  - For player: 0, p, or player
  *  - For events: EVENTID, eEVENTID, eventEVENTID or this for the event that called this
  *  (replace EVENTID with a number)
@@ -144,7 +138,7 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.3')) {
  *  qPathfind p x5 y1
  *  qPathfind player x5 y1
  * ~~~
- * (Note: All 3 are the same, just using a different character id method)
+ * *Note: All 3 are the same, just using a different character id method*
  *
  * Make the player pathfind to 2, 4. With smart 1
  * ~~~

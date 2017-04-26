@@ -37,11 +37,11 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.5')) {
  * ~~~
  * - TYPE: set to text or note
  * - FROM:
- *   - if TYPE is text, set this to the path of the text file
- *   - if TYPE is note, set to the database to read; actor, class, skill, item, weapon, armor, enemy, or state
+ *  - if TYPE is text, set this to the path of the text file
+ *  - if TYPE is note, set to the database to read; actor, class, skill, item, weapon, armor, enemy, or state
  * - FROM2:
- *   - if TYPE is text ignore this
- *   - if TYPE is note, set this to the id from that database
+ *  - if TYPE is text ignore this
+ *  - if TYPE is note, set this to the id from that database
  *
  * Example:
  * ~~~
@@ -93,14 +93,14 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.5')) {
  *
  * There's two types of possible imports you can do inside an event page.
  *
- * 1: Import text into a "Show Text", "Comment" or "Script" event command.
+ * First: Import text into a "Show Text", "Comment" or "Script" event command.
  * ~~~
  *  <Import:PATH>
  * ~~~
  * - PATH: the path of the text file to import
  *
  *
- * 2: Import events into the map from other maps. Can only be used inside
+ * Second: Import events into the map from other maps. Can only be used inside
  * the "Comment" event command.
  * ~~~
  *  <Import:event,MAPID,EVENTID,X,Y>

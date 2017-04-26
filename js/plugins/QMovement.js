@@ -213,10 +213,10 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.3')) {
  * ~~~
  *  qmove(DIR, AMOUNT, MULTIPLER)
  * ~~~
- * - DIR: Set to a number representing the direction to move,
- *  2: left, 4: right, 8: up 2: down,
- *  1: lower left, 3: lower right, 7: upper left, 9: upper right,
- *  5: current direction, 0: reverse direction
+ * - DIR: Set to a number representing the direction to move;
+ *  - 2: left, 4: right, 8: up 2: down,
+ *  - 1: lower left, 3: lower right, 7: upper left, 9: upper right,
+ *  - 5: current direction, 0: reverse direction
  * - AMOUNT: The amount to move in that direction, in pixels
  * - MULTIPLIER: multiplies against amount to make larger values easier [OPTIONAL]
  *
@@ -287,11 +287,11 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.3')) {
  * ~~~
  *  qMovement setPos [CHARAID] [X] [Y] [OPTIONS]
  * ~~~
- * - CHARAID - The character identifier.
+ * - CHARAID: The character identifier.
  *   - For player: 0, p, or player
  *   - For events: EVENTID, eEVENTID, eventEVENTID or this for the event that called this (replace EVENTID with a number)
- * - X - The x position to set to, in pixels
- * - Y - The y position to set to, in pixels
+ * - X: The x position to set to, in pixels
+ * - Y: The y position to set to, in pixels
  *
  * Possible options:
  *
@@ -304,7 +304,9 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.3')) {
  * ----------------------------------------------------------------------------
  * For performance reasons, you should try to avoid having open spaces that are
  * closed off.
+ *
  * ![Example](https://quxios.github.io/imgs/qmovement/openSpaces.png)
+ *
  * On the left we can see some tiles that have a collider border, but their inside
  * is "open". This issue is should be corrected when using QPathfind because
  * if someone was to click inside that "open" space, it is passable and QPathfind
@@ -331,18 +333,14 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.3')) {
  * https://quxios.github.io/#/plugins/QPathfind
  *
  * QPathfind is an A* pathfinding algorithm. This algorithm can be pretty heavy
- * if you are doing pixel based movements. So to help preform better it will
- * still try to calculate the path based on a grid, but this can lead to
- * some paths not being found even though it should since the character started
- * in a middle of a tile. To fix this issue, you'll need to enable Half Opt.
- * It will increase the pathfinding accuracy but will also increase performance
- * since it makes the "grid" smaller, which means paths are now larger.
+ * if you are doing pixel based movements. So avoid having to many pathfinders
+ * running at the same time.
  *
  * For the interval settings, you want to set this to a value where the path
  * can be found in 1-3 frames. You can think of intervals as the number of
  * moves to try per frame. The default setting 100, is good for grid based
  * since that will take you 100 grid spaces away. But for a pixel based, 100
- * steps isn't as far. If most of your pathfinds will be short (paths less then
+ * steps might not be as far. If most of your pathfinds will be short (paths less then
  * 10 tiles away), then you should set this to a value between 100-300. For medium
  * paths (10-20 tiles away) try a value between 300-700. For large or complicated
  * paths (20+ tiles away or lots of obsticles) try something between 1000-2000.
@@ -371,6 +369,7 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.3')) {
  * ## Videos
  * ============================================================================
  * Great example of using the collision map addon:
+ * 
  * https://www.youtube.com/watch?v=-BN4Pyr5IBo
  *
  * If you have a video you'd like to have listed here, feel free to send me a
