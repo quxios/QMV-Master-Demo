@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QSight = '1.1.0';
+Imported.QSight = '1.1.1';
 
 if (!Imported.QPlus) {
   alert('Error: QSight requires QPlus to work.');
@@ -17,7 +17,7 @@ if (!Imported.QPlus) {
  /*:
  * @plugindesc <QSight>
  * Real time line of sight
- * @author Quxios  | Version 1.1.0
+ * @author Quxios  | Version 1.1.1
  *
  * @requires QPlus
  *
@@ -53,16 +53,15 @@ if (!Imported.QPlus) {
  * ~~~
  *  <sight:SHAPE,RANGE,SWITCH,TARGET>
  * ~~~
- * - SHAPE  - box, circle or poly
- * - RANGE  - How far the character can see, in grid spaces
- * - SWITCH - Which switch to toggle. Set to a number or A, B, C, D for self switch
- * - TARGET(Optional) - Set to the CHARAID of who to look for. Default: 0
+ * - SHAPE: box, circle or poly
+ * - RANGE: How far the character can see, in grid spaces
+ * - SWITCH: Which switch to toggle. Set to a number or A, B, C, D for self switch
+ * - TARGET(Optional): Set to the CHARAID of who to look for. Default: 0
+ *   * CHARAID - The character identifier.
+ *    - For player: 0, p, or player
+ *    - For events: EVENTID, eEVENTID, or eventEVENTID (replace EVENTID with a number)
  *
- * CHARAID - The character identifier.
- *  - For player: 0, p, or player
- *  - For events: EVENTID, eEVENTID, or eventEVENTID (replace EVENTID with a number)
- *
- * * Note: Notes are applied to all the pages in the event, comments are page based.
+ * *Note: Notes are applied to all the pages in the event, comments are page based.*
  * ----------------------------------------------------------------------------
  * **Sight examples**
  * ----------------------------------------------------------------------------
@@ -76,7 +75,7 @@ if (!Imported.QPlus) {
  *  <sight:circle,4,1>
  * ~~~
  *
- * * Note: I left out TARGET because it defaults to player
+ * *Note: I left out TARGET because it defaults to player*
  * ============================================================================
  * ## See through events/tiles
  * ============================================================================
@@ -86,7 +85,7 @@ if (!Imported.QPlus) {
  * ~~~
  *  <invisible>
  * ~~~
- * * Note: Notes are applied to all the pages in the event, comments are page based.
+ * *Note: Notes are applied to all the pages in the event, comments are page based.*
  * ----------------------------------------------------------------------------
  * **See through tiles**
  * ----------------------------------------------------------------------------
@@ -108,16 +107,14 @@ if (!Imported.QPlus) {
  * ~~~
  *  qSight CHARAID check SHAPE RANGE SWITCH TARGETID
  * ~~~
- * CHARAID - The character identifier.
- *
+ * - CHARAID: The character identifier.
  *  - For player: 0, p, or player
  *  - For events: EVENTID, eEVENTID, eventEVENTID or this for the event that called this
  *  (replace EVENTID with a number)
- *
- * SHAPE  - box, circle or poly
- * RANGE  - How far the character can see, in grid spaces
- * SWITCH - Which switch to toggle. Set to a number or A, B, C, D for self switch
- * TARGETID - Set to the CHARAID of who to look for
+ * - SHAPE: box, circle or poly
+ * - RANGE: How far the character can see, in grid spaces
+ * - SWITCH: Which switch to toggle. Set to a number or A, B, C, D for self switch
+ * - TARGETID: Set to the CHARAID of who to look for
  * ----------------------------------------------------------------------------
  * **Toggle charcter invisible**
  * ----------------------------------------------------------------------------
@@ -125,13 +122,11 @@ if (!Imported.QPlus) {
  * ~~~
  *  qSight CHARAID visible BOOL
  * ~~~
- * CHARAID - The character identifier.
- *
+ * - CHARAID: The character identifier.
  *  - For player: 0, p, or player
  *  - For events: EVENTID, eEVENTID, eventEVENTID or this for the event that called this
  *  (replace EVENTID with a number)
- *
- * BOOL - Set this to true or false
+ * - BOOL: Set this to true or false
  * ============================================================================
  * ## Links
  * ============================================================================
@@ -382,11 +377,11 @@ function QSight() {
 
     Game_CharacterBase.prototype.isInsideTileShadow = function(target, options) {
       var inside = false;
-      var tileIds = [];
       ColliderManager.getCollidersNear(options.base, function(tile) {
-        if (!tile.isTile) return false;
-        if (tileIds.contains(tile.id)) return false;
         if (tile.width === 0 || tile.height === 0) {
+          return false;
+        }
+        if (tile.type && tile.type !== 'collision') {
           return false;
         }
         if (tile.isLadder || tile.isBush || tile.isDamage) {
@@ -404,7 +399,6 @@ function QSight() {
             shadow.moveTo(shadowData.origin.x, shadowData.origin.y);
             shadow.color = '#000000';
             options.cache.tiles[tile.id] = shadow;
-            tileIds.push(tile.id);
           } else {
             shadow = options.cache.tiles[tile.id];
             if (options.reshape) {
@@ -414,7 +408,6 @@ function QSight() {
               shadow.moveTo(shadowData.origin.x, shadowData.origin.y);
               shadow.id = oldId;
             }
-            tileIds.push(tile.id);
           }
           if (shadow.containsPoint(target.cx(), target.cy())) {
             inside = true;
@@ -428,7 +421,6 @@ function QSight() {
           return false;
         }
       }.bind(this));
-      // TODO filter out tiles in the cache that are no longer in the sight?
       return inside;
     };
 
