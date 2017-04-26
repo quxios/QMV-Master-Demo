@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QAudio = '2.2.2';
+Imported.QAudio = '2.3.0';
 
 if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.0.1')) {
   alert('Error: QAudio requires QPlus 1.0.1 or newer to work.');
@@ -14,7 +14,7 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.0.1')) {
  /*:
  * @plugindesc <QAudio>
  * Few new audio features
- * @author Quxios  | Version 2.2.2
+ * @author Quxios  | Version 2.3.0
  *
  * @requires QPlus
  *
@@ -39,52 +39,50 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.0.1')) {
  * **Playing / Looping**
  * ----------------------------------------------------------------------------
  * ~~~
- *   qAudio start [AUDIONAME] [list of options]
+ *  qAudio start [AUDIONAME] [list of options]
  * ~~~
  * AUDIONAME - The name of the audio you want to play. If file has spaces in it
  * wrap the name with "". Ex. If audio name was: Some File, then use "Some File"
  *
  * Possible options:
  *
- *  - loop    - this audio will loop
- *  - noPan   - this audio will not update its pan
- *  - idX     - where X the ID for the audio (needed for stopping)
- *  - type    - bgm, bgs, me, or se (Default: bgm)
- *  - maxV    - where V is the max volume for this audio, between 0-100
- *  - fadeinT - where T is the time to fade in, in seconds
- *  - xX      - where X is the x position for the audio
- *  - yY      - where Y is the y position for the audio
- *  - radiusR - where R is the max radius for the audio
- *  - bindToCHARAID - where CHARAID is the character to bind to
+ * - loop: this audio will loop
+ * - noPan: this audio will not update its pan
+ * - idX: where X the ID for the audio (needed for stopping)
+ * - type: bgm, bgs, me, or se (Default: bgm)
+ * - maxV: where V is the max volume for this audio, between 0-100
+ * - fadeinT: where T is the time to fade in, in seconds
+ * - xX: where X is the x position for the audio
+ * - yY: where Y is the y position for the audio
+ * - radiusR: where R is the max radius for the audio
+ * - bindToCHARAID: where CHARAID is the character to bind to.
+ *   * CHARAID - The character identifier.
+ *    - For player: 0, p, or player
+ *    - For events: EVENTID, eEVENTID, eventEVENTID or this for the event that
+ *     called this (replace EVENTID with a number)
  *
- * CHARAID - The character identifier.
- *
- *  - For player: 0, p, or player
- *  - For events: EVENTID, eEVENTID, eventEVENTID or this for the event that called this
- *  (replace EVENTID with a number)
- *
- * (Note: If no x, y or bindTo are set, it will play at players position)
+ * *Note: If no x, y or bindTo are set, it will play at players position*
  * ----------------------------------------------------------------------------
  * **Examples 1**
  * ----------------------------------------------------------------------------
  * ~~~
- *   qAudio start Battle1
+ *  qAudio start Battle1
  * ~~~
  * Will play bgm Battle1 at the players location. Recommended not to do it this
  * way, best to set options.
  *
  * ~~~
- *   qAudio start City bgs idCITY max80 radius10 x5 y5
+ *  qAudio start City bgs idCITY max80 radius10 x5 y5
  * ~~~
- * Will play bgs City at position (5, 5) with a radius of 10 and max volume of
- * 80. It's id is CITY
+ * Will play bgs City at position (5, 5) with a radius of 10, max volume of 80
+ * and it's id is CITY
  *
  * ~~~
- *   qAudio start City bgs idCITY radius5 bindTo1 loop
- *   qAudio start City bgs idCITY radius5 bindToE1 loop
- *   qAudio start City bgs idCITY radius5 bindToEvent1 loop
+ *  qAudio start City bgs idCITY radius5 bindTo1 loop
+ *  qAudio start City bgs idCITY radius5 bindToE1 loop
+ *  qAudio start City bgs idCITY radius5 bindToEvent1 loop
  * ~~~
- * (Note: All 3 are the same, just using a different character id method)
+ * *Note: All 3 are the same, just using a different character id method*
  *
  * Will play bgs City at event 1s position and move with that event. It also has
  * a radius of 5 and it will keep looping. It's id is CITY
@@ -94,13 +92,13 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.0.1')) {
  * ~~~
  *  qAudio stop ID [list of options]
  * ~~~
- * ID - the ID you set for the audio
+ * - ID: The ID you set for the audio, set this to ALL to stop all QAudios
  *
  * Possible options:
  *
- *  - fadeoutT - where T is the time to fade out, in seconds
+ * - fadeoutT: where T is the time to fade out, in seconds
  *
- * To stop all qAudios
+ * To clear/stop all qAudios
  * ~~~
  *  qAudio clear
  * ~~~
@@ -121,6 +119,19 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.0.1')) {
  * ~~~
  *  qAudio stop Ab1 fadeOut2
  * ~~~
+ * ----------------------------------------------------------------------------
+ * **Saving/Restoring QAudios**
+ * ----------------------------------------------------------------------------
+ * To save all the current QAudios that are playing use:
+ * ~~~
+ *  qAudio save
+ * ~~~
+ *
+ * To play all the QAudios that were saved use:
+ * ~~~
+ *  qAudio restore
+ * ~~~
+ * *Note: Saving does not remember the position the audio left off at*
  * ============================================================================
  * ## Links
  * ============================================================================
@@ -165,7 +176,7 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.0.1')) {
     args = QPlus.makeArgs(args.join(' '));
     var cmd = args[0].toLowerCase();
     if (cmd === 'loop' || cmd === 'play') {
-      this.qAudioCommandOld(cmd, args)
+      return this.qAudioCommandOld(cmd, args)
     }
     if (cmd === 'start') {
       var name  = args[1];
@@ -217,18 +228,34 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.0.1')) {
         doPan: !dontPan,
         fadeIn: Number(fadein) || 0
       })
+      return;
     }
     if (cmd === 'stop') {
       var id = args[1];
       var fadeOut = Number(QPlus.getArg(args, /^fadeout(\d+)/i));
-      if (fadeOut) {
-        AudioManager.fadeOutQAudio(id, fadeOut);
+      if (id === 'all') {
+        if (fadeOut) {
+          AudioManager.fadeOutAllQAudio(fadeOut);
+        } else {
+          AudioManager.stopAllQAudio();
+        }
       } else {
-        AudioManager.stopQAudio(id);
+        if (fadeOut) {
+          AudioManager.fadeOutQAudio(id, fadeOut);
+        } else {
+          AudioManager.stopQAudio(id);
+        }
       }
+      return;
     }
     if (cmd === 'clear') {
-      AudioManager.stopAllQAudio();
+      return AudioManager.stopAllQAudio();
+    }
+    if (cmd === 'save') {
+      return AudioManager.saveQAudioa();
+    }
+    if (cmd === 'restore') {
+      return AudioManager.restoreQAudios();
     }
   };
 
@@ -294,6 +321,7 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.0.1')) {
   // AudioManager
 
   AudioManager._QAudioBuffers = [];
+  AudioManager._savedQAudios = [];
 
   AudioManager.playQAudio = function(id, audio, options) {
     if (audio.name) {
@@ -395,6 +423,18 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.0.1')) {
       buffers.splice(i, 1);
       $gameSystem._QAudios.splice(i, 1);
     }
+  };
+
+  AudioManager.saveQAudios = function() {
+    this._savedQAudios = $gameSystem._QAudios.clone();
+  };
+
+  AudioManager.restoreQAudios = function() {
+    for (var i = 0; i < this._savedQAudios.length; i++) {
+      var qAudio = this._savedQAudios[i];
+      this.playQAudio(qAudio.id, qAudio.audio, qAudio.options);
+    }
+    this._savedQAudios = [];
   };
 
   AudioManager.checkForQAudios = function() {
@@ -508,7 +548,17 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.0.1')) {
   var Alias_Scene_Map_stopAudioOnBattleStart = Scene_Map.prototype.stopAudioOnBattleStart;
   Scene_Map.prototype.stopAudioOnBattleStart = function() {
     Alias_Scene_Map_stopAudioOnBattleStart.call(this);
+    AudioManager.saveQAudios();
     AudioManager.stopAllQAudio();
+  };
+
+  //-----------------------------------------------------------------------------
+  // BattleManager
+
+  var Alias_BattleManager_replayBgmAndBgs = BattleManager.replayBgmAndBgs;
+  BattleManager.replayBgmAndBgs = function() {
+    Alias_BattleManager_replayBgmAndBgs.call(this);
+    AudioManager.restoreQAudios();
   };
 
   //-----------------------------------------------------------------------------
