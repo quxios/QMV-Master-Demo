@@ -3,13 +3,13 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QPlus = '1.2.1';
+Imported.QPlus = '1.2.2';
 
 //=============================================================================
  /*:
  * @plugindesc <QPlus> (Should go above all Q Plugins)
  * Some small changes to MV for easier plugin development.
- * @author Quxios  | Version 1.2.1
+ * @author Quxios  | Version 1.2.2
  *
  * @param Quick Test
  * @desc Enable quick testing.
@@ -51,8 +51,8 @@ Imported.QPlus = '1.2.1';
  * Using this may increase performance. So if you have a map that doesn't use
  * any tiles and is all parallax, then you should considering using this.
  *
- * * Note, there's a chance this may break some plugins if they call functions in
- * the original tilemap class.
+ * *Note, there's a chance this may break some plugins if they call functions in
+ * the original tilemap class.*
  *
  * ============================================================================
  * ## Plugin Commands
@@ -74,24 +74,19 @@ Imported.QPlus = '1.2.1';
  * ~~~
  *  globalLock LEVEL [CHARACTERS] [options]
  * ~~~
- * LEVEL - The level of global lock
- *
- *  - 0 - clears the global lock
- *  - 1 - locks the characters movement
- *  - 2 - locks the characters movement and animation
- *
- * [CHARACTERS] - optional, list of `Character Ids` to apply to or ignore.
- * seperated by a space.
- *
- * Character Ids
- *
- *  - For player: 0, p, or player
- *  - For events: EVENTID, eEVENTID or eventEVENTID
- * (replace EVENTID with a number)
+ * - LEVEL: The level of global lock
+ *  - 0: clears the global lock
+ *  - 1: locks the characters movement
+ *  - 2: locks the characters movement and animation
+ * - [CHARACTERS] - optional, list of `Character Ids` to apply to or ignore.
+ * Seperated by a space.
+ *  * CHARAID: The character identifier.
+ *   - For player: 0, p, or player
+ *   - For events: EVENTID, eEVENTID, eventEVENTID or this for the event that called this
+ *   (replace EVENTID with a number)
  *
  * Possible options:
- *
- *  - only - Will only apply to the characters listed
+ *  - only: Will only apply to the characters listed
  *
  * ----------------------------------------------------------------------------
  * **Global lock Examples**
@@ -312,9 +307,24 @@ QPlus.stringToObj = function(string) {
  *         Number, true, false or null
  */
 QPlus.stringToAry = function(string) {
-  return string.split(',').map(function(s) {
+  // couldn't get this to work with split so went with regex
+  var regex = /(\(.*?\))|([^,]+)/g;
+  var arr = [];
+  while (true) {
+    var match = regex.exec(string);
+    if (match) {
+      arr.push(match[0]);
+    } else {
+      break;
+    }
+  }
+  return arr.map(function(s) {
     s = s.trim();
     if (/^-?\d+\.?\d*$/.test(s)) return Number(s);
+    var p = /^\((\d+),(\d+),?(\d*)/.exec(s);
+    if (p) {
+      return new Point(Number(p[1]), Number(p[2]), Number(p[3]));
+    }
     if (s === 'true') return true;
     if (s === 'false') return false;
     if (s === 'null' || s === '') return null;
@@ -531,9 +541,10 @@ function SimpleTilemap() {
     if (command.toLowerCase() === 'globallock') {
       var level  = Number(args[0]);
       var args2  = args.slice(1);
+      var only = args2.indexOf('only');
+      if (only !== -1) args2.splice(only, 1);
       var charas = args2.map(QPlus.getCharacter);
-      var only = args2.contains('only');
-      var mode = only ? 1 : 0;
+      var mode = only !== -1 ? 1 : 0;
       $gameMap.globalLock(charas, mode, level);
       return;
     }
