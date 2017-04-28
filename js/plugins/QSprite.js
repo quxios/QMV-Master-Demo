@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QSprite = '2.1.1';
+Imported.QSprite = '2.1.2';
 
 if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.2.0')) {
   alert('Error: QSprite requires QPlus 1.2.0 or newer to work.');
@@ -14,7 +14,7 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.2.0')) {
  /*:
  * @plugindesc <QSprite>
  * Lets you configure Spritesheets
- * @author Quxios  | Version 2.1.1
+ * @author Quxios  | Version 2.1.2
  *
  * @requires QPlus
  *
@@ -369,16 +369,8 @@ QSprite.json = null;
   };
 
   Game_CharacterBase.prototype.moveSpeedMultiplier = function() {
-    var speed = this.realMoveSpeed();
-    var multipliers = {
-      1: 0.125,
-      2: 0.25,
-      3: 0.5,
-      4: 1,
-      5: 2,
-      6: 4
-    }
-    return multipliers[speed];
+    var ds = 4 - this.realMoveSpeed();
+    return Math.pow(2, ds);
   };
 
   var Alias_Game_CharacterBase_animationWait = Game_CharacterBase.prototype.animationWait;
