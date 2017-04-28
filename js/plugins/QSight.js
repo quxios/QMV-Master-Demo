@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QSight = '1.1.1';
+Imported.QSight = '1.1.2';
 
 if (!Imported.QPlus) {
   alert('Error: QSight requires QPlus to work.');
@@ -17,7 +17,7 @@ if (!Imported.QPlus) {
  /*:
  * @plugindesc <QSight>
  * Real time line of sight
- * @author Quxios  | Version 1.1.1
+ * @author Quxios  | Version 1.1.2
  *
  * @requires QPlus
  *
@@ -381,7 +381,7 @@ function QSight() {
         if (tile.width === 0 || tile.height === 0) {
           return false;
         }
-        if (tile.type && tile.type !== 'collision') {
+        if (tile.type && (tile.type !== 'collision' || tile.type !== 'default')) {
           return false;
         }
         if (tile.isLadder || tile.isBush || tile.isDamage) {
