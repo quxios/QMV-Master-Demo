@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QMovement = '1.2.1';
+Imported.QMovement = '1.2.2';
 
 if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.3')) {
   alert('Error: QMovement requires QPlus 1.1.3 or newer to work.');
@@ -14,7 +14,7 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.3')) {
  /*:
  * @plugindesc <QMovement>
  * More control over character movement
- * @author Quxios  | Version 1.2.1
+ * @author Quxios  | Version 1.2.2
  *
  * @repo https://github.com/quxios/QMovement
  *
@@ -369,7 +369,7 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.3')) {
  * ## Videos
  * ============================================================================
  * Great example of using the collision map addon:
- * 
+ *
  * https://www.youtube.com/watch?v=-BN4Pyr5IBo
  *
  * If you have a video you'd like to have listed here, feel free to send me a
@@ -1481,7 +1481,15 @@ function ColliderManager() {
         for (var i = tiles.length - 1; i >= 0; i--) {
           var flag = flags[tiles[i]];
           if (flag === 16) continue;
-          this.getMapCollider(x, y, flag);
+          var data = this.getMapCollider(x, y, flag);
+          if (!data) continue;
+          if (data[0].constructor === Array) {
+            for (var j = 0; j < data.length; j++) {
+              this.makeTileCollider(x, y, flag, data[j], j);
+            }
+          } else {
+            this.makeTileCollider(x, y, flag, data, 0);
+          }
         }
       }
     }
@@ -1516,17 +1524,10 @@ function ColliderManager() {
       if (flag & 0x20 || flag & 0x40 || flag & 0x80 || flag & 0x100) {
         boxData = [this.tileWidth(), this.tileHeight(), 0, 0];
       } else {
-        return;
+        return null;
       }
     }
-    if (boxData[0].constructor === Array) {
-      var i = 0;
-      for (var i = 0; i < boxData.length; i++) {
-        this.makeTileCollider(x, y, realFlag, boxData[i], i);
-      }
-    } else {
-      this.makeTileCollider(x, y, realFlag, boxData, 0);
-    }
+    return boxData;
   };
 
   Game_Map.prototype.makeTileCollider = function(x, y, flag, boxData, index) {
@@ -1572,6 +1573,7 @@ function ColliderManager() {
       newBox.color = QMovement.collision.toLowerCase();
     }
     ColliderManager.addCollider(newBox, -1);
+    return newBox;
   };
 
   Game_Map.prototype.adjustPX = function(x) {
@@ -1838,7 +1840,7 @@ function ColliderManager() {
       if (tile.color && this.passableColors().contains(tile.color)) {
         return false;
       }
-      if (tile.type && tile.type !== 'collision') {
+      if (tile.type && (tile.type !== 'collision' || tile.type !== 'default')) {
         return false;
       }
       collided = tile.intersects(collider);
@@ -3179,12 +3181,6 @@ function Sprite_Collider() {
     this.checkChanges();
   };
 
-  Sprite_Collider.prototype._setupCollider = function(collider) {
-    this._collider = collider;
-    this.bitmap = new Bitmap(collider.width, collider.height);
-    this.drawCollider();
-  };
-
   Sprite_Collider.prototype.setupCollider = function(collider) {
     this._collider = collider;
     var isNew = false;
@@ -3229,6 +3225,11 @@ function Sprite_Collider() {
     this.x -= $gameMap.displayX() * QMovement.tileSize;
     this.y = this._collider.y + this._collider.oy;
     this.y -= $gameMap.displayY() * QMovement.tileSize;
+    if (this.x < -this._collider.width || this.x > Graphics.width) {
+      if (this.y < -this._collider.height || this.y > Graphics.height) {
+        this.visible = false;
+      }
+    }
     if (this._cachedw !== this._collider.width ||
         this._cachedh !== this._collider.height) {
       this._cachedw = this._collider.width;
