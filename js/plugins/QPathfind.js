@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QPathfind = '1.4.1';
+Imported.QPathfind = '1.4.2';
 
 if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.3')) {
   alert('Error: QPathfind requires QPlus 1.1.3 or newer to work.');
@@ -17,7 +17,7 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.3')) {
  /*:
  * @plugindesc <QPathfind>
  * A* Pathfinding algorithm
- * @author Quxios  | Version 1.4.1
+ * @author Quxios  | Version 1.4.2
  *
  * @requires QPlus
  *
@@ -231,13 +231,8 @@ function QPathfind() {
   };
 
   QPathfind.prototype.initMembers = function(charaId, endPoint, options) {
-    this.options = options;
-    this.options.smart = this.options.smart === undefined ? _DEFAULTOPTIONS.smart : this.options.smart;
-    this.options.chase = this.options.chase === undefined ? _DEFAULTOPTIONS.chase : this.options.chase;
-    this.options.breakable = this.options.breakable === undefined ? _DEFAULTOPTIONS.breakable : this.options.breakable;
-    this.options.earlyEnd  = this.options.earlyEnd === undefined ? _DEFAULTOPTIONS.earlyEnd : this.options.earlyEnd;
-    this.options.adjustEnd = this.options.adjustEnd === undefined ? _DEFAULTOPTIONS.adjustEnd : this.options.adjustEnd;
-    this.options.towards   = this.options.towards === undefined ? _DEFAULTOPTIONS.towards : this.options.towards;
+    this._charaId = charaId;
+    this.options = Object.assign({}, _DEFAULTOPTIONS, options);
     if (this.options.towards) {
       this.options.earlyEnd = false;
       this.options.adjustEnd = false;
@@ -250,7 +245,6 @@ function QPathfind() {
         endPoint = new Point(chasing.x, chasing.y);
       }
     }
-    this._charaId = charaId;
     var startPoint;
     if (Imported.QMovement) {
       this._mapWidth = $gameMap.width() * QMovement.tileSize;
@@ -278,7 +272,7 @@ function QPathfind() {
       // inorder to stretch the performance on multiple frames instead of on the same frames
       this._smartTime = _SMARTWAIT + Math.randomIntBetween(0, 10);
     }
-    this._INTERVALS = _INTERVALS;
+    this._intervals = _INTERVALS;
   };
 
   QPathfind.prototype.beforeStart = function() {
@@ -297,7 +291,7 @@ function QPathfind() {
         canPass = false;
       }
     }
-    if (!canPass && this.options.chase !== undefined && this.options.earlyEnd) {
+    if (!canPass && this.options.earlyEnd) {
       this.onFail();
     }
     return canPass;
@@ -362,7 +356,7 @@ function QPathfind() {
     if (this._completed && this.options.smart > 1) {
       this.updateSmart();
     } else if (!this._completed) {
-      var stepsPerFrame = this._INTERVALS;
+      var stepsPerFrame = this._intervals;
       if (this.options.towards) {
         stepsPerFrame = Math.min(stepsPerFrame, 100);
       }
@@ -388,7 +382,7 @@ function QPathfind() {
           break;
         }
         var dt = Date.now() - ti;
-        if (i !== 0 && dt >= (16.67 / QPathfind._pathfinders)) {
+        if (i !== 0 && dt >= (16.67 / (QPathfind._pathfinders + 1))) {
           break;
         }
       }
@@ -973,6 +967,7 @@ function QPathfind() {
       var half = QMovement.tileSize / 2;
       this.initPathfind(x - half, y - half, {
         smart: 2,
+        earlyEnd: true,
         breakable: true,
         adjustEnd: true
       })
