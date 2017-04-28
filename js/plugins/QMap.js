@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QMap = '1.3.0';
+Imported.QMap = '1.3.1';
 
 if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.5')) {
   alert('Error: QMap requires QPlus 1.1.5 or newer to work.');
@@ -17,7 +17,7 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.5')) {
  /*:
  * @plugindesc <QMap>
  * Creates maps made with QMap Editor
- * @author Quxios  | Version 1.3.0
+ * @author Quxios  | Version 1.3.1
  *
  * @requires QPlus
  *
@@ -334,13 +334,15 @@ var $dataQMap = null;
     for (var prop in objData) {
       if (objData.hasOwnProperty(prop)) {
         var propName = String(prop);
+        var value = objData[prop];
+        if (propName === 'notes') continue;
         if (propName === 'x') {
           propName = 'px';
         }
         if (propName === 'y') {
           propName = 'py';
         }
-        this[propName] = objData[prop];
+        this[propName] = value;
       }
     }
     this.meta = this.qmeta || {};
@@ -402,6 +404,22 @@ var $dataQMap = null;
     return Math.round(y * th);
   };
 
+  Game_MapObj.prototype.charaId = function() {
+    return 'MAPOBJ-' + this.name;
+  };
+
+  Game_MapObj.prototype.isThrough = function() {
+    return false;
+  };
+
+  Game_MapObj.prototype.isNormalPriority = function() {
+    return true;
+  };
+
+  Game_MapObj.prototype.notes = function() {
+    return this.note;
+  };
+
   Game_MapObj.prototype.update = function() {
     var playerX = $gamePlayer._realX;
     var playerY = $gamePlayer._realY;
@@ -457,7 +475,7 @@ var $dataQMap = null;
 
   Game_MapObj.prototype.collider = function(type) {
     if (!$dataMap) return;
-    if (!this.meta.collider && !this.meta.colliders) return false;
+    if (!this.meta.collider && !this.meta.colliders) return null;
     if (!this._colliders) this.setupColliders();
     return this._colliders[type] || this._colliders.default;
   };
@@ -487,9 +505,15 @@ var $dataQMap = null;
     if (this.meta.collider) {
       configs.default = QPlus.stringToAry(this.meta.collider);
     }
+    var colliders = 0;
     for (var collider in configs) {
       if (!configs.hasOwnProperty(collider)) continue;
+      colliders++;
       this._colliders[collider] = this.convertToCollider(configs[collider], collider);
+    }
+    //ColliderManager.addCharacter(this, 0);
+    if (colliders > 0) {
+      Game_CharacterBase.prototype.makeBounds.call(this);
     }
   };
 
@@ -504,7 +528,8 @@ var $dataQMap = null;
     var x1 = this.px + (this.width * -this.anchorX);
     var y1 = this.py + (this.height * -this.anchorY);
     collider.moveTo(x1, y1);
-    ColliderManager.addCollider(collider, -1, false);
+    //ColliderManager.addCollider(collider, -1, false);
+    ColliderManager.addCollider(collider, -1, true);
     return collider;
   };
 
