@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QPathfind = '1.4.2';
+Imported.QPathfind = '1.4.3';
 
 if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.3')) {
   alert('Error: QPathfind requires QPlus 1.1.3 or newer to work.');
@@ -17,7 +17,7 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.3')) {
  /*:
  * @plugindesc <QPathfind>
  * A* Pathfinding algorithm
- * @author Quxios  | Version 1.4.2
+ * @author Quxios  | Version 1.4.3
  *
  * @requires QPlus
  *
@@ -207,7 +207,9 @@ function QPathfind() {
   var _SMARTOT = 300;
   // debug will show the console timers
   var _DEBUG = false;
-  var _SMARTINTERVAL = !true; // not working as intended, makes performance worse
+  // smart intervals is based off time instead of a const num
+  // it will do as many intervals as it can in about half a frame
+  var _SMARTINTERVAL = !true;
 
   //-----------------------------------------------------------------------------
   // QPathfind
@@ -381,9 +383,11 @@ function QPathfind() {
           this.onFail();
           break;
         }
-        var dt = Date.now() - ti;
-        if (i !== 0 && dt >= (16.67 / (QPathfind._pathfinders + 1))) {
-          break;
+        if (_SMARTINTERVAL) {
+          var dt = Date.now() - ti;
+          if (i !== 0 && dt >= (16.67 / (QPathfind._pathfinders + 1))) {
+            break;
+          }
         }
       }
       if (this.options.towards) {
@@ -953,6 +957,14 @@ function QPathfind() {
   // Game_Player
 
   if (Imported.QMovement) {
+    var Alias_Scene_Map_updateDestination = Scene_Map.prototype.updateDestination;
+    Scene_Map.prototype.updateDestination = function() {
+      Alias_Scene_Map_updateDestination.call(this);
+      if (!this.isMapTouchOk()) {
+        $gamePlayer.clearMouseMove();
+      }
+    };
+
     var Alias_Game_Player_requestMouseMove = Game_Player.prototype.requestMouseMove;
     Game_Player.prototype.requestMouseMove = function() {
       if (this._pathfind && !this._pathfind._completed) {
