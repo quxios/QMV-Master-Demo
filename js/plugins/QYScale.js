@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QYScale = '1.0.2';
+Imported.QYScale = '1.1.0';
 
 if (!Imported.QPlus) {
   alert('Error: QYScale requires QPlus to work.');
@@ -14,7 +14,7 @@ if (!Imported.QPlus) {
  /*:
  * @plugindesc <QYScale>
  * Change characters scale based off their Y value
- * @author Quxios  | Version 1.0.2
+ * @author Quxios  | Version 1.1.0
  *
  * @requires QPlus
  *
@@ -69,6 +69,13 @@ if (!Imported.QPlus) {
 //=============================================================================
 
 //=============================================================================
+// QYScale Static Class
+
+function QYScale() {
+  throw new Error('This is a static class');
+}
+
+//=============================================================================
 // QYScale
 
 (function() {
@@ -77,36 +84,41 @@ if (!Imported.QPlus) {
 
   var Alias_Game_Map_setup = Game_Map.prototype.setup;
   Game_Map.prototype.setup = function(mapId) {
+    if ($dataMap) {
+      QYScale.setup($dataMap.meta);
+    }
     Alias_Game_Map_setup.call(this, mapId);
-    this.setupYScale();
   };
 
-  Game_Map.prototype.setupYScale = function() {
+  //-----------------------------------------------------------------------------
+  // QYScale
+
+  QYScale.setup = function(meta) {
+    this._height = $dataMap.height;
     this._yScale = null;
-    if ($dataMap && $dataMap.meta) {
-      var scale = $dataMap.meta.scale;
-      if (scale) {
-        var settings = scale.split(',').map(Number);
-        this._yScale = {
-          min: settings[0] || 1,
-          max: settings[1] || 1
-        }
+    if (!$dataMap.meta) return;
+    var scale = $dataMap.meta.scale;
+    if (scale) {
+      var settings = scale.split(',').map(Number);
+      this._yScale = {
+        min: settings[0] || 1,
+        max: settings[1] || 1
       }
     }
   };
 
-  Game_Map.prototype.YScale = function() {
-    return this._yScale;
-  };
-
-  Game_Map.prototype.getYScaleAt = function(y) {
-    if (!this.YScale()) return 1;
-    var min = this.YScale().min;
-    var max = this.YScale().max;
-    var yMax = this.height() - 1;
+  QYScale.at = function(y) {
+    if (!this.enabled()) return 1;
+    var min = this._yScale.min;
+    var max = this._yScale.max;
+    var yMax = this._height - 1;
     var ds = max - min;
     var ry = (yMax - y) / yMax;
     return max - ry * ds;
+  };
+
+  QYScale.enabled = function() {
+    return !!this._yScale;
   };
 
   if (Imported.QMovement) {
@@ -114,8 +126,8 @@ if (!Imported.QPlus) {
     Polygon_Collider.prototype.moveTo = function(x, y) {
       var oldY = this.y;
       Alias_Polygon_Collider_moveTo.call(this, x, y);
-      if ($gameMap.YScale() && !this.isTile && oldY !== y) {
-        var scale = $gameMap.getYScaleAt(y / QMovement.tileSize);
+      if (QYScale.enabled() && !this.isTile && oldY !== y) {
+        var scale = QYScale.at(y / QMovement.tileSize);
         this.setScale(scale, scale);
       }
     };
@@ -140,9 +152,9 @@ if (!Imported.QPlus) {
   Game_CharacterBase.prototype.update = function() {
     var oldY = this._realY;
     Alias_Game_CharacterBase_update.call(this);
-    if (!$gameMap.YScale() || !this.hasYScale()) {
+    if (!QYScale.enabled() || !this.hasYScale()) {
       this._yScale = 1;
-    } else if ($gameMap.YScale() && (this._realY !== oldY || this._yScale === null)) {
+    } else if (QYScale.enabled() && (this._realY !== oldY || this._yScale === null)) {
       this.updateYScale();
     }
   };
@@ -154,7 +166,7 @@ if (!Imported.QPlus) {
   };
 
   Game_CharacterBase.prototype.updateYScale = function() {
-    this._yScale = $gameMap.getYScaleAt(this._realY);
+    this._yScale = QYScale.at(this._realY);
   };
 
   var Alias_Game_CharacterBase_distancePerFrame = Game_CharacterBase.prototype.distancePerFrame;
@@ -169,7 +181,7 @@ if (!Imported.QPlus) {
   var Alias_Sprite_Character_update = Sprite_Character.prototype.update;
   Sprite_Character.prototype.update = function() {
     Alias_Sprite_Character_update.call(this);
-    if ($gameMap.YScale()) {
+    if (QYScale.enabled()) {
       this.updateYScale();
     }
   };
