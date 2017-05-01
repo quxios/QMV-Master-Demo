@@ -115,6 +115,16 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.5')) {
  * - BLUE: Red value of tint, set between -255 to 255. Default: 0
  * - GRAY: Red value of tint, set between -255 to 255. Default: 0
  * ============================================================================
+ * ## Videos
+ * ============================================================================
+ * Example of a map made with QMap
+ * https://www.youtube.com/watch?v=n6aF6mnHEAk
+ *
+ * Example of the full QMap process, from the editor to mv
+ * https://www.youtube.com/watch?v=XMWluxVErKo
+ * If you have a video you'd like to have listed here, feel free to send me a
+ * link in the RPGMakerWebs thread! (link below)
+ * ============================================================================
  * ## Links
  * ============================================================================
  * RPGMakerWebs:
