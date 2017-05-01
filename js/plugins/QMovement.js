@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QMovement = '1.2.2';
+Imported.QMovement = '1.2.3';
 
 if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.3')) {
   alert('Error: QMovement requires QPlus 1.1.3 or newer to work.');
@@ -14,7 +14,7 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.3')) {
  /*:
  * @plugindesc <QMovement>
  * More control over character movement
- * @author Quxios  | Version 1.2.2
+ * @author Quxios  | Version 1.2.3
  *
  * @repo https://github.com/quxios/QMovement
  *
@@ -1000,7 +1000,7 @@ function ColliderManager() {
   ColliderManager._colliderGrid = [];
   ColliderManager._characterGrid = [];
   ColliderManager._sectorSize = QMovement.tileSize;
-  ColliderManager._needsRefresh = true;
+  ColliderManager._needsRefresh = false;
   ColliderManager.container = new Sprite();
   ColliderManager.container.alpha = 0.3;
   ColliderManager.visible = QMovement.showColliders;
@@ -1010,12 +1010,25 @@ function ColliderManager() {
     this._colliderGrid = [];
     this._characterGrid = [];
     this.container.removeChildren();
-    this._needsRefresh = true;
   };
 
   ColliderManager.refresh = function() {
     this.clear();
-    // rest of refresh is done inside Game_Map
+    this._colliderGrid = new Array(this._mapWidth);
+    for (var x = 0; x < this._colliderGrid.length; x++) {
+      this._colliderGrid[x] = [];
+      for (var y = 0; y < this._mapHeight; y++) {
+        this._colliderGrid[x].push([]);
+      }
+    }
+    this._characterGrid = new Array(this._mapWidth);
+    for (var x = 0; x < this._characterGrid.length; x++) {
+      this._characterGrid[x] = [];
+      for (var y = 0; y < this._mapHeight; y++) {
+        this._characterGrid[x].push([]);
+      }
+    }
+    this._needsRefresh = false;
   };
 
   ColliderManager.addCollider = function(collider, duration, ignoreGrid) {
@@ -1185,11 +1198,11 @@ function ColliderManager() {
   };
 
   ColliderManager.sectorCols = function() {
-    return Math.floor($gameMap.width() * QMovement.tileSize / this._sectorSize);
+    return Math.floor(this._mapWidth * QMovement.tileSize / this._sectorSize);
   };
 
   ColliderManager.sectorRows = function() {
-    return Math.floor($gameMap.height() * QMovement.tileSize / this._sectorSize);
+    return Math.floor(this._mapHeight * QMovement.tileSize / this._sectorSize);
   };
 
   ColliderManager.draw = function(collider, duration) {
@@ -1351,13 +1364,13 @@ function ColliderManager() {
   Game_System.prototype.onBeforeSave = function() {
     Alias_Game_System_onBeforeSave.call(this);
     $gameMap.clearColliders();
-    ColliderManager.refresh();
+    ColliderManager._needsRefresh = true;
   };
 
   var Alias_Game_System_onAfterLoad = Game_System.prototype.onAfterLoad;
   Game_System.prototype.onAfterLoad = function() {
     Alias_Game_System_onAfterLoad.call(this);
-    ColliderManager.refresh();
+    ColliderManager._needsRefresh = true;
   };
 })();
 
@@ -1367,34 +1380,13 @@ function ColliderManager() {
 (function() {
   var Alias_Game_Map_setup = Game_Map.prototype.setup;
   Game_Map.prototype.setup = function(mapId) {
+    if ($dataMap) {
+      ColliderManager._mapWidth = this.width();
+      ColliderManager._mapHeight = this.height();
+      ColliderManager.refresh();
+    }
     Alias_Game_Map_setup.call(this, mapId);
-    if (!$dataMap) return;
-    this.reloadColliders(true);
-    ColliderManager._needsRefresh = false;
-  };
-
-  var Alias_Game_Map_setupEvents = Game_Map.prototype.setupEvents;
-  Game_Map.prototype.setupEvents = function() {
-    ColliderManager.clear();
-    this.setupColliders();
-    Alias_Game_Map_setupEvents.call(this);
-  };
-
-  Game_Map.prototype.setupColliders = function() {
-    ColliderManager._colliderGrid = new Array(this.width());
-    for (var x = 0; x < ColliderManager._colliderGrid.length; x++) {
-      ColliderManager._colliderGrid[x] = [];
-      for (var y = 0; y < this.height(); y++) {
-        ColliderManager._colliderGrid[x].push([]);
-      }
-    }
-    ColliderManager._characterGrid = new Array(this.width());
-    for (var x = 0; x < ColliderManager._characterGrid.length; x++) {
-      ColliderManager._characterGrid[x] = [];
-      for (var y = 0; y < this.height(); y++) {
-        ColliderManager._characterGrid[x].push([]);
-      }
-    }
+    this.reloadTileMap();
   };
 
   Game_Map.prototype.tileWidth = function() {
@@ -1424,13 +1416,12 @@ function ColliderManager() {
   Game_Map.prototype.refreshIfNeeded = function() {
     Alias_Game_Map_refreshIfNeeded.call(this);
     if (ColliderManager._needsRefresh) {
+      ColliderManager.refresh();
       this.reloadColliders();
-      ColliderManager._needsRefresh = false;
     }
   };
 
-  Game_Map.prototype.reloadColliders = function(skipSetup) {
-    if (!skipSetup) this.setupColliders();
+  Game_Map.prototype.reloadColliders = function() {
     this.reloadTileMap();
     var events = this.events();
     var i, j;
@@ -2347,10 +2338,10 @@ function ColliderManager() {
       ColliderManager.remove(this._colliders[collider]);
       this._colliders[collider] = null;
     }
+    this._colliders = null;
   };
 
   Game_CharacterBase.prototype.collider = function(type) {
-    if (!$dataMap || !$gameMap) return;
     if (!this._colliders) this.setupColliders();
     return this._colliders[type] || this._colliders['default'];
   };
@@ -2420,7 +2411,6 @@ function ColliderManager() {
   };
 
   Game_CharacterBase.prototype.moveColliders = function(x, y) {
-    if (!$dataMap || !$gameMap) return;
     x = typeof x === 'number' ? x : this.px;
     y = typeof y === 'number' ? y : this.py;
     var prev = this._colliders['bounds'].sectorEdge();
@@ -3129,7 +3119,7 @@ function ColliderManager() {
   Scene_Map.prototype.processMapTouch = function() {
     if (TouchInput.isTriggered() || this._touchCount > 0) {
       if (TouchInput.isPressed()) {
-        if (this._touchCount === 0 || this._touchCount >= 15) {
+        if (this._touchCount === 0 || this._touchCount >= 20) {
           var x = $gameMap.canvasToMapPX(TouchInput.x);
           var y = $gameMap.canvasToMapPY(TouchInput.y);
           if (!QMovement.offGrid) {
