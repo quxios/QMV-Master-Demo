@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QMap = '1.3.1';
+Imported.QMap = '1.3.2';
 
 if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.5')) {
   alert('Error: QMap requires QPlus 1.1.5 or newer to work.');
@@ -17,7 +17,7 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.5')) {
  /*:
  * @plugindesc <QMap>
  * Creates maps made with QMap Editor
- * @author Quxios  | Version 1.3.1
+ * @author Quxios  | Version 1.3.2
  *
  * @requires QPlus
  *
@@ -266,7 +266,7 @@ var $dataQMap = null;
       Alias_Game_Map_clearColliders.call(this);
       var i, j;
       for (i = 0, j = this._mapObjs.length; i < j; i++) {
-        this._mapObjs[i].clearColliders();
+        this._mapObjs[i].removeColliders();
       }
     };
   }
