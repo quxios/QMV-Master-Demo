@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QMovement = '1.2.3';
+Imported.QMovement = '1.2.4';
 
 if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.3')) {
   alert('Error: QMovement requires QPlus 1.1.3 or newer to work.');
@@ -14,7 +14,7 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.3')) {
  /*:
  * @plugindesc <QMovement>
  * More control over character movement
- * @author Quxios  | Version 1.2.3
+ * @author Quxios  | Version 1.2.4
  *
  * @repo https://github.com/quxios/QMovement
  *
@@ -1000,7 +1000,7 @@ function ColliderManager() {
   ColliderManager._colliderGrid = [];
   ColliderManager._characterGrid = [];
   ColliderManager._sectorSize = QMovement.tileSize;
-  ColliderManager._needsRefresh = false;
+  ColliderManager._needsRefresh = true;
   ColliderManager.container = new Sprite();
   ColliderManager.container.alpha = 0.3;
   ColliderManager.visible = QMovement.showColliders;
@@ -1070,6 +1070,7 @@ function ColliderManager() {
   };
 
   ColliderManager.updateGrid = function(collider, prevGrid) {
+    if (this._needsRefresh) return;
     var maxWidth  = this.sectorCols();
     var maxHeight = this.sectorRows();
     var currGrid;
@@ -1386,7 +1387,7 @@ function ColliderManager() {
       ColliderManager.refresh();
     }
     Alias_Game_Map_setup.call(this, mapId);
-    this.reloadTileMap();
+    this.reloadColliders();
   };
 
   Game_Map.prototype.tileWidth = function() {
@@ -1416,6 +1417,8 @@ function ColliderManager() {
   Game_Map.prototype.refreshIfNeeded = function() {
     Alias_Game_Map_refreshIfNeeded.call(this);
     if (ColliderManager._needsRefresh) {
+      ColliderManager._mapWidth = this.width();
+      ColliderManager._mapHeight = this.height();
       ColliderManager.refresh();
       this.reloadColliders();
     }
