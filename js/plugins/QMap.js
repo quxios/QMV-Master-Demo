@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QMap = '1.3.2';
+Imported.QMap = '1.3.3';
 
 if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.5')) {
   alert('Error: QMap requires QPlus 1.1.5 or newer to work.');
@@ -17,7 +17,7 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.5')) {
  /*:
  * @plugindesc <QMap>
  * Creates maps made with QMap Editor
- * @author Quxios  | Version 1.3.2
+ * @author Quxios  | Version 1.3.3
  *
  * @requires QPlus
  *
@@ -390,6 +390,7 @@ var $dataQMap = null;
     this._breathS = args[0] === undefined ? 1 : args[0] / 100;
     this._breathT = args[1] === undefined ? 60 : args[1];
     this._breathOT = args[2] === undefined ? 0 : args[2];
+    this._breathTick = this._breathOT;
   };
 
   Game_MapObj.prototype.setupTone = function() {
