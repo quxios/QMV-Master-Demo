@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QMap = '1.3.3';
+Imported.QMap = '1.3.4';
 
 if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.5')) {
   alert('Error: QMap requires QPlus 1.1.5 or newer to work.');
@@ -17,7 +17,7 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.5')) {
  /*:
  * @plugindesc <QMap>
  * Creates maps made with QMap Editor
- * @author Quxios  | Version 1.3.3
+ * @author Quxios  | Version 1.3.4
  *
  * @requires QPlus
  *
@@ -516,14 +516,11 @@ var $dataQMap = null;
     if (this.meta.collider) {
       configs.default = QPlus.stringToAry(this.meta.collider);
     }
-    var colliders = 0;
     for (var collider in configs) {
       if (!configs.hasOwnProperty(collider)) continue;
-      colliders++;
       this._colliders[collider] = this.convertToCollider(configs[collider], collider);
     }
-    //ColliderManager.addCharacter(this, 0);
-    if (colliders > 0) {
+    if (this.collider('collision')) {
       Game_CharacterBase.prototype.makeBounds.call(this);
     }
   };
@@ -539,7 +536,6 @@ var $dataQMap = null;
     var x1 = this.px + (this.width * -this.anchorX);
     var y1 = this.py + (this.height * -this.anchorY);
     collider.moveTo(x1, y1);
-    //ColliderManager.addCollider(collider, -1, false);
     ColliderManager.addCollider(collider, -1, true);
     return collider;
   };
