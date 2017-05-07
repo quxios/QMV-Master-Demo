@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QMap = '1.3.4';
+Imported.QMap = '1.4.0';
 
 if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.5')) {
   alert('Error: QMap requires QPlus 1.1.5 or newer to work.');
@@ -17,7 +17,7 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.5')) {
  /*:
  * @plugindesc <QMap>
  * Creates maps made with QMap Editor
- * @author Quxios  | Version 1.3.4
+ * @author Quxios  | Version 1.4.0
  *
  * @requires QPlus
  *
@@ -337,6 +337,9 @@ var $dataQMap = null;
      *  @param height [int]
      *  @param anchorX [int]
      *  @param anchorY [int]
+     *  @param scaleX [int]
+     *  @param scaleY [int]
+     *  @param angle [int]
      *  @param note [string]
      *  @param isQSprite [string]
      *  @param pose [string]
@@ -379,7 +382,8 @@ var $dataQMap = null;
     this.x = this.px / tw;
     this.y = this.py / th;
     this.alpha = 1;
-    this.scale = new Point(1, 1);
+    this.scale = new Point(this.scaleX, this.scaleY);
+    this.rotation = this.angle * (Math.PI / 180);
     this.setupBreath();
     this.setupTone();
   };
@@ -680,6 +684,7 @@ var $dataQMap = null;
     this.alpha = this._mapObj.alpha;
     this.scale.x = this._mapObj.scale.x;
     this.scale.y = this._mapObj.scale.y;
+    this.rotation = this._mapObj.rotation;
     this.setColorTone(this._mapObj.tone);
   };
 
