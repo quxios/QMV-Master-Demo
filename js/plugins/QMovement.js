@@ -3,18 +3,18 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QMovement = '1.2.4';
+Imported.QMovement = '1.3.0';
 
-if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.3')) {
-  alert('Error: QMovement requires QPlus 1.1.3 or newer to work.');
-  throw new Error('Error: QMovement requires QPlus 1.1.3 or newer to work.');
+if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.2.3')) {
+  alert('Error: QMovement requires QPlus 1.2.3 or newer to work.');
+  throw new Error('Error: QMovement requires QPlus 1.2.3 or newer to work.');
 }
 
 //=============================================================================
  /*:
  * @plugindesc <QMovement>
  * More control over character movement
- * @author Quxios  | Version 1.2.4
+ * @author Quxios  | Version 1.3.0
  *
  * @repo https://github.com/quxios/QMovement
  *
@@ -164,11 +164,12 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.3')) {
  *  <collider: shape, width, height, ox, oy>
  * ~~~
  * This notetag sets all collider types to these values.
- * - Shape: Set to box or circle
- * - Width: The width of the collider
- * - Height: The height of the collider
- * - OX: The x offset value of the collider
- * - OY: The y offset value of the collider
+ * - SHAPE: Set to box, circle or poly
+ *   - If poly read next section on poly shape
+ * - WIDTH: The width of the collider, in pixels
+ * - HEIGHT: The height of the collider, in pixels
+ * - OX: The X Offset of the collider, in pixels
+ * - OY: The Y Offset of the collider, in pixels
  * ----------------------------------------------------------------------------
  * **Colliders Notetag**
  * ----------------------------------------------------------------------------
@@ -178,12 +179,13 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.3')) {
  *  </colliders>
  * ~~~
  * This notetag sets all collider types to these values.
- * - Type: The type of collider, set to default, collision or interaction
- * - Shape: Set to box or circle
- * - Width: The width of the collider
- * - Height: The height of the collider
- * - OX: The x offset value of the collider
- * - OY: The y offset value of the collider
+ * - TYPE: The type of collider, set to default, collision or interaction
+ * - SHAPE: Set to box, circle or poly
+ *   - If poly read next section on poly shape
+ * - WIDTH: The width of the collider, in pixels
+ * - HEIGHT: The height of the collider, in pixels
+ * - OX: The X Offset of the collider, in pixels
+ * - OY: The Y Offset of the collider, in pixels
  *
  * To add another type, just add `type: shape, width, height, ox, oy` on
  * another line.
@@ -195,6 +197,21 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.3')) {
  *  collision: circle, 24, 24, 12, 12
  *  interaction: box: 32, 32, 8, 8
  *  </colliders>
+ * ~~~
+ * ----------------------------------------------------------------------------
+ * **Poly Colliders**
+ * ----------------------------------------------------------------------------
+ * To create a polygon collider, set the shape to poly. After that the rest
+ * of the line should be a list of points separated with a comma. Points are
+ * written as "(X,Y)". An example polygon would be:
+ * ~~~
+ *  poly,(24,0),(48,24),(24,48),(0,24)
+ * ~~~
+ * Would create a diamond shaped polygon.
+ *
+ * Example of using it inside a collider tag
+ * ~~~
+ *  <collider:poly,(24,0),(48,24),(24,48),(0,24)>
  * ~~~
  * ============================================================================
  * ## Move Routes
@@ -246,6 +263,17 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.3')) {
  * ~~~
  * Will make the character do a full 360 arc clockwise around the point 480, 480
  * and it'll take 60 frames.
+ * ============================================================================
+ * ## Notetags
+ * ============================================================================
+ * To shift an events initial starting position, you can use the following
+ * note tags:
+ * ~~~
+ *  <ox:X>
+ *  or
+ *  <oy:X>
+ * ~~~
+ * Where X is the number of pixels to shift the event. Can be negative.
  * ============================================================================
  * ## Plugin Commands
  * ============================================================================
@@ -652,9 +680,9 @@ function Polygon_Collider() {
 
   Polygon_Collider.prototype.edge = function() {
     var x1 = this._xMin + this.x + this.ox;
-    var x2 = this._xMax + this.x + this.ox;
+    var x2 = this._xMax + this.x + this.ox - 1;
     var y1 = this._yMin + this.y + this.oy;
-    var y2 = this._yMax + this.y + this.oy;
+    var y2 = this._yMax + this.y + this.oy - 1;
     return {
       x1: x1, x2: x2,
       y1: y1, y2: y2
@@ -1248,10 +1276,17 @@ function ColliderManager() {
     var h = arr[2] || 0;
     var ox = arr[3] || 0;
     var oy = arr[4] || 0;
-    if (type === 'box') {
-      var collider = new Box_Collider(w, h, ox, oy);
-    } else if (type === 'circle') {
-      var collider = new Circle_Collider(w, h, ox, oy);
+    var collider;
+    if (type === 'circle' || type === 'box') {
+      if (type === 'circle') {
+        collider = new Circle_Collider(w, h, ox, oy);
+      } else {
+        collider = new Box_Collider(w, h, ox, oy);
+      }
+    } else if (type === 'poly') {
+      collider = new Polygon_Collider(arr.slice(1));
+    } else {
+      return null;
     }
     return collider;
   };
@@ -2359,14 +2394,13 @@ function ColliderManager() {
     var notes = this.notes(true);
     var configs = {};
     var multi = /<colliders>([\s\S]*)<\/colliders>/i.exec(notes);
-    var single = /<collider[=|:]([0-9a-z,-\s]*?)>/i.exec(notes);
+    var single = /<collider[:|=](.*?)>/i.exec(notes);
     if (multi) {
       configs = QPlus.stringToObj(multi[1]);
     }
     if (single) {
       configs.default = QPlus.stringToAry(single[1]);
-    }
-    if (!configs.default) {
+    } else if (!configs.default) {
       configs.default = QPlus.stringToAry(defaultCollider);
     }
     for (var collider in configs) {
@@ -2378,8 +2412,9 @@ function ColliderManager() {
   };
 
   Game_CharacterBase.prototype.makeCollider = function(name, settings) {
-    settings[4] = settings[4] || 0;
-    settings[4] -= this.shiftY();
+    if (settings[0] === 'box' || settings[0] === 'circle') {
+      settings[4] = (settings[4] || 0) - this.shiftY();
+    }
     this._colliders[name] = ColliderManager.convertToCollider(settings);
     this._colliders[name]._charaId = this.charaId();
     ColliderManager.addCollider(this._colliders[name], -1, true);
@@ -3001,8 +3036,8 @@ function ColliderManager() {
   };
 
   Game_Event.prototype.initialPosition = function() {
-    var ox = /<ox[=|:](-?[0-9]+)>/.exec(this.comments(true)) || 0;
-    var oy = /<oy[=|:](-?[0-9]+)>/.exec(this.comments(true)) || 0;
+    var ox = /<ox[=|:](-?[0-9]+)>/i.exec(this.comments(true)) || 0;
+    var oy = /<oy[=|:](-?[0-9]+)>/i.exec(this.comments(true)) || 0;
     if (ox) ox = Number(ox[1]) || 0;
     if (oy) oy = Number(oy[1]) || 0;
     this.setPixelPosition(this.px + ox, this.py + oy);
