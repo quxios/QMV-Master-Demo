@@ -3,13 +3,13 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QPlus = '1.2.2';
+Imported.QPlus = '1.2.3';
 
 //=============================================================================
  /*:
  * @plugindesc <QPlus> (Should go above all Q Plugins)
  * Some small changes to MV for easier plugin development.
- * @author Quxios  | Version 1.2.2
+ * @author Quxios  | Version 1.2.3
  *
  * @param Quick Test
  * @desc Enable quick testing.
@@ -208,6 +208,33 @@ QPlus.getArg = function(args, regex) {
   return arg;
 };
 
+QPlus.getMeta = function(string) {
+  var meta = {};
+  var inlineRegex = /<([^<>:\/]+)(?::?)([^>]*)>/g;
+  var blockRegex = /<([^<>:\/]+)>([\s\S]*?)<\/\1>/g;
+  for (;;) {
+    var match = inlineRegex.exec(string);
+    if (match) {
+      if (match[2] === '') {
+        meta[match[1]] = true;
+      } else {
+        meta[match[1]] = match[2];
+      }
+    } else {
+        break;
+    }
+  }
+  for (;;) {
+    var match = blockRegex.exec(string);
+    if (match) {
+      meta[match[1]] = match[2];
+    } else {
+      break;
+    }
+  }
+  return meta;
+};
+
 QPlus.getCharacter = function(string) {
   string = String(string).toLowerCase();
   if (/^[0-9]+$/.test(string)) {
@@ -308,7 +335,7 @@ QPlus.stringToObj = function(string) {
  */
 QPlus.stringToAry = function(string) {
   // couldn't get this to work with split so went with regex
-  var regex = /(\(.*?\))|([^,]+)/g;
+  var regex = /\s*(\(.*?\))|([^,]+)/g;
   var arr = [];
   while (true) {
     var match = regex.exec(string);
@@ -321,7 +348,7 @@ QPlus.stringToAry = function(string) {
   return arr.map(function(s) {
     s = s.trim();
     if (/^-?\d+\.?\d*$/.test(s)) return Number(s);
-    var p = /^\((\d+),(\d+),?(\d*)/.exec(s);
+    var p = /^\((\d+),\s*(\d+),?\s*(\d*)/.exec(s);
     if (p) {
       return new Point(Number(p[1]), Number(p[2]), Number(p[3]));
     }
@@ -745,9 +772,8 @@ function SimpleTilemap() {
   };
 
   Game_Event.prototype.setupComments = function() {
-    if (!this.page() || !this.list()) {
-      this._comments = '';
-    } else {
+    this._comments = '';
+    if (this.page() && this.list()) {
       this._comments = this.list().filter(function(list) {
         return list.code === 108 || list.code === 408;
       }).map(function(list) {
