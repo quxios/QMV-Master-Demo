@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QMap = '1.4.0';
+Imported.QMap = '1.4.1';
 
 if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.5')) {
   alert('Error: QMap requires QPlus 1.1.5 or newer to work.');
@@ -17,7 +17,7 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.5')) {
  /*:
  * @plugindesc <QMap>
  * Creates maps made with QMap Editor
- * @author Quxios  | Version 1.4.0
+ * @author Quxios  | Version 1.4.1
  *
  * @requires QPlus
  *
@@ -48,7 +48,8 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.5')) {
  * ~~~
  *  <collider:SHAPE,WIDTH,HEIGHT,OX,OY>
  * ~~~
- * - SHAPE: box or circle (only box works unless QMovement is installed)
+ * - SHAPE: Set to box, circle or poly (only box works unless QMovement is installed)
+ *   - If poly read next section on poly shape
  * - WIDTH: The width of the collider, in pixels
  * - HEIGHT: The height of the collider, in pixels
  * - OX: The X Offset of the collider, in pixels
@@ -71,11 +72,22 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.5')) {
  *  collider to be used when ever the type isn't found. Set to collision, for
  *  that collider to be used as a collision. Set to other values if needed
  *  for example, if a certain type is needed for a plugin feature.
- * - SHAPE: Box or circle (only box works unless QMovement is installed)
+ * - SHAPE: Set to box, circle or poly (only box works unless QMovement is installed)
+ *   - If poly read next section on poly shape
  * - WIDTH: The width of the collider, in pixels
  * - HEIGHT: The height of the collider, in pixels
  * - OX: The X Offset of the collider, in pixels
  * - OY: The Y Offset of the collider, in pixels
+ * ----------------------------------------------------------------------------
+ * **Poly Colliders**
+ * ----------------------------------------------------------------------------
+ * To create a polygon collider, set the shape to poly. After that the rest
+ * of the line should be a list of points separated with a comma. Points are
+ * written as "(X,Y)". An example polygon would be:
+ * ~~~
+ *  poly,(24,0),(48,24),(24,48),(0,24)
+ * ~~~
+ * Would create a diamond shaped polygon.
  * ----------------------------------------------------------------------------
  * **OnPlayer**
  * ----------------------------------------------------------------------------
@@ -702,7 +714,7 @@ var $dataQMap = null;
     var mapObjs = $gameMap._mapObjs;
     var i;
     for (i = 0; i < mapObjs.length; i++) {
-      if (!mapObjs[i]) continue;
+      if (!mapObjs[i] || !mapObjs[i].filePath) continue;
       this._mapObjs.push(new Sprite_MapObject(mapObjs[i]));
     }
     for (i = 0; i < this._mapObjs.length; i++) {
