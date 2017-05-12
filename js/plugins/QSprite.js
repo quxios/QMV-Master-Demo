@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QSprite = '2.1.3';
+Imported.QSprite = '2.1.4';
 
 if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.2.0')) {
   alert('Error: QSprite requires QPlus 1.2.0 or newer to work.');
@@ -14,7 +14,7 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.2.0')) {
  /*:
  * @plugindesc <QSprite>
  * Lets you configure Spritesheets
- * @author Quxios  | Version 2.1.3
+ * @author Quxios  | Version 2.1.4
  *
  * @requires QPlus
  *
@@ -620,8 +620,11 @@ QSprite.json = null;
         dir = diag;
       }
     }
-    pose += dir;
-    if (!this.hasPose(pose)) return;
+    if (this.hasPose(pose + dir)) {
+      pose += dir;
+    } else if (!this.hasPose(pose)) {
+      return;
+    }
     this._pose = pose;
     this._posePlaying = {
       lock: lock,
@@ -680,13 +683,18 @@ QSprite.json = null;
   //-----------------------------------------------------------------------------
   // Sprite_Character
 
+  Sprite_Character.prototype.qSprite = function() {
+    return this._character.isQCharacter() ? this._character.qSprite() : null;
+  };
+
   var Alias_Sprite_Character_updateBitmap = Sprite_Character.prototype.updateBitmap;
   Sprite_Character.prototype.updateBitmap = function() {
     if (this.isImageChanged()) {
       Alias_Sprite_Character_updateBitmap.call(this);
-      if (this._character.isQCharacter()) {
-        this.anchor.x = this._character.qSprite().anchorX || 0.5;
-        this.anchor.y = this._character.qSprite().anchorY || 1;
+      var qSprite = this.qSprite();
+      if (qSprite) {
+        this.anchor.x = qSprite.anchorX || 0.5;
+        this.anchor.y = qSprite.anchorY || 1;
       }
     }
   };
@@ -736,25 +744,28 @@ QSprite.json = null;
       }
   };
   var Alias_Sprite_Character_characterBlockX = Sprite_Character.prototype.characterBlockX;
+
+  var Alias_Sprite_Character_characterBlockX = Sprite_Character.prototype.characterBlockX;
   Sprite_Character.prototype.characterBlockX = function() {
-    if (this._character.isQCharacter()) return 0;
+    if (this.qSprite()) return 0;
     return Alias_Sprite_Character_characterBlockX.call(this);
   };
 
   var Alias_Sprite_Character_characterBlockY = Sprite_Character.prototype.characterBlockY;
   Sprite_Character.prototype.characterBlockY = function() {
-    if (this._character.isQCharacter()) return 0;
+    if (this.qSprite()) return 0;
     return Alias_Sprite_Character_characterBlockY.call(this);
   };
 
   var Alias_Sprite_Character_characterPatternX = Sprite_Character.prototype.characterPatternX;
   Sprite_Character.prototype.characterPatternX = function() {
-    if (this._character.isQCharacter()) {
-      var pose = this._character.qSprite().poses[this._character._pose];
+    var qSprite = this.qSprite();
+    if (qSprite) {
+      var pose = qSprite.poses[this._character._pose];
       if (!pose) return 0;
       var pattern = pose.pattern;
       var i = pattern[this._character._pattern];
-      var x = i % this._character.qSprite().cols;
+      var x = i % qSprite.cols;
       return x;
     }
     return Alias_Sprite_Character_characterPatternX.call(this);
@@ -762,13 +773,14 @@ QSprite.json = null;
 
   var Alias_Sprite_Character_characterPatternY = Sprite_Character.prototype.characterPatternY;
   Sprite_Character.prototype.characterPatternY = function() {
-    if (this._character.isQCharacter()) {
-      var pose = this._character.qSprite().poses[this._character._pose];
+    var qSprite = this.qSprite();
+    if (qSprite) {
+      var pose = qSprite.poses[this._character._pose];
       if (!pose) return 0;
       var pattern = pose.pattern;
       var i = pattern[this._character._pattern];
-      var x = i % this._character.qSprite().cols;
-      var y = (i - x) / this._character.qSprite().cols;
+      var x = i % qSprite.cols;
+      var y = (i - x) / qSprite.cols;
       return y;
     }
     return Alias_Sprite_Character_characterPatternY.call(this);
@@ -776,16 +788,18 @@ QSprite.json = null;
 
   var Alias_Sprite_Character_patternWidth = Sprite_Character.prototype.patternWidth;
   Sprite_Character.prototype.patternWidth = function() {
-    if (this._character.isQCharacter()) {
-      return this.bitmap.width / this._character.qSprite().cols;
+    var qSprite = this.qSprite();
+    if (qSprite) {
+      return this.bitmap.width / qSprite.cols;
     }
     return Alias_Sprite_Character_patternWidth.call(this);
   };
 
   var Alias_Sprite_Character_patternHeight = Sprite_Character.prototype.patternHeight;
   Sprite_Character.prototype.patternHeight = function() {
-    if (this._character.isQCharacter()) {
-      return this.bitmap.height / this._character.qSprite().rows;
+    var qSprite = this.qSprite();
+    if (qSprite) {
+      return this.bitmap.height / qSprite.rows;
     }
     return Alias_Sprite_Character_patternHeight.call(this);
   };
