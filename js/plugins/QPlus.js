@@ -3,13 +3,13 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QPlus = '1.2.3';
+Imported.QPlus = '1.3.0';
 
 //=============================================================================
  /*:
  * @plugindesc <QPlus> (Should go above all Q Plugins)
  * Some small changes to MV for easier plugin development.
- * @author Quxios  | Version 1.2.3
+ * @author Quxios  | Version 1.3.0
  *
  * @param Quick Test
  * @desc Enable quick testing.
@@ -113,7 +113,7 @@ Imported.QPlus = '1.2.3';
  * ~~~
  * Will Lock the movements for only these characters:
  * Player, event 1 and event 4
- *
+ * 
  * ============================================================================
  * ## Links
  * ============================================================================
@@ -140,294 +140,310 @@ function QPlus() {
  throw new Error('This is a static class');
 }
 
-QPlus._PARAMS = {};
+(function() {
+  QPlus._PARAMS = {};
 
-QPlus.getParams = function(id) {
-  if (!this._PARAMS[id]) {
-    this._PARAMS[id] = $plugins.filter(function(p) {
-      return p.description.contains(id) && p.status
-    })[0].parameters;
-  }
-  return this._PARAMS[id];
-};
-
-QPlus.versionCheck = function(version, targetVersion) {
-  version = version.split('.').map(Number);
-  targetVersion = targetVersion.split('.').map(Number);
-  if (version[0] < targetVersion[0]) {
-    return false;
-  } else if (version[0] === targetVersion[0] && version[1] < targetVersion[1]) {
-    return false;
-  } else if (version[1] === targetVersion[1] && version[2] < targetVersion[2]) {
-    return false;
-  }
-  return true;
-};
-
-QPlus.makeArgs = function(string) {
-  var inital = string.split(' ');
-  var final  = [];
-  var merging = false;
-  var j = 0;
-  for (var i = 0; i < inital.length; i++) {
-    var arg = inital[i];
-    if (merging) {
-      if (arg.contains('"')) {
-        final[j] += ' ' + arg.replace('"', '');
-        merging = false;
-        j++;
-      } else {
-        final[j] += ' ' + arg;
-      }
-    } else {
-      if (arg.contains('"')) {
-        final[j] = arg.replace('"', '');
-        merging = true;
-      } else {
-        final[j] = arg;
-        j++
-      }
+  QPlus.getParams = function(id) {
+    if (!this._PARAMS[id]) {
+      this._PARAMS[id] = $plugins.filter(function(p) {
+        return p.description.contains(id) && p.status
+      })[0].parameters;
     }
-  }
-  return final;
-};
+    return this._PARAMS[id];
+  };
 
-QPlus.getArg = function(args, regex) {
-  var arg = null;
-  for (var i = 0; i < args.length; i++) {
-    var match = regex.exec(args[i]);
-    if (match) {
-      if (match.length === 1) {
-        arg = true;
-      } else {
-        arg = match[match.length - 1];
-      }
-      break;
+  QPlus.versionCheck = function(version, targetVersion) {
+    version = version.split('.').map(Number);
+    targetVersion = targetVersion.split('.').map(Number);
+    if (version[0] < targetVersion[0]) {
+      return false;
+    } else if (version[0] === targetVersion[0] && version[1] < targetVersion[1]) {
+      return false;
+    } else if (version[1] === targetVersion[1] && version[2] < targetVersion[2]) {
+      return false;
     }
-  }
-  return arg;
-};
+    return true;
+  };
 
-QPlus.getMeta = function(string) {
-  var meta = {};
-  var inlineRegex = /<([^<>:\/]+)(?::?)([^>]*)>/g;
-  var blockRegex = /<([^<>:\/]+)>([\s\S]*?)<\/\1>/g;
-  for (;;) {
-    var match = inlineRegex.exec(string);
-    if (match) {
-      if (match[2] === '') {
-        meta[match[1]] = true;
+  /**
+   * @static QPlus.makeArgs
+   *  Splits a string every space. If words are wrapped in ""s or ''s they
+   *  are kept grouped.
+   * @param  {String} string
+   * @return {Array}
+   */
+  QPlus.makeArgs = function(string) {
+    var args = [];
+    var regex = /("?|'?)(.+?)\1(?:\s|$)/g;
+    while (true) {
+      var match = regex.exec(string);
+      if (match) {
+        args.push(match[2]);
       } else {
-        meta[match[1]] = match[2];
-      }
-    } else {
         break;
-    }
-  }
-  for (;;) {
-    var match = blockRegex.exec(string);
-    if (match) {
-      meta[match[1]] = match[2];
-    } else {
-      break;
-    }
-  }
-  return meta;
-};
-
-QPlus.getCharacter = function(string) {
-  string = String(string).toLowerCase();
-  if (/^[0-9]+$/.test(string)) {
-    var id = Number(string);
-    return id === 0 ? $gamePlayer : $gameMap.event(id);
-  } else if (/^(player|p)$/.test(string)) {
-    return $gamePlayer;
-  } else {
-    var isEvent = /^(event|e)([0-9]+)$/.exec(string);
-    if (isEvent) {
-      var eventId = Number(isEvent[2]);
-      return eventId > 0 ? $gameMap.event(eventId) : null;
-    }
-    return null;
-  }
-};
-
-/**
- * @static QPlus.request
- * @param  {String} filePath
- *         path to the file to load
- * @param  {Function} callback
- *         callback on load, response value is passed as 1st argument
- * @param  {Function} err
- *         callback on error
- * @return {XMLHttpRequest}
- */
-QPlus.request = function(filePath, callback, err) {
-  var xhr = new XMLHttpRequest();
-  xhr.url = filePath;
-  xhr.open('GET', filePath, true);
-  var type = filePath.split('.').pop().toLowerCase();
-  if (type === 'txt') {
-    xhr.overrideMimeType('text/plain');
-  } else if (type === 'json') {
-    xhr.overrideMimeType('application/json');
-  }
-  xhr.onload = function() {
-    if (this.status < 400) {
-      var val = this.responseText;
-      if (type === 'json') val = JSON.parse(val);
-      this._onSuccess(val);
-    }
-  }
-  xhr.onError = function(func) {
-    this.onerror = func;
-    return this;
-  }
-  xhr.onSuccess = function(func) {
-    this._onSuccess = func;
-    return this;
-  }
-  xhr._onSuccess = callback || function() {};
-  xhr.onerror = err || function() {
-    console.error('Error:' + this.url + ' not found');
-  }
-  xhr.send();
-  return xhr;
-};
-
-/**
- * @static QPlus.stringToObj
- * @param  {String} string
- *         string in the format:
- *         key: value
- *         key2: value2
- * @return {Object}
- */
-QPlus.stringToObj = function(string) {
-  var lines = string.split('\n');
-  var obj = {};
-  lines.forEach(function(value) {
-    var match = /^(.*):(.*)/.exec(value);
-    if (match) {
-      var key, newKey = match[1].trim();
-      if (obj.hasOwnProperty(key)) {
-        var i = 1;
-        while (obj.hasOwnProperty(newKey)) {
-          newKey = key + String(i);
-          i++;
-        }
       }
-      var arr = QPlus.stringToAry(match[2].trim());
-      if (arr.length === 1) arr = arr[0];
-      obj[newKey] =  arr || '';
     }
-  })
-  return obj;
-};
+    return args;
+  };
 
-/**
- * @static QPlus.stringToAry
- * @param  {String} string
- *         Separate values with a comma
- * @return {Array}
- *         Values will be trimmed, and auto converted to
- *         Number, true, false or null
- */
-QPlus.stringToAry = function(string) {
-  // couldn't get this to work with split so went with regex
-  var regex = /\s*(\(.*?\))|([^,]+)/g;
-  var arr = [];
-  while (true) {
-    var match = regex.exec(string);
-    if (match) {
-      arr.push(match[0]);
+  QPlus.getArg = function(args, regex) {
+    var arg = null;
+    for (var i = 0; i < args.length; i++) {
+      var match = regex.exec(args[i]);
+      if (match) {
+        if (match.length === 1) {
+          arg = true;
+        } else {
+          arg = match[match.length - 1];
+        }
+        break;
+      }
+    }
+    return arg;
+  };
+
+  QPlus.getMeta = function(string) {
+    var meta = {};
+    var inlineRegex = /<([^<>:\/]+)(?::?)([^>]*)>/g;
+    var blockRegex = /<([^<>:\/]+)>([\s\S]*?)<\/\1>/g;
+    for (;;) {
+      var match = inlineRegex.exec(string);
+      if (match) {
+        if (match[2] === '') {
+          meta[match[1]] = true;
+        } else {
+          meta[match[1]] = match[2];
+        }
+      } else {
+        break;
+      }
+    }
+    for (;;) {
+      var match = blockRegex.exec(string);
+      if (match) {
+        meta[match[1]] = match[2];
+      } else {
+        break;
+      }
+    }
+    return meta;
+  };
+
+  QPlus.getCharacter = function(string) {
+    string = String(string).toLowerCase();
+    if (/^[0-9]+$/.test(string)) {
+      var id = Number(string);
+      return id === 0 ? $gamePlayer : $gameMap.event(id);
+    } else if (/^(player|p)$/.test(string)) {
+      return $gamePlayer;
     } else {
-      break;
+      var isEvent = /^(event|e)([0-9]+)$/.exec(string);
+      if (isEvent) {
+        var eventId = Number(isEvent[2]);
+        return eventId > 0 ? $gameMap.event(eventId) : null;
+      }
+      return null;
     }
-  }
-  return arr.map(function(s) {
-    s = s.trim();
-    if (/^-?\d+\.?\d*$/.test(s)) return Number(s);
-    var p = /^\((\d+),\s*(\d+),?\s*(\d*)/.exec(s);
-    if (p) {
-      return new Point(Number(p[1]), Number(p[2]), Number(p[3]));
+  };
+
+  /**
+   * @static QPlus.request
+   *  Creates an XHR request
+   * @param  {String}   filePath
+   *         path to the file to load
+   * @param  {Function} callback
+   *         callback on load, response value is passed as 1st argument
+   * @param  {Function} err
+   *         callback on error
+   * @return {XMLHttpRequest}
+   */
+  QPlus.request = function(filePath, callback, err) {
+    var xhr = new XMLHttpRequest();
+    xhr.url = filePath;
+    xhr.open('GET', filePath, true);
+    var type = filePath.split('.').pop().toLowerCase();
+    if (type === 'txt') {
+      xhr.overrideMimeType('text/plain');
+    } else if (type === 'json') {
+      xhr.overrideMimeType('application/json');
     }
-    if (s === 'true') return true;
-    if (s === 'false') return false;
-    if (s === 'null' || s === '') return null;
-    return s;
-  })
-};
+    xhr.onload = function() {
+      if (this.status < 400) {
+        var val = this.responseText;
+        if (type === 'json') val = JSON.parse(val);
+        this._onSuccess(val);
+      }
+    }
+    xhr.onError = function(func) {
+      this.onerror = func;
+      return this;
+    }
+    xhr.onSuccess = function(func) {
+      this._onSuccess = func;
+      return this;
+    }
+    xhr._onSuccess = callback || function() {};
+    xhr.onerror = err || function() {
+      console.error('Error:' + this.url + ' not found');
+    }
+    xhr.send();
+    return xhr;
+  };
 
-/**
- * @static QPlus.pointToIndex
- * Converts a point to a 1D point (an index)
- * @param  {Point} point
- * @param  {Int} maxCols
- * @param  {Int} maxRows
- * @return {Int} index value
- */
-QPlus.pointToIndex = function(point, maxCols, maxRows) {
-  if (point.x >= maxCols) return -1;
-  if (maxRows && point.y >= maxRows) return -1;
-  if (!maxRows) maxRows = 0;
-  if (!point.z) point.z = 0;
-  var index = (point.x + point.y * (maxCols));
-  return index + ((maxCols * maxRows) * point.z);
-};
+  QPlus._waitListeners = [];
+  /**
+   * @static QPlus.wait
+   *  Calls callback once duration reachs 0
+   * @param  {Number}   duration
+   *         duration in frames to wait
+   * @param  {Function} callback
+   *         callback to call after wait is complete
+   * @return {Waiter}
+   *         Wait object that was created. Used to remove from listeners.
+   *         Can also be used to use the .then function to add a callback
+   *         instead of passing the callback in the parameter
+   */
+  QPlus.wait = function(duration, callback) {
+    var waiter = {
+      duration: duration || 0,
+      callback: callback,
+      then: function(callback) {
+        this.callback = callback;
+      }
+    }
+    QPlus._waitListeners.push(waiter);
+    return waiter;
+  };
 
-/**
- * @static QPlus.indexToPoint
- * Converts a 1D point (an index) to a 2D or 3D point
- * @param  {Int} index
- * @param  {Int} maxCols
- * @param  {Int} maxRows
- * @return {Point}
- *         2D point if index is within maxCols * maxRows
- *         3D point if index is out of maxCols * maxRows
- */
-QPlus.indexToPoint = function(index, maxCols, maxRows) {
-  if (index < 0) return new Point(-1, -1);
-  var x = index % maxCols;
-  var y = Math.floor(index / maxCols);
-  var z = 0;
-  if (maxRows && index >= maxCols * maxRows) {
-    z = Math.floor(index / (maxCols * maxRows));
-    y -= maxRows * z;
-  }
-  return new Point(x, y, z);
-};
+  QPlus.removeWaitListener = function(waiter) {
+    var i = this._waitListeners.indexOf(waiter);
+    if (i === -1) return;
+    this._waitListeners.splice(i, 1);
+  };
 
-/**
- * @static QPlus.freeImgCache
- * @param  {String or Array} files
- *         List of files to remove from cache
- *         If a string, separate with commas
- *         Is case sensative, but only checking if any file
- *         contains string(s) passed. Not checking if it's equal
- *         So passing img/ will free all images, since they all begin
- *         with img/
- */
-QPlus.freeImgCache = function(files) {
-  if (typeof files === 'string') {
-    files = files.split(',').map(function(s) { return s.trim() });
-  }
-  for (var key in ImageManager.cache._inner) {
-    if (!ImageManager.cache._inner.hasOwnProperty(key)) continue;
-    var found = files.some(function(file) {
-      return key.contains(file);
+  QPlus.clearWaitListeners = function() {
+    QPlus._waitListeners = [];
+  };
+
+  /**
+   * @static QPlus.stringToObj
+   *   Converts a string into an object
+   * @param  {String} string
+   *         string in the format:
+   *         key: value
+   *         key2: value2
+   * @return {Object}
+   */
+  QPlus.stringToObj = function(string) {
+    var lines = string.split('\n');
+    var obj = {};
+    lines.forEach(function(value) {
+      var match = /^(.*):(.*)/.exec(value);
+      if (match) {
+        var key, newKey = match[1].trim();
+        if (obj.hasOwnProperty(key)) {
+          var i = 1;
+          while (obj.hasOwnProperty(newKey)) {
+            newKey = key + String(i);
+            i++;
+          }
+        }
+        var arr = QPlus.stringToAry(match[2].trim());
+        if (arr.length === 1) arr = arr[0];
+        obj[newKey] =  arr || '';
+      }
     })
-    if (found) {
-      ImageManager.cache._inner[key].free();
+    return obj;
+  };
+
+  /**
+   * @static QPlus.stringToAry
+   *  Converts a string into an array. And auto converts to
+   *  Number, Point, true, false or null
+   * @param  {String} string
+   *         Separate values with a comma
+   * @return {Array}
+   */
+  QPlus.stringToAry = function(string) {
+    // couldn't get this to work with split so went with regex
+    var regex = /\s*(\(.*?\))|([^,]+)/g;
+    var arr = [];
+    while (true) {
+      var match = regex.exec(string);
+      if (match) {
+        arr.push(match[0]);
+      } else {
+        break;
+      }
     }
-  }
-};
+    return arr.map(function(s) {
+      s = s.trim();
+      if (/^-?\d+\.?\d*$/.test(s)) return Number(s);
+      var p = /^\((\d+),\s*(\d+)/.exec(s);
+      if (p) {
+        return new Point(Number(p[1]), Number(p[2]));
+      }
+      if (s === 'true') return true;
+      if (s === 'false') return false;
+      if (s === 'null' || s === '') return null;
+      return s;
+    })
+  };
+
+  /**
+   * @static QPlus.pointToIndex
+   *  Converts a point to an index
+   * @param  {Point} point
+   * @param  {Int}   maxCols
+   * @param  {Int}   maxRows
+   * @return {Int} index value
+   */
+  QPlus.pointToIndex = function(point, maxCols, maxRows) {
+    if (point.x >= maxCols) return -1;
+    if (maxRows && point.y >= maxRows) return -1;
+    return point.x + point.y * (maxCols)
+  };
+
+  /**
+   * @static QPlus.indexToPoint
+   * Converts an index to a Point
+   * @param  {Int} index
+   * @param  {Int} maxCols
+   * @param  {Int} maxRows
+   * @return {Point}
+   */
+  QPlus.indexToPoint = function(index, maxCols, maxRows) {
+    if (index < 0) return new Point(-1, -1);
+    var x = index % maxCols;
+    var y = Math.floor(index / maxCols);
+    return new Point(x, y);
+  };
+
+  QPlus.update = function() {
+    this.updateWaiters();
+  };
+
+  QPlus.updateWaiters = function() {
+    var waiters = this._waitListeners
+    for (var i = waiters.length - 1; i >= 0; i--) {
+      if (waiters[i].duration <= 0) {
+        if (typeof waiters[i].callback === 'function') {
+          waiters[i].callback();
+          waiters[i].callback = null;
+        }
+        waiters.splice(i, 1);
+      } else {
+        waiters[i].duration--;
+      }
+    }
+  };
+})();
 
 //-----------------------------------------------------------------------------
 // SimpleTilemap
 
 function SimpleTilemap() {
-    this.initialize.apply(this, arguments);
+  this.initialize.apply(this, arguments);
 }
 
 //=============================================================================
@@ -440,6 +456,15 @@ function SimpleTilemap() {
   var _PARAMS    = QPlus.getParams('<QPlus>');
   var _QUICKTEST = _PARAMS['Quick Test'].toLowerCase() == 'true';
   var _SWITCHES  = _PARAMS['Default Enabled Switches'].split(',').map(Number);
+
+  //-----------------------------------------------------------------------------
+  // SceneManager
+
+  var Alias_SceneManager_updateScene = SceneManager.updateScene;
+  SceneManager.updateScene = function() {
+    Alias_SceneManager_updateScene.call(this);
+    QPlus.update();
+  };
 
   //-----------------------------------------------------------------------------
   // Graphics
@@ -470,32 +495,6 @@ function SimpleTilemap() {
   Math.randomBetween = function(min, max) {
     return Math.random() * (max - min) + min;
   };
-
-  //-----------------------------------------------------------------------------
-  // Point
-
-  Point.prototype.initialize = function(x, y, z) {
-    PIXI.Point.call(this, x, y);
-    this.z = z || 0;
-  };
-
-  Point.prototype.clone = function() {
-    return new Point(this.x, this.y, this.z);
-  };
-
-  Point.prototype.copy = function(p) {
-    this.set(p.x, p.y, p.z);
-  };
-
-  Point.prototype.equals = function(p) {
-    return (p.x === this.x) && (p.y === this.y) && (p.z === this.z);
-  }
-
-  Point.prototype.set = function(x, y, z) {
-    this.x = x || 0;
-    this.y = y || ((y !== 0) ? this.x : 0);
-    this.z = z || 0;
-  }
 
   //-----------------------------------------------------------------------------
   // Scene_Boot
@@ -549,8 +548,6 @@ function SimpleTilemap() {
 
   //-----------------------------------------------------------------------------
   // Game_Interpreter
-  //
-  // The interpreter for running event commands.
 
   var Alias_Game_Interpreter_pluginCommand = Game_Interpreter.prototype.pluginCommand;
   Game_Interpreter.prototype.pluginCommand = function(command, args) {
@@ -580,9 +577,6 @@ function SimpleTilemap() {
 
   //-----------------------------------------------------------------------------
   // Game_Map
-  //
-  // The game object class for a map. It contains scrolling and passage
-  // determination functions.
 
   /**
    * @param  {arr} charas
@@ -601,16 +595,17 @@ function SimpleTilemap() {
     level  = level === undefined ? 1 : level;
     if (mode === 0) {
       $gamePlayer._globalLocked = !charas.contains($gamePlayer) ? level : 0;
-      this.events().forEach(function(event) {
-        if (charas.contains(event)) return;
-        event._globalLocked = level;
-      })
+      var events = this.events();
+      for (var i = 0; i < events.length; i++) {
+        if (charas.contains(events[i])) continue;
+        events[i]._globalLocked = level;
+      }
     } else {
-      charas.forEach(function(chara) {
-        if (chara) {
-          chara._globalLocked = level;
+      for (var i = 0; i < charas.length; i++) {
+        if (charas[i]) {
+          charas[i]._globalLocked = level;
         }
-      })
+      }
     }
   };
 
@@ -730,7 +725,7 @@ function SimpleTilemap() {
 
   Game_Player.prototype.canClick = function() {
     return true;
-  }
+  };
 
   Game_Player.prototype.charaId = function() {
     return 0;
@@ -887,7 +882,7 @@ function SimpleTilemap() {
     } else if (a.y !== b.y) {
       return a.y - b.y;
     } else {
-      return a.spriteId - b.spriteId;
+      return (a.spriteId - b.spriteId) || 0;
     }
   };
 })()
