@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QMovement = '1.3.0';
+Imported.QMovement = '1.3.1';
 
 if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.2.3')) {
   alert('Error: QMovement requires QPlus 1.2.3 or newer to work.');
@@ -14,7 +14,7 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.2.3')) {
  /*:
  * @plugindesc <QMovement>
  * More control over character movement
- * @author Quxios  | Version 1.3.0
+ * @author Quxios  | Version 1.3.1
  *
  * @repo https://github.com/quxios/QMovement
  *
@@ -1701,7 +1701,7 @@ function ColliderManager() {
     this._radiusL = 0;
     this._radisuH = 0;
     this._angularSpeed;
-    this._passabilityLevel = 0; // todo
+    this._passabilityLevel = 0; // TODO
     this._isMoving = false;
     this._smartMove = 0;
   };
@@ -2197,33 +2197,6 @@ function ColliderManager() {
     }
   };
 
-  Game_CharacterBase.prototype.fixedRadianMove = function(radian, dist) {
-    dist = dist || this.moveTiles();
-    var realDir = this.radianToDirection(radian, true);
-    var dir = this.radianToDirection(radian);
-    var xAxis = Math.cos(radian);
-    var yAxis = Math.sin(radian);
-    var horzSteps = Math.abs(xAxis) * dist;
-    var vertSteps = Math.abs(yAxis) * dist;
-    var horz = xAxis > 0 ? 6 : xAxis < 0 ? 4 : 0;
-    var vert = yAxis > 0 ? 2 : yAxis < 0 ? 8 : 0;
-    var x2 = $gameMap.roundPXWithDirection(this._px, horz, horzSteps);
-    var y2 = $gameMap.roundPYWithDirection(this._py, vert, vertSteps);
-    this.setMovementSuccess(this.canPassToFrom(x2, y2, this._px, this._py, null, true));
-    this.setDirection(realDir);
-    if (this.isMovementSucceeded()) {
-      this._adjustFrameSpeed = true;
-      this._radian = radian;
-      this._px = x2;
-      this._py = y2;
-      this._realPX = $gameMap.pxWithDirection(this._px, this.reverseDir(horz), horzSteps);
-      this._realPY = $gameMap.pyWithDirection(this._py, this.reverseDir(vert), vertSteps);
-      this.increaseSteps();
-    } else {
-      this.checkEventTriggerTouchFront(dir);
-    }
-  };
-
   Game_CharacterBase.prototype.fixedMove = function(dir, dist) {
     dir = dir === 5 ? this.direction() : dir;
     if ([1, 3, 7, 9].contains(dir)) {
@@ -2262,6 +2235,33 @@ function ColliderManager() {
     }
   };
 
+  Game_CharacterBase.prototype.fixedRadianMove = function(radian, dist) {
+    dist = dist || this.moveTiles();
+    var realDir = this.radianToDirection(radian, true);
+    var dir = this.radianToDirection(radian);
+    var xAxis = Math.cos(radian);
+    var yAxis = Math.sin(radian);
+    var horzSteps = Math.abs(xAxis) * dist;
+    var vertSteps = Math.abs(yAxis) * dist;
+    var horz = xAxis > 0 ? 6 : xAxis < 0 ? 4 : 0;
+    var vert = yAxis > 0 ? 2 : yAxis < 0 ? 8 : 0;
+    var x2 = $gameMap.roundPXWithDirection(this._px, horz, horzSteps);
+    var y2 = $gameMap.roundPYWithDirection(this._py, vert, vertSteps);
+    this.setMovementSuccess(this.canPassToFrom(x2, y2, this._px, this._py, null));
+    this.setDirection(realDir);
+    if (this.isMovementSucceeded()) {
+      this._adjustFrameSpeed = true;
+      this._radian = radian;
+      this._px = x2;
+      this._py = y2;
+      this._realPX = $gameMap.pxWithDirection(this._px, this.reverseDir(horz), horzSteps);
+      this._realPY = $gameMap.pyWithDirection(this._py, this.reverseDir(vert), vertSteps);
+      this.increaseSteps();
+    } else {
+      this.checkEventTriggerTouchFront(dir);
+    }
+  };
+
   Game_CharacterBase.prototype.fixedMoveBackward = function(dist) {
     var lastDirectionFix = this.isDirectionFixed();
     this.setDirectionFix(true);
@@ -2296,6 +2296,7 @@ function ColliderManager() {
     var collider = this.collider('collision');
     var steps = horz ? collider.height : collider.width;
     steps /= 2;
+    var pass = false;
     for (var i = 0; i < 2; i++) {
       var sign = i === 0 ? 1 : -1;
       var j = 0;
@@ -2313,41 +2314,88 @@ function ColliderManager() {
         } else {
           x2 = x1 + j * sign;
         }
-        var pass = this.canPixelPass(x2, y2, 5);
+        pass = this.canPixelPass(x2, y2, 5);
         if (pass) break;
       }
       if (pass) break;
     }
-    if (pass) {
-      var x3 = $gameMap.roundPXWithDirection(x1, dir, dist);
-      var y3 = $gameMap.roundPYWithDirection(y1, dir, dist);
-      collider.moveTo(x3, y3);
-      var collided = false;
-      ColliderManager.getCharactersNear(collider, (function(chara) {
-        if (chara.isThrough() || chara === this || !chara.isNormalPriority()) {
-          return false;
-        }
-        if (chara.collider('collision').intersects(collider) &&
-          chara.notes && !/<smartdir>/i.test(chara.notes())) {
-          collided = true;
-          return 'break';
-        }
+    if (!pass) return;
+    collider.moveTo(x2, y2);
+    var collided = false;
+    ColliderManager.getCharactersNear(collider, (function(chara) {
+      if (chara.isThrough() || chara === this || !chara.isNormalPriority()) {
         return false;
-      }).bind(this));
-      if (collided) {
-        collider.moveTo(x1, y1);
-        return;
       }
-      collider.moveTo(x2, y2);
-      this._realPX = x1;
-      this._realPY = y1;
-      this._px = x2;
-      this._py = y2;
-      this._radian = Math.atan2(y2 - y1, x2 - x1);
-      this._radian += this._radian < 0 ? 2 * Math.PI : 0;
-      this._adjustFrameSpeed = false;
-      this.increaseSteps();
+      if (chara.collider('collision').intersects(collider) &&
+        chara.notes && !/<smartdir>/i.test(chara.notes())) {
+        collided = true;
+        return 'break';
+      }
+      return false;
+    }).bind(this));
+    collider.moveTo(x1, y1);
+    if (collided) return;
+    collider.moveTo(x2, y2);
+    this._px = x2;
+    this._py = y2;
+    this._realPX = x1;
+    this._realPY = y1;
+    this._radian = Math.atan2(y2 - y1, x2 - x1);
+    this._radian += this._radian < 0 ? 2 * Math.PI : 0;
+    this._adjustFrameSpeed = false;
+    this.increaseSteps();
+  };
+
+  Game_CharacterBase.prototype.smartMoveRadian = function(radian, dist) {
+    // Incomplete func, might remove as results aren't as good as smartMoveDir8
+    // is a radian version of .smartMoveDir8
+    var radian2 = radian;
+    var horzSteps, vertSteps;
+    var horz, vert;
+    var x2, y2;
+    var a = Math.PI / 4;
+    var pass = false;
+    for (var i = 0; i < 2; i++) {
+      var sign = i === 0 ? 1 : -1;
+      for (var j = 1; j < 8; j++) {
+        radian2 = j !== 0 ? radian + a * sign / j : radian;
+        var xAxis = Math.cos(radian2);
+        var yAxis = Math.sin(radian2);
+        horzSteps = Math.round(Math.abs(xAxis) * dist);
+        vertSteps = Math.round(Math.abs(yAxis) * dist);
+        horz = xAxis > 0 ? 6 : xAxis < 0 ? 4 : 0;
+        vert = yAxis > 0 ? 2 : yAxis < 0 ? 8 : 0;
+        x2 = $gameMap.roundPXWithDirection(this._px, horz, horzSteps);
+        y2 = $gameMap.roundPYWithDirection(this._py, vert, vertSteps);
+        pass = this.canPassToFrom(x2, y2, this._px, this._py, null);
+        if (pass) break;
+      }
+      if (pass) break;
     }
+    if (!pass) return;
+    var collider = this.collider('collision');
+    collider.moveTo(x2, y2);
+    var collided = false;
+    ColliderManager.getCharactersNear(collider, (function(chara) {
+      if (chara.isThrough() || chara === this || !chara.isNormalPriority()) {
+        return false;
+      }
+      if (chara.collider('collision').intersects(collider) &&
+        chara.notes && !/<smartdir>/i.test(chara.notes())) {
+        collided = true;
+        return 'break';
+      }
+      return false;
+    }).bind(this));
+    collider.moveTo(this._px, this._py);
+    if (collided) return;
+    this._adjustFrameSpeed = true;
+    this._radian = radian2;
+    this._realPX = this._px;
+    this._realPY = this._py;
+    this._px = x2;
+    this._py = y2;
+    this.increaseSteps();
   };
 
   Game_CharacterBase.prototype.smartMoveSpeed = function(dir) {
@@ -2660,9 +2708,9 @@ function ColliderManager() {
   var Alias_Game_Character_moveTowardCharacter = Game_Character.prototype.moveTowardCharacter;
   Game_Character.prototype.moveTowardCharacter = function(character) {
     if (QMovement.offGrid) {
-      var dx = character.cx() - this.cx();
-      var dy = character.cy() - this.cy();
-      var radian = Math.atan2(dy, dx);
+      var dx = this.deltaPXFrom(character.cx());
+      var dy = this.deltaPYFrom(character.cy());
+      var radian = Math.atan2(-dy, -dx);
       if (radian < 0) radian += Math.PI * 2;
       var oldSM = this._smartMove;
       if (oldSM <= 1) this._smartMove = 2;
@@ -2676,9 +2724,9 @@ function ColliderManager() {
   var Alias_Game_Character_moveAwayFromCharacter = Game_Character.prototype.moveAwayFromCharacter;
   Game_Character.prototype.moveAwayFromCharacter = function(character) {
     if (QMovement.offGrid) {
-      var dx = character.cx() - this.cx();
-      var dy = character.cy() - this.cy();
-      var radian = Math.atan2(-dy, -dx);
+      var dx = this.deltaPXFrom(character.cx());
+      var dy = this.deltaPYFrom(character.cy());
+      var radian = Math.atan2(dy, dx);
       if (radian < 0) radian += Math.PI * 2;
       var oldSM = this._smartMove;
       if (oldSM <= 1) this._smartMove = 2;
@@ -2690,23 +2738,17 @@ function ColliderManager() {
   };
 
   Game_Character.prototype.turnTowardCharacter = function(character) {
-    var sx = this.deltaPXFrom(character.cx());
-    var sy = this.deltaPYFrom(character.cy());
-    if (Math.abs(sx) > Math.abs(sy)) {
-      this.setDirection(sx > 0 ? 4 : 6);
-    } else if (sy !== 0) {
-      this.setDirection(sy > 0 ? 8 : 2);
-    }
+    var dx = this.deltaPXFrom(character.cx());
+    var dy = this.deltaPYFrom(character.cy());
+    var radian = Math.atan2(-dy, -dx);
+    this.setDirection(this.radianToDirection(radian, QMovement.diagonal));
   };
 
   Game_Character.prototype.turnAwayFromCharacter = function(character) {
-    var sx = this.deltaPXFrom(character.cx());
-    var sy = this.deltaPYFrom(character.cy());
-    if (Math.abs(sx) > Math.abs(sy)) {
-      this.setDirection(sx > 0 ? 6 : 4);
-    } else if (sy !== 0) {
-      this.setDirection(sy > 0 ? 2 : 8);
-    }
+    var dx = this.deltaPXFrom(character.cx());
+    var dy = this.deltaPYFrom(character.cy());
+    var radian = Math.atan2(dy, dx);
+    this.setDirection(this.radianToDirection(radian, QMovement.diagonal));
   };
 
   Game_Character.prototype.deltaPXFrom = function(x) {
