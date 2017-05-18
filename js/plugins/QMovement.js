@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QMovement = '1.3.1';
+Imported.QMovement = '1.3.2';
 
 if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.2.3')) {
   alert('Error: QMovement requires QPlus 1.2.3 or newer to work.');
@@ -14,7 +14,7 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.2.3')) {
  /*:
  * @plugindesc <QMovement>
  * More control over character movement
- * @author Quxios  | Version 1.3.1
+ * @author Quxios  | Version 1.3.2
  *
  * @repo https://github.com/quxios/QMovement
  *
@@ -1178,14 +1178,17 @@ function ColliderManager() {
           if (arr.contains(charas[i])) {
             continue;
           }
+          arr.push(charas[i]);
           if (only) {
-            if (only(charas[i]) === 'break') {
+            var value = only(charas[i])
+            if (value === 'break') {
               isBreaking = true;
               break;
+            } else if (value === false) {
+              arr.pop();
+              continue;
             }
-            if (!only(charas[i])) continue;
           }
-          arr.push(charas[i]);
         }
         if (isBreaking) break;
       }
@@ -1209,14 +1212,17 @@ function ColliderManager() {
           if (arr.contains(colliders[i])) {
             continue;
           }
+          arr.push(colliders[i]);
           if (only) {
-            if (only(colliders[i]) === 'break') {
+            var value = only(colliders[i]);
+            if (value === 'break') {
               isBreaking = true;
               break;
+            } else if (value === false) {
+              arr.pop();
+              continue;
             }
-            if (!only(colliders[i])) continue;
           }
-          arr.push(colliders[i]);
         }
         if (isBreaking) break;
       }
@@ -1690,7 +1696,7 @@ function ColliderManager() {
     this._py = 0;
     this._realPX = 0;
     this._realPY = 0;
-    this._radian = 0;
+    this._radian = this.directionToRadian(this._direction);
     this._adjustFrameSpeed = false;
     this._freqCount = 0;
     this._diagonal = false;
@@ -1846,8 +1852,8 @@ function ColliderManager() {
     if (QMovement.midPass && dir !== 5) {
       if (!this.middlePass(x, y, dir, dist, type)) return false;
     }
-    if (this.collideWithTile(type)) return false;
-    if (this.collideWithCharacter(type)) return false;
+    if (this.collidesWithAnyTile(type)) return false;
+    if (this.collidesWithAnyCharacter(type)) return false;
     return true;
   };
 
@@ -1856,49 +1862,56 @@ function ColliderManager() {
     var x2 = $gameMap.roundPXWithDirection(x, this.reverseDir(dir), dist);
     var y2 = $gameMap.roundPYWithDirection(y, this.reverseDir(dir), dist);
     this.collider(type).moveTo(x2, y2);
-    if (this.collideWithTile(type)) return false;
-    if (this.collideWithCharacter(type)) return false;
+    if (this.collidesWithAnyTile(type)) return false;
+    if (this.collidesWithAnyCharacter(type)) return false;
     this.collider(type).moveTo(x, y);
     return true;
   };
 
-  Game_CharacterBase.prototype.collideWithTile = function(type) {
+  Game_CharacterBase.prototype.collidesWithAnyTile = function(type) {
     var collider = this.collider(type);
     var collided = false;
-    ColliderManager.getCollidersNear(collider, (function(tile) {
-      if (tile.color && this.passableColors().contains(tile.color)) {
-        return false;
-      }
-      if (tile.type && (tile.type !== 'collision' || tile.type !== 'default')) {
-        return false;
-      }
-      collided = tile.intersects(collider);
+    ColliderManager.getCollidersNear(collider, (function(collider) {
+      collided = this.collidedWithTile(type, collider);
       if (collided) return 'break';
     }).bind(this));
     return collided;
   };
 
-  Game_CharacterBase.prototype.collideWithCharacter = function(type) {
+  Game_CharacterBase.prototype.collidedWithTile = function(type, collider) {
+    if (collider.color && this.passableColors().contains(collider.color)) {
+      return false;
+    }
+    if (collider.type && (collider.type !== 'collision' || collider.type !== 'default')) {
+      return false;
+    }
+    return collider.intersects(this.collider(type));
+  };
+
+  Game_CharacterBase.prototype.collidesWithAnyCharacter = function(type) {
     var collider = this.collider(type);
     var collided = false;
-    ColliderManager.getCharactersNear(collider, (function(chara) {
-      if (chara.isThrough() || chara === this || !chara.isNormalPriority()) {
-        return false;
-      }
-      if (this.ignoreCharacters(type).contains(chara.charaId())) {
-        return false;
-      }
-      collided = chara.collider('collision').intersects(collider);
+    ColliderManager.getCharactersNear(collider, function(chara) {
+      collided = this.collidedWithCharacter(type, chara);
       if (collided) return 'break';
-    }).bind(this));
+    }.bind(this));
     return collided;
+  };
+
+  Game_CharacterBase.prototype.collidedWithCharacter = function(type, chara) {
+    if (chara.isThrough() || chara === this || !chara.isNormalPriority()) {
+      return false;
+    }
+    if (this.ignoreCharacters(type).contains(chara.charaId())) {
+      return false;
+    }
+    return chara.collider('collision').intersects(this.collider(type));
   };
 
   Game_CharacterBase.prototype.ignoreCharacters = function(type) {
-    var ignore = {
-      default: []
-    }
-    return ignore[type] || ignore.default;
+    // This function is to be aliased by plugins to return a list
+    // of charaId's this character can pass through
+    return [];
   };
 
   Game_CharacterBase.prototype.valid = function(type) {
@@ -3246,9 +3259,23 @@ function Sprite_Collider() {
     Sprite.prototype.initialize.call(this);
     this.z = 7;
     this._duration = duration || 0;
-    this._color = collider.color || '#ff0000';
+    this._cache = {};
     this.setupCollider(collider);
     this.checkChanges();
+  };
+
+  Sprite_Collider.prototype.setCache = function() {
+    this._cache = {
+      color: this._collider.color,
+      width: this._collider.width,
+      height: this._collider.height
+    }
+  };
+
+  Sprite_Collider.prototype.needsRedraw = function() {
+    return this._cache.width !== this._collider.width ||
+      this._cache.height !== this._collider.height ||
+      this._cache.color !== this._collider.color
   };
 
   Sprite_Collider.prototype.setupCollider = function(collider) {
@@ -3267,7 +3294,7 @@ function Sprite_Collider() {
   Sprite_Collider.prototype.drawCollider = function() {
     var collider = this._collider;
     this._colliderSprite.clear();
-    var color = this._color.replace('#', '');
+    var color = (collider.color || '#ff0000').replace('#', '');
     color = parseInt(color, 16);
     this._colliderSprite.beginFill(color);
     if (collider.isCircle()) {
@@ -3284,7 +3311,7 @@ function Sprite_Collider() {
   Sprite_Collider.prototype.update = function() {
     Sprite.prototype.update.call(this);
     this.checkChanges();
-    if (this._duration > 0 || this._collider.kill) {
+    if (this._duration >= 0 || this._collider.kill) {
       this.updateDecay();
     }
   };
@@ -3300,14 +3327,12 @@ function Sprite_Collider() {
         this.visible = false;
       }
     }
-    if (this._cachedw !== this._collider.width ||
-        this._cachedh !== this._collider.height) {
-      this._cachedw = this._collider.width;
-      this._cachedh = this._collider.height;
-      this.drawCollider();
-    }
     this._colliderSprite.z = this.z;
     this._colliderSprite.visible = this.visible;
+    if (this.needsRedraw()) {
+      this.drawCollider();
+      this.setCache();
+    }
   };
 
   Sprite_Collider.prototype.updateDecay = function() {
