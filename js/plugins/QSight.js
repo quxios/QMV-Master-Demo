@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QSight = '1.1.2';
+Imported.QSight = '1.1.3';
 
 if (!Imported.QPlus) {
   alert('Error: QSight requires QPlus to work.');
@@ -17,7 +17,7 @@ if (!Imported.QPlus) {
  /*:
  * @plugindesc <QSight>
  * Real time line of sight
- * @author Quxios  | Version 1.1.2
+ * @author Quxios  | Version 1.1.3
  *
  * @requires QPlus
  *
@@ -245,8 +245,6 @@ function QSight() {
 
   var Alias_Game_CharacterBase_update = Game_CharacterBase.prototype.update;
   Game_CharacterBase.prototype.update = function() {
-    var prevX = this._realX;
-    var prevY = this._realY;
     Alias_Game_CharacterBase_update.call(this);
     if (this.sightNeedsUpdate()) {
       this.updateSight();
@@ -264,6 +262,13 @@ function QSight() {
     }
     var cache = this._sight.cache;
     if (cache.dir !== this._direction) {
+      this._sight.reshape = true;
+      return true;
+    }
+    if (cache.targetX !== target._realX || cache.targetY !== target._realY) {
+      return true;
+    }
+    if (cache.selfX !== this._realX || cache.selfY !== this._realY) {
       this._sight.reshape = true;
       return true;
     }
@@ -286,12 +291,15 @@ function QSight() {
   };
 
   Game_CharacterBase.prototype.updateSightCache = function() {
+    var target = QPlus.getCharacter(this._sight.targetId);
     this._sight.cache = {
       dir: this._direction,
       tiles: this._sight.cache.tiles,
       charas: this._sight.cache.charas,
-      targetX: this._sight.cache.targetX,
-      targetY: this._sight.cache.targetY
+      targetX: target._realX,
+      targetY: target._realY,
+      selfX: this._realX,
+      selfY: this._realY
     }
   };
 
@@ -302,7 +310,7 @@ function QSight() {
       if (SceneManager._scene.constructor !== Scene_Map) {
         if (this._sight) {
           this._sight.base = null;
-          this._sight.cache.charas = [];
+          this._sight.cache.charas = {};
           this._sight.cache.tiles = [];
         }
       }
@@ -314,26 +322,43 @@ function QSight() {
         this._sight.base = this.createSightShape(this._sight.shape, this._sight.range);
       }
       var cachedCharas = this._sight.cache.charas;
-      var newCache = [];
+      var newCache = {};
       var anyMoved = false;
+      var target = QPlus.getCharacter(this._sight.targetId);
       ColliderManager.getCharactersNear(this._sight.base, function(chara) {
         var charaId = chara.charaId();
+        if (chara === this || chara === target || chara.constructor !== Game_Event) {
+          return false;
+        }
+        if (!chara.castsShadow()) {
+          return false;
+        }
         if (chara.collider('collision').intersects(this._sight.base)) {
           if (cachedCharas[charaId]) {
             newCache[charaId] = cachedCharas[charaId];
             if (chara.x !== newCache[charaId].x || chara.y !== newCache[charaId].y) {
               newCache[charaId].reshape = true;
+              Object.assign(newCache[charaId], {
+                isNew: false,
+                reshape: true,
+                x: chara.x,
+                y: chara.y
+              })
               anyMoved = true;
             }
           } else {
             newCache[charaId] = {
-              isNew: true
+              charaId: charaId,
+              isNew: true,
+              x: chara.x,
+              y: chara.y
             }
             anyMoved = true;
           }
+          return true;
         }
       }.bind(this))
-      cachedCharas = newCache;
+      this._sight.cache.charas = newCache;
       return anyMoved;
     };
 
@@ -347,7 +372,7 @@ function QSight() {
       if (!options.cache) {
         options.cache = {
           tiles: [],
-          charas: []
+          charas: {}
         }
       }
       if (!options.base) {
@@ -426,13 +451,11 @@ function QSight() {
 
     Game_CharacterBase.prototype.isInsideEventShadow = function(target, options) {
       var inside = false;
-      var charaIds = [];
       // TODO considering I already ran this in .anyNearMoved func
       // I can probably remove this and loop through options.cache.charas
       // But that would only work when running from auto and not from a manual .checkSight call
       ColliderManager.getCharactersNear(options.base, function(chara) {
         var charaId = chara.charaId();
-        if (charaIds.contains(charaId)) return false;
         if (chara === this || chara === target || chara.constructor !== Game_Event) {
           return false;
         }
@@ -455,7 +478,6 @@ function QSight() {
               x: chara.x,
               y: chara.y
             }
-            charaIds.push(charaId);
           } else {
             shadow = cache.shadow;
             if (options.reshape || cache.reshape) {
@@ -466,7 +488,6 @@ function QSight() {
               cache.x = chara.x;
               cache.y = chara.y;
             }
-            charaIds.push(charaId);
           }
           if (shadow.containsPoint(target.cx(), target.cy())) {
             inside = true;
@@ -510,35 +531,6 @@ function QSight() {
     };
   } else {
     Game_CharacterBase.prototype.anyNearMoved = function() {
-      if (!this._sight) return false;
-      var cachedCharas = this._sight.cache.charas;
-      var anyMoved = false;
-      var selfCache = cachedCharas[this.charaId()];
-      var targetCache = cachedCharas[this._sight.targetId];
-      if (!selfCache) {
-        cachedCharas[this.charaId()] = {
-          x: this.x,
-          y: this.y
-        }
-        anyMoved = true;
-      }
-      var target;
-      if (!targetCache) {
-        target = QPlus.getCharacter(this._sight.targetId);
-        cachedCharas[this._sight.targetId] = {
-          x: target.x,
-          y: target.y
-        }
-        anyMoved = true;
-      }
-      if (anyMoved) return true;
-      if (selfCache.x !== this.x || selfCache.y !== this.y) {
-        return true;
-      }
-      target = QPlus.getCharacter(this._sight.targetId);
-      if (targetCache.x !== this.x || targetCache.y !== this.y) {
-        return true
-      }
       return false;
     };
 
@@ -674,7 +666,7 @@ function QSight() {
       this.setupSight({
         shape: options[0].toLowerCase() || 'poly',
         range: Number(options[1]) || 1,
-        handler: options[2] || 'ssA',
+        handler: options[2] || 'A',
         targetId: options[3] || '0'
       })
     } else {
@@ -693,7 +685,7 @@ function QSight() {
     var base = null;
     var cache = {
       dir: 0,
-      charas: [],
+      charas: {},
       tiles: [],
       targetX: null,
       targetY: null
@@ -707,13 +699,9 @@ function QSight() {
         this._sight.base.kill = true;
       }
     }
-    this._sight = {
-      shape: options.shape,
-      range: options.range,
-      handler: options.handler,
-      targetId: options.targetId,
+    this._sight = Object.assign({}, options, {
       cache: cache,
       base: base
-    }
+    })
   };
 })();
