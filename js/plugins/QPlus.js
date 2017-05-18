@@ -3,13 +3,13 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QPlus = '1.3.0';
+Imported.QPlus = '1.3.1';
 
 //=============================================================================
  /*:
  * @plugindesc <QPlus> (Should go above all Q Plugins)
  * Some small changes to MV for easier plugin development.
- * @author Quxios  | Version 1.3.0
+ * @author Quxios  | Version 1.3.1
  *
  * @param Quick Test
  * @desc Enable quick testing.
@@ -113,7 +113,7 @@ Imported.QPlus = '1.3.0';
  * ~~~
  * Will Lock the movements for only these characters:
  * Player, event 1 and event 4
- * 
+ *
  * ============================================================================
  * ## Links
  * ============================================================================
@@ -458,12 +458,16 @@ function SimpleTilemap() {
   var _SWITCHES  = _PARAMS['Default Enabled Switches'].split(',').map(Number);
 
   //-----------------------------------------------------------------------------
-  // SceneManager
+  // Math
 
-  var Alias_SceneManager_updateScene = SceneManager.updateScene;
-  SceneManager.updateScene = function() {
-    Alias_SceneManager_updateScene.call(this);
-    QPlus.update();
+  Math.randomIntBetween = function(min, max) {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  };
+
+  Math.randomBetween = function(min, max) {
+    return Math.random() * (max - min) + min;
   };
 
   //-----------------------------------------------------------------------------
@@ -484,35 +488,45 @@ function SimpleTilemap() {
   };
 
   //-----------------------------------------------------------------------------
-  // Math
+  // Input
 
-  Math.randomIntBetween = function(min, max) {
-    min = Math.ceil(min);
-    max = Math.floor(max);
-    return Math.floor(Math.random() * (max - min + 1)) + min;
-  };
-
-  Math.randomBetween = function(min, max) {
-    return Math.random() * (max - min) + min;
+  Input.stopPropagation = function() {
+    this._currentState = {};
+    this._previousState = {};
+    this._gamepadStates = [];
+    this._latestButton = null;
+    this._pressedTime = 0;
+    if (Imported.QInput) {
+      this._ranPress = false;
+      this._lastPressed = null;
+      this._lastTriggered = null;
+      this._lastGamepadTriggered = null;
+    }
   };
 
   //-----------------------------------------------------------------------------
-  // Scene_Boot
+  // TouchInput
 
-  var Alias_Scene_Boot_start = Scene_Boot.prototype.start;
-  Scene_Boot.prototype.start = function() {
-    if (DataManager.isBattleTest() || DataManager.isEventTest()) {
-      Alias_Scene_Boot_start.call(this);
-    } else if (_QUICKTEST && Utils.isOptionValid('test')) {
-      Scene_Base.prototype.start.call(this);
-      SoundManager.preloadImportantSounds();
-      this.checkPlayerLocation();
-      DataManager.setupNewGame();
-      SceneManager.goto(Scene_Map);
-      this.updateDocumentTitle();
-    } else {
-      Alias_Scene_Boot_start.call(this);
-    }
+  TouchInput._onMouseMove = function(event) {
+    var x = Graphics.pageToCanvasX(event.pageX);
+    var y = Graphics.pageToCanvasY(event.pageY);
+    this._onMove(x, y);
+  };
+
+  TouchInput.stopPropagation = function() {
+    this._screenPressed = false;
+    this._triggered = false;
+    this._cancelled = false;
+    this._released = false;
+  };
+
+  //-----------------------------------------------------------------------------
+  // SceneManager
+
+  var Alias_SceneManager_updateScene = SceneManager.updateScene;
+  SceneManager.updateScene = function() {
+    Alias_SceneManager_updateScene.call(this);
+    QPlus.update();
   };
 
   //-----------------------------------------------------------------------------
@@ -544,6 +558,48 @@ function SimpleTilemap() {
 
   DataManager.extractQData = function(data) {
     // to be aliased by plugins
+  };
+
+
+  //-----------------------------------------------------------------------------
+  // Scene_Boot
+
+  var Alias_Scene_Boot_start = Scene_Boot.prototype.start;
+  Scene_Boot.prototype.start = function() {
+    if (DataManager.isBattleTest() || DataManager.isEventTest()) {
+      Alias_Scene_Boot_start.call(this);
+    } else if (_QUICKTEST && Utils.isOptionValid('test')) {
+      Scene_Base.prototype.start.call(this);
+      SoundManager.preloadImportantSounds();
+      this.checkPlayerLocation();
+      DataManager.setupNewGame();
+      SceneManager.goto(Scene_Map);
+      this.updateDocumentTitle();
+    } else {
+      Alias_Scene_Boot_start.call(this);
+    }
+  };
+
+  //-----------------------------------------------------------------------------
+  // Scene_Map
+
+  var Alias_Scene_Map_update = Scene_Map.prototype.update;
+  Scene_Map.prototype.update = function() {
+    this.updateMouseInsideWindow();
+    Alias_Scene_Map_update.call(this);
+  };
+
+  Scene_Map.prototype.updateMouseInsideWindow = function() {
+    // TODO only check this if mouse moved
+    var inside = false;
+    var windows = this._windowLayer.children;
+    for (var i = 0; i < windows.length; i++) {
+      if (windows[i].visible && windows[i].isOpen() && windows[i].isMouseInside()) {
+        inside = true;
+        break;
+      }
+    }
+    TouchInput.insideWindow = inside;
   };
 
   //-----------------------------------------------------------------------------
@@ -706,6 +762,10 @@ function SimpleTilemap() {
     return;
   };
 
+  Game_CharacterBase.prototype.canMove = function() {
+    return this._globalLocked == 0;
+  };
+
   var Alias_Game_Character_updateRoutineMove = Game_Character.prototype.updateRoutineMove;
   Game_Character.prototype.updateRoutineMove = function() {
     if (this._globalLocked >= 1) {
@@ -720,7 +780,8 @@ function SimpleTilemap() {
 
   var Alias_Game_Player_canMove = Game_Player.prototype.canMove;
   Game_Player.prototype.canMove = function() {
-    return Alias_Game_Player_canMove.call(this) && this._globalLocked === 0;
+    return Alias_Game_Player_canMove.call(this) &&
+      Game_Character.prototype.canMove.call(this);
   };
 
   Game_Player.prototype.canClick = function() {
@@ -806,6 +867,23 @@ function SimpleTilemap() {
     if (!mapId || !eventId) return;
     var key = [mapId, eventId, selfSwitch];
     $gameSelfSwitches.setValue(key, bool);
+  };
+
+  var Alias_Game_Event_updateSelfMovement = Game_Event.prototype.updateSelfMovement;
+  Game_Event.prototype.updateSelfMovement = function() {
+    if (!this.canMove()) return;
+    Alias_Game_Event_updateSelfMovement.call(this);
+  };
+
+  //-----------------------------------------------------------------------------
+  // Window_Base
+  //
+  // The superclass of all windows within the game.
+
+  Window_Base.prototype.isMouseInside = function() {
+    var x = TouchInput.x - this.x;
+    var y = TouchInput.y - this.y;
+    return x >= 0 && y >= 0 && x < this.width && y < this.height;
   };
 
   //-----------------------------------------------------------------------------
