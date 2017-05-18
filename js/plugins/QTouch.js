@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QTouch = '1.0.0';
+Imported.QTouch = '1.0.1';
 
 if (!Imported.QPlus) {
   alert('Error: QTouch requires QPlus to work.');
@@ -14,7 +14,7 @@ if (!Imported.QPlus) {
  /*:
  * @plugindesc <QTouch>
  * Better mouse handling for MV
- * @author Quxios  | Version 1.0.0
+ * @author Quxios  | Version 1.0.1
  *
  * @video https://youtu.be/2UrazG-XRxw
  *
@@ -51,7 +51,7 @@ if (!Imported.QPlus) {
  * ## Links
  * ============================================================================
  * RPGMakerWebs:
- * 
+ *
  *  http://forums.rpgmakerweb.com/index.php?threads/qplugins.73023/
  *
  * Terms of use:
@@ -113,10 +113,9 @@ function Sprite_QButton() {
     }
   };
 
+  var Alias_TouchInput__onMouseMove = TouchInput._onMouseMove;
   TouchInput._onMouseMove = function(event) {
-    var x = Graphics.pageToCanvasX(event.pageX);
-    var y = Graphics.pageToCanvasY(event.pageY);
-    this._onMove(x, y);
+    Alias_TouchInput__onMouseMove.call(this, event);
     this._cursorDecay = _MOUSEDECAY;
   };
 
