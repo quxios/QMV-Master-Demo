@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QPathfind = '1.4.3';
+Imported.QPathfind = '1.4.4';
 
 if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.3')) {
   alert('Error: QPathfind requires QPlus 1.1.3 or newer to work.');
@@ -17,7 +17,7 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.3')) {
  /*:
  * @plugindesc <QPathfind>
  * A* Pathfinding algorithm
- * @author Quxios  | Version 1.4.3
+ * @author Quxios  | Version 1.4.4
  *
  * @requires QPlus
  *
@@ -241,6 +241,9 @@ function QPathfind() {
     }
     if (options.chase !== undefined) {
       var chasing = QPlus.getCharacter(options.chase);
+      if (!chasing) {
+        return this.character().clearPathfind();
+      }
       if (Imported.QMovement) {
         endPoint = new Point(chasing.px, chasing.py);
       } else {
@@ -431,6 +434,21 @@ function QPathfind() {
 
   QPathfind.prototype.requestRestart = function(ot) {
     if (!this._completed) return;
+    if (this.options.chase !== undefined) {
+      var chasing = QPlus.getCharacter(this.options.chase);
+      if (!chasing) return this.character().clearPathfind();
+      var dx = chasing.cx() - this.character().cx();
+      var dy = chasing.cy() - this.character().cy();
+      var radian = Math.atan2(dy, dx);
+      var x2 = this.character().px + (Math.cos(radian) * this.character().moveTiles());
+      var y2 = this.character().py + (Math.sin(radian) * this.character().moveTiles());
+      var colliderA = this.character().collider('collision');
+      var colliderB = chasing.collider('collision');
+      colliderA.moveTo(x2, y2);
+      var collided = colliderA.intersects(colliderB);
+      colliderA.moveTo(this.character().px, this.character().py);
+      if (collided) return;
+    }
     ot = ot === undefined ? 0 : ot;
     this._tick = this._smartTime - ot;
     this._forceReq = true;
@@ -815,11 +833,10 @@ function QPathfind() {
     var Alias_Game_CharacterBase_ignoreCharacters = Game_CharacterBase.prototype.ignoreCharacters;
     Game_CharacterBase.prototype.ignoreCharacters = function(type) {
       var ignores = Alias_Game_CharacterBase_ignoreCharacters.call(this, type);
-      if (this._isChasing !== false) {
-        if (!ignores['_pathfind']) ignores['_pathfind'] = [];
-        ignores['_pathfind'].push(this._isChasing);
+      if (this._isChasing !== false && type === '_pathfind') {
+        ignores.push(this._isChasing);
       }
-      return ignores[type] || [];
+      return ignores;
     };
 
     Game_CharacterBase.prototype.optTiles = function() {
@@ -878,6 +895,7 @@ function QPathfind() {
   Game_Character.prototype.initChase = function(charaId) {
     if (this.charaId() === charaId) return;
     if (!QPlus.getCharacter(charaId)) return;
+    if (this._isChasing === charaId) return;
     this.initPathfind(0, 0, {
       smart: 2,
       chase: charaId,
@@ -906,10 +924,16 @@ function QPathfind() {
 
   Game_Character.prototype.onPathfindComplete = function() {
     if (this._isChasing !== false) {
-      this._isPathfinding = false;
-      this.processRouteEnd();
-      this._pathfind.requestRestart(5);
-      return;
+      var chara = QPlus.getCharacter(this._isChasing);
+      if (chara) {
+        this._isPathfinding = false;
+        this.processRouteEnd();
+        this._pathfind.requestRestart(5);
+        this.turnTowardCharacter(chara);
+        return;
+      } else {
+        this._isChasing = false;
+      }
     }
     this._isPathfinding = false;
     this._pathfind = null;
