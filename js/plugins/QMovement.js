@@ -1166,7 +1166,8 @@ function ColliderManager() {
   // characters that intersect with the collider passed in
   ColliderManager.getCharactersNear = function(collider, only) {
     var grid = collider.sectorEdge();
-    var arr = [];
+    var near = [];
+    var checked = [];
     var isBreaking = false;
     var x, y, i;
     for (x = grid.x1; x <= grid.x2; x++) {
@@ -1175,32 +1176,34 @@ function ColliderManager() {
         if (y < 0 || y >= this.sectorRows()) continue;
         var charas = this._characterGrid[x][y];
         for (i = 0; i < charas.length; i++) {
-          if (arr.contains(charas[i])) {
+          if (checked.contains(charas[i])) {
             continue;
           }
-          arr.push(charas[i]);
+          checked.push(charas[i]);
           if (only) {
             var value = only(charas[i])
             if (value === 'break') {
+              near.push(charas[i]);
               isBreaking = true;
               break;
             } else if (value === false) {
-              arr.pop();
               continue;
             }
           }
+          near.push(charas[i]);
         }
         if (isBreaking) break;
       }
       if (isBreaking) break;
     }
     only = null;
-    return arr;
+    return near;
   };
 
   ColliderManager.getCollidersNear = function(collider, only) {
     var grid = collider.sectorEdge();
-    var arr = [];
+    var checked = [];
+    var near = [];
     var isBreaking = false;
     var x, y, i;
     for (x = grid.x1; x <= grid.x2; x++) {
@@ -1209,27 +1212,28 @@ function ColliderManager() {
         if (y < 0 || y >= this.sectorRows()) continue;
         var colliders = this._colliderGrid[x][y];
         for (i = 0; i < colliders.length; i++) {
-          if (arr.contains(colliders[i])) {
+          if (checked.contains(colliders[i])) {
             continue;
           }
-          arr.push(colliders[i]);
+          checked.push(colliders[i]);
           if (only) {
             var value = only(colliders[i]);
             if (value === 'break') {
+              near.push(colliders[i]);
               isBreaking = true;
               break;
             } else if (value === false) {
-              arr.pop();
               continue;
             }
           }
+          near.push(colliders[i]);
         }
         if (isBreaking) break;
       }
       if (isBreaking) break;
     }
     only = null;
-    return arr;
+    return near;
   };
 
   ColliderManager.sectorCols = function() {
