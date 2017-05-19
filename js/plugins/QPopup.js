@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QPopup = '1.0.1';
+Imported.QPopup = '1.0.2';
 
 if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.2.2')) {
   alert('Error: QPopup requires QPlus 1.2.2 or newer to work.');
@@ -14,7 +14,7 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.2.2')) {
  /*:
  * @plugindesc <QPopup>
  * Lets you create popups in the map or on screen
- * @author Quxios  | Version 1.0.1
+ * @author Quxios  | Version 1.0.2
  *
  * @requires QPlus
  *
@@ -248,8 +248,6 @@ function Window_QPopup() {
     var id = '*0';
     var counter = 0;
     var newId = false;
-    // TODO for better performance maybe create a pool
-    // of 'open' ids
     while (!newId) {
       id = '*' + counter;
       var newId = true;
@@ -275,6 +273,7 @@ function Window_QPopup() {
     } else {
       scene._spriteset._tilemap.addChild(popup);
     }
+    popup.update();
   };
 
   QPopup.remove = function(popup) {
@@ -533,7 +532,18 @@ function Window_QPopup() {
     var lines = string.split(/\n|\r/);
     var largestW = 0;
     for (var i = 0; i < lines.length; i++) {
-      var w = this.contents.measureTextWidth(lines[i]);
+      var line = this.convertEscapeCharacters(lines[i]);
+      line = line.replace(/\x1b.+?\[.+?\]/, '');
+      var w = this.contents.measureTextWidth(line);
+      var icons = /\\I\[(\d+?)\]/g;
+      while (true) {
+        var match = icons.exec(lines[i]);
+        if (match) {
+          w += Window_Base._iconWidth + 4;
+        } else {
+          break;
+        }
+      }
       if (w > largestW) largestW = w;
     }
     this.width = largestW + this.standardPadding() * 2;
