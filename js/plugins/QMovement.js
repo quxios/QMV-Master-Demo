@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QMovement = '1.3.2';
+Imported.QMovement = '1.3.3';
 
 if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.2.3')) {
   alert('Error: QMovement requires QPlus 1.2.3 or newer to work.');
@@ -14,7 +14,7 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.2.3')) {
  /*:
  * @plugindesc <QMovement>
  * More control over character movement
- * @author Quxios  | Version 1.3.2
+ * @author Quxios  | Version 1.3.3
  *
  * @repo https://github.com/quxios/QMovement
  *
@@ -1089,7 +1089,7 @@ function ColliderManager() {
     var i = this._colliders.indexOf(collider);
     if (i < 0) return;
     this.removeFromGrid(collider);
-    collider.kill = true;
+    if (!collider._colliders) collider.kill = true;
     this._colliders.splice(i, 1);
   };
 
@@ -1142,18 +1142,17 @@ function ColliderManager() {
   };
 
   ColliderManager.removeFromGrid = function(collider) {
-    var edge;
-    var currGrid;
     var grid;
+    var edge;
     if (collider._colliders) { // Is a character obj
       grid = this._characterGrid;
-      currGrid = collider.collider('bounds').sectorEdge();
+      edge = collider.collider('bounds').sectorEdge();
     } else { // is a collider
       grid = this._colliderGrid;
-      currGrid = collider.sectorEdge();
+      edge = collider.sectorEdge();
     }
-    for (x = grid.x1; x <= grid.x2; x++) {
-      for (y = grid.y1; y <= grid.y2; y++) {
+    for (var x = edge.x1; x <= edge.x2; x++) {
+      for (var y = edge.y1; y <= edge.y2; y++) {
         var i = grid[x][y].indexOf(collider);
         if (i !== -1) {
           grid[x][y].splice(i, 1);
@@ -2436,6 +2435,7 @@ function ColliderManager() {
   };
 
   Game_CharacterBase.prototype.removeColliders = function() {
+    ColliderManager.remove(this);
     for (var collider in this._colliders) {
       if (!this._colliders.hasOwnProperty(collider)) continue;
       ColliderManager.remove(this._colliders[collider]);
