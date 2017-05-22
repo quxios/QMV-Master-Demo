@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QPathfind = '1.4.4';
+Imported.QPathfind = '1.4.5';
 
 if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.3')) {
   alert('Error: QPathfind requires QPlus 1.1.3 or newer to work.');
@@ -17,7 +17,7 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.3')) {
  /*:
  * @plugindesc <QPathfind>
  * A* Pathfinding algorithm
- * @author Quxios  | Version 1.4.4
+ * @author Quxios  | Version 1.4.5
  *
  * @requires QPlus
  *
@@ -357,6 +357,14 @@ function QPathfind() {
     return true;
   };
 
+  QPathfind.prototype.compress = function() {
+    return {
+      options: this._options,
+      x: this._endNode.x,
+      y: this._endNode.y
+    }
+  };
+
   QPathfind.prototype.update = function() {
     if (this._completed && this.options.smart > 1) {
       this.updateSmart();
@@ -587,6 +595,7 @@ function QPathfind() {
     QPathfind._pathfinders--;
     this._completed = true;
     this._failed = false;
+    this._grid = {};
     if (this.options.towards) {
       var firstSteps = this.createFinalPath().slice(0, 3);
       return this.character().startPathfind(firstSteps);
@@ -599,6 +608,7 @@ function QPathfind() {
     QPathfind._pathfinders--;
     this._completed = true;
     this._failed = true;
+    this._grid = {};
     if (this.options.towards) {
       return this.onComplete();
     }
@@ -799,6 +809,64 @@ function QPathfind() {
     if (wait) {
       this._character = chara;
       this.setWaitMode('pathfind');
+    }
+  };
+
+  //-----------------------------------------------------------------------------
+  // Game_System
+
+  var Alias_Game_System_onBeforeSave = Game_System.prototype.onBeforeSave;
+  Game_System.prototype.onBeforeSave = function() {
+    Alias_Game_System_onBeforeSave.call(this);
+    $gameMap.compressPathfinders();
+    QPathfind._needsUncompress = true;
+  };
+
+  var Alias_Game_System_onAfterLoad = Game_System.prototype.onAfterLoad;
+  Game_System.prototype.onAfterLoad = function() {
+    Alias_Game_System_onAfterLoad.call(this);
+    QPathfind._needsUncompress = true;
+  };
+
+  //-----------------------------------------------------------------------------
+  // Game_Map
+
+  var Alias_Game_Map_update = Game_Map.prototype.update;
+  Game_Map.prototype.update = function(sceneActive) {
+    Alias_Game_Map_update.call(this, sceneActive);
+    if (QPathfind._needsUncompress) {
+      this.uncompressPathfinders();
+      QPathfind._needsUncompress = false;
+    }
+  };
+
+  Game_Map.prototype.compressPathfinders = function() {
+    for (var i = 0; i < this.events().length; i++) {
+      var event = this.events()[i];
+      if (event._pathfind) {
+        event._compressedPathfind = event._pathfind.compress();
+        event.clearPathfind();
+      }
+    }
+    if ($gamePlayer._pathfind) {
+      $gamePlayer._compressedPathfind = $gamePlayer._pathfind.compress();
+      $gamePlayer.clearPathfind();
+    }
+  };
+
+  Game_Map.prototype.uncompressPathfinders = function() {
+    for (var i = 0; i < this.events().length; i++) {
+      var event = this.events()[i];
+      if (event._compressedPathfind) {
+        var old = event._compressedPathfind;
+        event.initPathfind(old.x, old.y, old.options);
+        delete event._compressedPathfind;
+      }
+    }
+    if ($gamePlayer._compressedPathfind) {
+      var old = $gamePlayer._compressedPathfind;
+      $gamePlayer.initPathfind(old.x, old.y, old.options);
+      delete $gamePlayer._compressedPathfind;
     }
   };
 
