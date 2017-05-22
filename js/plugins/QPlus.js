@@ -3,13 +3,13 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QPlus = '1.3.1';
+Imported.QPlus = '1.3.2';
 
 //=============================================================================
  /*:
  * @plugindesc <QPlus> (Should go above all Q Plugins)
  * Some small changes to MV for easier plugin development.
- * @author Quxios  | Version 1.3.1
+ * @author Quxios  | Version 1.3.2
  *
  * @param Quick Test
  * @desc Enable quick testing.
@@ -309,6 +309,7 @@ function QPlus() {
       callback: callback,
       then: function(callback) {
         this.callback = callback;
+        return this;
       }
     }
     QPlus._waitListeners.push(waiter);
@@ -428,7 +429,11 @@ function QPlus() {
     for (var i = waiters.length - 1; i >= 0; i--) {
       if (waiters[i].duration <= 0) {
         if (typeof waiters[i].callback === 'function') {
-          waiters[i].callback();
+          try {
+            waiters[i].callback();
+          } catch (e) {
+            console.error(e);
+          }
           waiters[i].callback = null;
         }
         waiters.splice(i, 1);
@@ -456,6 +461,20 @@ function SimpleTilemap() {
   var _PARAMS    = QPlus.getParams('<QPlus>');
   var _QUICKTEST = _PARAMS['Quick Test'].toLowerCase() == 'true';
   var _SWITCHES  = _PARAMS['Default Enabled Switches'].split(',').map(Number);
+
+
+  //-----------------------------------------------------------------------------
+  // Document body
+
+  document.body.ondrop = function(e) {
+    e.preventDefault();
+    return false;
+  };
+
+  document.body.ondragover = function(e) {
+    e.preventDefault();
+    return false;
+  };
 
   //-----------------------------------------------------------------------------
   // Math
@@ -544,8 +563,8 @@ function SimpleTilemap() {
   DataManager.extractMetadata = function(data) {
     Alias_DataManager_extractMetadata.call(this, data);
     var blockRegex = /<([^<>:\/]+)>([\s\S]*?)<\/\1>/g;
-    data.qmeta = data.meta;
-    for (;;) {
+    data.qmeta = Object.assign({}, data.meta);
+    while (true) {
       var match = blockRegex.exec(data.note);
       if (match) {
         data.qmeta[match[1]] = match[2];
