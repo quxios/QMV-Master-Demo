@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QMovement = '1.3.4';
+Imported.QMovement = '1.3.5';
 
 if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.2.3')) {
   alert('Error: QMovement requires QPlus 1.2.3 or newer to work.');
@@ -14,7 +14,7 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.2.3')) {
  /*:
  * @plugindesc <QMovement>
  * More control over character movement
- * @author Quxios  | Version 1.3.4
+ * @author Quxios  | Version 1.3.5
  *
  * @repo https://github.com/quxios/QMovement
  *
@@ -1795,8 +1795,10 @@ function ColliderManager() {
     return this._angularSpeed || this.frameSpeed() / this._radiusL;
   };
 
+  var Alias_Game_CharacterBase_canMove = Game_CharacterBase.prototype.canMove;
   Game_CharacterBase.prototype.canMove = function() {
-    return !this._locked;
+    if (this._locked) return false;
+    return Alias_Game_CharacterBase_canMove.call(this);
   };
 
   Game_CharacterBase.prototype.canPass = function(x, y, dir) {
@@ -2935,12 +2937,9 @@ function ColliderManager() {
       var x1 = this._px;
       var y1 = this._py;
       collider.moveTo(x, y);
-      var events = ColliderManager.getCharactersNear(collider, (function(chara) {
-        if (chara.constructor === Game_Event && !chara._erased) {
-          return chara.collider('interaction').intersects(collider);
-        }
-        return false;
-      }).bind(this))
+      var events = ColliderManager.getCharactersNear(collider, function(chara) {
+        return this.collidesWithEvent(chara, 'interaction');
+      }.bind(this))
       collider.moveTo(x1, y1);
       if (events.length === 0) {
         events = null;
@@ -2963,6 +2962,13 @@ function ColliderManager() {
       }
       events = null;
     }
+  };
+
+  Game_Player.prototype.collidesWithEvent = function(event, type) {
+    if (event.constructor === Game_Event && !event._erased) {
+      return event.collider('interaction').intersects(this.collider(type));
+    }
+    return false;
   };
 
   Game_Player.prototype.checkEventTriggerHere = function(triggers) {
