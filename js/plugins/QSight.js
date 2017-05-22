@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QSight = '1.1.3';
+Imported.QSight = '1.1.4';
 
 if (!Imported.QPlus) {
   alert('Error: QSight requires QPlus to work.');
@@ -17,7 +17,7 @@ if (!Imported.QPlus) {
  /*:
  * @plugindesc <QSight>
  * Real time line of sight
- * @author Quxios  | Version 1.1.3
+ * @author Quxios  | Version 1.1.4
  *
  * @requires QPlus
  *
@@ -337,9 +337,7 @@ function QSight() {
           if (cachedCharas[charaId]) {
             newCache[charaId] = cachedCharas[charaId];
             if (chara.x !== newCache[charaId].x || chara.y !== newCache[charaId].y) {
-              newCache[charaId].reshape = true;
               Object.assign(newCache[charaId], {
-                isNew: false,
                 reshape: true,
                 x: chara.x,
                 y: chara.y
@@ -349,7 +347,6 @@ function QSight() {
           } else {
             newCache[charaId] = {
               charaId: charaId,
-              isNew: true,
               x: chara.x,
               y: chara.y
             }
@@ -357,6 +354,7 @@ function QSight() {
           }
           return true;
         }
+        return false;
       }.bind(this))
       this._sight.cache.charas = newCache;
       return anyMoved;
@@ -451,9 +449,6 @@ function QSight() {
 
     Game_CharacterBase.prototype.isInsideEventShadow = function(target, options) {
       var inside = false;
-      // TODO considering I already ran this in .anyNearMoved func
-      // I can probably remove this and loop through options.cache.charas
-      // But that would only work when running from auto and not from a manual .checkSight call
       ColliderManager.getCharactersNear(options.base, function(chara) {
         var charaId = chara.charaId();
         if (chara === this || chara === target || chara.constructor !== Game_Event) {
@@ -466,18 +461,16 @@ function QSight() {
         if (collider.intersects(options.base)) {
           var shadowData;
           var shadow;
-          var cache = options.cache.charas[charaId]
-          if (!cache || cache.isNew) {
+          var cache = options.cache.charas[charaId];
+          if (!cache || !cache.shadow) {
             shadowData = QSight.shadowCast(collider, this, options.range * QMovement.tileSize);
             shadow = new Polygon_Collider(shadowData.points);
             shadow.moveTo(shadowData.origin.x, shadowData.origin.y);
-            shadow.color = "#000000";
-            options.cache.charas[charaId] = {
-              shadow: shadow,
-              charaId: charaId,
-              x: chara.x,
-              y: chara.y
-            }
+            shadow.color = '#000000';
+            options.cache.charas[charaId] = options.cache.charas[charaId] || {};
+            Object.assign(options.cache.charas[charaId], {
+              shadow: shadow
+            })
           } else {
             shadow = cache.shadow;
             if (options.reshape || cache.reshape) {
@@ -485,8 +478,6 @@ function QSight() {
               shadowData = QSight.shadowCast(collider, this, options.range * QMovement.tileSize);
               shadow.initialize(shadowData.points, shadowData.origin.x, shadowData.origin.y);
               shadow.id = oldId;
-              cache.x = chara.x;
-              cache.y = chara.y;
             }
           }
           if (shadow.containsPoint(target.cx(), target.cy())) {
@@ -703,5 +694,10 @@ function QSight() {
       cache: cache,
       base: base
     })
+  };
+
+  Game_Event.prototype.castsShadow = function() {
+    if (this._erased) return false;
+    return Game_CharacterBase.prototype.castsShadow.call(this);
   };
 })();
