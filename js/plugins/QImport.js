@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QImport = '1.0.1';
+Imported.QImport = '1.0.2';
 
 if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.5')) {
   alert('Error: QImport requires QPlus 1.1.5 or newer to work.');
@@ -14,7 +14,7 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.5')) {
  /*:
  * @plugindesc <QImport>
  * Lets you import text from other game objects or txt files
- * @author Quxios  | Version 1.0.1
+ * @author Quxios  | Version 1.0.2
  *
  * @requires QPlus
  *
@@ -313,9 +313,11 @@ function QImport() {
     var val = '<REQUESTING' + args[0] + '>';
     if (this._cache[args[0]]) {
       val = this._cache[args[0]];
+      data[prop] = data[prop].replace(match, val);
     } else {
       this._wait = true;
       this._request.push(data);
+      data[prop] = data[prop].replace(match, val);
       QPlus.request(args[0])
         .onSuccess(function(response) {
           QImport._wait = false;
@@ -329,7 +331,6 @@ function QImport() {
           match = null;
         })
     }
-    data[prop] = data[prop].replace(match, val);
   };
 
   QImport.importEvent = function(data, prop, match, args) {
@@ -348,6 +349,8 @@ function QImport() {
       var mapPath = 'data/Map%1.json'.format(mapId.padZero(3));
       this._wait = true;
       this._request.push(data);
+      var val = '<REQUESTING' + key + '>';
+      data[prop] = data[prop].replace(match, val);
       QPlus.request(mapPath)
         .onSuccess(function(response) {
           if (response.events && response.events[eventId]) {
@@ -367,8 +370,6 @@ function QImport() {
           args = null;
           match = null;
         })
-      var val = '<REQUESTING' + key + '>';
-      data[prop] = data[prop].replace(match, val);
     }
   };
 
