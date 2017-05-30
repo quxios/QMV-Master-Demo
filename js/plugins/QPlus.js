@@ -3,13 +3,13 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QPlus = '1.3.2';
+Imported.QPlus = '1.3.3';
 
 //=============================================================================
  /*:
  * @plugindesc <QPlus> (Should go above all Q Plugins)
  * Some small changes to MV for easier plugin development.
- * @author Quxios  | Version 1.3.2
+ * @author Quxios  | Version 1.3.3
  *
  * @param Quick Test
  * @desc Enable quick testing.
@@ -312,7 +312,7 @@ function QPlus() {
         return this;
       }
     }
-    QPlus._waitListeners.push(waiter);
+    this._waitListeners.push(waiter);
     return waiter;
   };
 
@@ -323,7 +323,31 @@ function QPlus() {
   };
 
   QPlus.clearWaitListeners = function() {
-    QPlus._waitListeners = [];
+    this._waitListeners = [];
+  };
+
+  QPlus.mixin = function(to, what) {
+    Object.getOwnPropertyNames(what).forEach(function(prop) {
+      if (prop !== 'constructor') {
+        Object.defineProperty(to, prop, Object.getOwnPropertyDescriptor(what, prop));
+      }
+    })
+  };
+
+  QPlus.mixinWait = function(into) {
+    this.mixin(into, {
+      wait: this.wait,
+      removeWaitListener: this.removeWaitListener,
+      clearWaitListeners: this.clearWaitListeners,
+      updateWaiters: this.updateWaiters
+    })
+    if (into.update) {
+      into.update_BEFOREWAIT = into.update;
+      into.update = function() {
+        this.update_BEFOREWAIT.apply(this, arguments);
+        this.updateWaiters();
+      }
+    }
   };
 
   /**
@@ -425,7 +449,7 @@ function QPlus() {
   };
 
   QPlus.updateWaiters = function() {
-    var waiters = this._waitListeners
+    var waiters = this._waitListeners;
     for (var i = waiters.length - 1; i >= 0; i--) {
       if (waiters[i].duration <= 0) {
         if (typeof waiters[i].callback === 'function') {
@@ -510,11 +534,19 @@ function SimpleTilemap() {
   // Input
 
   Input.stopPropagation = function() {
-    this._currentState = {};
-    this._previousState = {};
-    this._gamepadStates = [];
+    var key = this._latestButton
+    this._currentState[key] = false;
     this._latestButton = null;
-    this._pressedTime = 0;
+    for (var i = 0; i < this._gamepadStates.length; i++) {
+      if (!this._gamepadStates[i]) continue;
+      for (var j = 0; j < this._gamepadStates[i].length; j++) {
+        var button = this.gamepadMapper[j];
+        if (button === key) {
+          this._gamepadStates[i][j] = false;
+          break;
+        }
+      }
+    }
     if (Imported.QInput) {
       this._ranPress = false;
       this._lastPressed = null;
@@ -579,6 +611,15 @@ function SimpleTilemap() {
     // to be aliased by plugins
   };
 
+  //-----------------------------------------------------------------------------
+  // Scene_Base
+
+  var Alias_Scene_Base_initialize = Scene_Base.prototype.initialize;
+  Scene_Base.prototype.initialize = function() {
+    Alias_Scene_Base_initialize.call(this);
+    this._waitListeners = [];
+    QPlus.mixinWait(this);
+  };
 
   //-----------------------------------------------------------------------------
   // Scene_Boot
@@ -701,6 +742,8 @@ function SimpleTilemap() {
     Alias_Game_CharacterBase_initMembers.call(this);
     this._globalLocked = 0;
     this._comments = '';
+    this._waitListeners = [];
+    QPlus.mixinWait(this);
   };
 
   Game_CharacterBase.prototype.charaId = function() {
@@ -711,20 +754,8 @@ function SimpleTilemap() {
     return '';
   };
 
-  var Alias_Game_CharacterBase_updateAnimation = Game_CharacterBase.prototype.updateAnimation;
-  Game_CharacterBase.prototype.updateAnimation = function() {
-    if (this._globalLocked >= 2) {
-      return;
-    }
-    Alias_Game_CharacterBase_updateAnimation.call(this);
-  };
-
-  var Alias_Game_CharacterBase_updateMove = Game_CharacterBase.prototype.updateMove;
-  Game_CharacterBase.prototype.updateMove = function() {
-    if (this._globalLocked >= 1) {
-      return;
-    }
-    Alias_Game_CharacterBase_updateMove.call(this);
+  Game_CharacterBase.prototype.canMove = function() {
+    return this._globalLocked === 0;
   };
 
   /**
@@ -781,8 +812,20 @@ function SimpleTilemap() {
     return;
   };
 
-  Game_CharacterBase.prototype.canMove = function() {
-    return this._globalLocked == 0;
+  var Alias_Game_CharacterBase_updateAnimation = Game_CharacterBase.prototype.updateAnimation;
+  Game_CharacterBase.prototype.updateAnimation = function() {
+    if (this._globalLocked >= 2) {
+      return;
+    }
+    Alias_Game_CharacterBase_updateAnimation.call(this);
+  };
+
+  var Alias_Game_CharacterBase_updateMove = Game_CharacterBase.prototype.updateMove;
+  Game_CharacterBase.prototype.updateMove = function() {
+    if (this._globalLocked >= 1) {
+      return;
+    }
+    Alias_Game_CharacterBase_updateMove.call(this);
   };
 
   var Alias_Game_Character_updateRoutineMove = Game_Character.prototype.updateRoutineMove;
@@ -804,7 +847,7 @@ function SimpleTilemap() {
   };
 
   Game_Player.prototype.canClick = function() {
-    return true;
+    return !TouchInput.insideWindow;
   };
 
   Game_Player.prototype.charaId = function() {
@@ -896,13 +939,26 @@ function SimpleTilemap() {
 
   //-----------------------------------------------------------------------------
   // Window_Base
-  //
-  // The superclass of all windows within the game.
 
   Window_Base.prototype.isMouseInside = function() {
     var x = TouchInput.x - this.x;
     var y = TouchInput.y - this.y;
     return x >= 0 && y >= 0 && x < this.width && y < this.height;
+  };
+
+  //-----------------------------------------------------------------------------
+  // Sprite_Character
+
+  var Alias_Sprite_Character_updatePosition = Sprite_Character.prototype.updatePosition;
+  Sprite_Character.prototype.updatePosition = function() {
+    var prevY = this.y;
+    var prevZ = this.z;
+    Alias_Sprite_Character_updatePosition.call(this);
+    if (this.y !== prevY || this.z !== prevZ) {
+      if ($gameMap.noTilemap && this.parent && this.parent.requestSort) {
+        this.parent.requestSort();
+      }
+    }
   };
 
   //-----------------------------------------------------------------------------
@@ -929,21 +985,6 @@ function SimpleTilemap() {
   Spriteset_Map.prototype.updateTilemap = function() {
     if (!$gameMap.noTilemap()) {
       Alias_Spriteset_Map_updateTilemap.call(this);
-    }
-  };
-
-  //-----------------------------------------------------------------------------
-  // Sprite_Character
-
-  var Alias_Sprite_Character_updatePosition = Sprite_Character.prototype.updatePosition;
-  Sprite_Character.prototype.updatePosition = function() {
-    var prevY = this.y;
-    var prevZ = this.z;
-    Alias_Sprite_Character_updatePosition.call(this);
-    if (this.y !== prevY || this.z !== prevZ) {
-      if ($gameMap.noTilemap && this.parent && this.parent.requestSort) {
-        this.parent.requestSort();
-      }
     }
   };
 
