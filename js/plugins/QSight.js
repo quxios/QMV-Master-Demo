@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QSight = '1.1.4';
+Imported.QSight = '1.1.5';
 
 if (!Imported.QPlus) {
   alert('Error: QSight requires QPlus to work.');
@@ -17,7 +17,7 @@ if (!Imported.QPlus) {
  /*:
  * @plugindesc <QSight>
  * Real time line of sight
- * @author Quxios  | Version 1.1.4
+ * @author Quxios  | Version 1.1.5
  *
  * @requires QPlus
  *
@@ -261,6 +261,12 @@ function QSight() {
       return false;
     }
     var cache = this._sight.cache;
+    if (Imported.QMovement) {
+      if (cache.radian !== this._radian) {
+        this._sight.reshape = true;
+        return true;
+      }
+    }
     if (cache.dir !== this._direction) {
       this._sight.reshape = true;
       return true;
@@ -294,6 +300,7 @@ function QSight() {
     var target = QPlus.getCharacter(this._sight.targetId);
     this._sight.cache = {
       dir: this._direction,
+      radian: this._radian,
       tiles: this._sight.cache.tiles,
       charas: this._sight.cache.charas,
       targetX: target._realX,
@@ -385,9 +392,9 @@ function QSight() {
 
     Game_CharacterBase.prototype.isInsideSightShape = function(target, options) {
       if (options.base.isPolygon()) {
-        var rad = this._radian;
-        rad -= Math.PI / 2; // Rotate because base shape is facing down
-        this._sight.base.setRadian(rad);
+        var radian = this._radian;
+        radian -= Math.PI / 2; // Rotate because base shape is facing down
+        this._sight.base.setRadian(radian);
       }
       if (options.base.intersects(target.collider('collision'))) {
         if (_SHOW) {
@@ -401,18 +408,7 @@ function QSight() {
     Game_CharacterBase.prototype.isInsideTileShadow = function(target, options) {
       var inside = false;
       ColliderManager.getCollidersNear(options.base, function(tile) {
-        if (tile.width === 0 || tile.height === 0) {
-          return false;
-        }
-        if (tile.type && (tile.type !== 'collision' || tile.type !== 'default')) {
-          return false;
-        }
-        if (tile.isLadder || tile.isBush || tile.isDamage) {
-          return false;
-        }
-        if (_SEETHROUGH.contains(tile.terrain) || /<noshadow>/i.test(tile.note)) {
-          return false;
-        }
+        if (this.canSeeThroughTile(tile)) return false;
         if (tile.intersects(options.base)) {
           var shadowData;
           var shadow;
@@ -447,16 +443,34 @@ function QSight() {
       return inside;
     };
 
+    Game_CharacterBase.prototype.canSeeThroughTile = function(tile) {
+      if (tile.width === 0 || tile.height === 0) {
+        return true;
+      }
+      if (tile.type && (tile.type !== 'collision' || tile.type !== 'default')) {
+        return true;
+      }
+      if (tile.isLadder || tile.isBush || tile.isDamage) {
+        return true;
+      }
+      if (_SEETHROUGH.contains(tile.terrain) || /<noshadow>/i.test(tile.note)) {
+        return true;
+      }
+      return false;
+    };
+
+    Game_CharacterBase.prototype.canSeeThroughChara = function(chara) {
+      return !chara.castsShadow();
+    };
+
     Game_CharacterBase.prototype.isInsideEventShadow = function(target, options) {
       var inside = false;
       ColliderManager.getCharactersNear(options.base, function(chara) {
+        if (chara === this || chara === target) {
+          return false;
+        }
+        if (this.canSeeThroughChara(chara)) return false;
         var charaId = chara.charaId();
-        if (chara === this || chara === target || chara.constructor !== Game_Event) {
-          return false;
-        }
-        if (!chara.castsShadow()) {
-          return false;
-        }
         var collider = chara.collider('collision');
         if (collider.intersects(options.base)) {
           var shadowData;
@@ -642,7 +656,7 @@ function QSight() {
   }
 
   Game_CharacterBase.prototype.castsShadow = function() {
-    return !this._invisible;
+    return false;
   };
 
   //-----------------------------------------------------------------------------
@@ -698,6 +712,6 @@ function QSight() {
 
   Game_Event.prototype.castsShadow = function() {
     if (this._erased) return false;
-    return Game_CharacterBase.prototype.castsShadow.call(this);
+    return !this._invisible;
   };
 })();
