@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QPopup = '1.0.2';
+Imported.QPopup = '1.0.3';
 
 if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.2.2')) {
   alert('Error: QPopup requires QPlus 1.2.2 or newer to work.');
@@ -14,7 +14,7 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.2.2')) {
  /*:
  * @plugindesc <QPopup>
  * Lets you create popups in the map or on screen
- * @author Quxios  | Version 1.0.2
+ * @author Quxios  | Version 1.0.3
  *
  * @requires QPlus
  *
@@ -669,5 +669,10 @@ function Window_QPopup() {
   Window_QPopup.prototype.isPlaying = function() {
     if (this._duration === -1) return true;
     return this._tick < this._duration;
+  };
+
+  Window_QPopup.prototype.isMouseInside = function() {
+    // return false, this window needs to act more like a sprite
+    return false;
   };
 })()
