@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QMovement = '1.3.5';
+Imported.QMovement = '1.3.6';
 
 if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.2.3')) {
   alert('Error: QMovement requires QPlus 1.2.3 or newer to work.');
@@ -14,7 +14,7 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.2.3')) {
  /*:
  * @plugindesc <QMovement>
  * More control over character movement
- * @author Quxios  | Version 1.3.5
+ * @author Quxios  | Version 1.3.6
  *
  * @repo https://github.com/quxios/QMovement
  *
@@ -1681,8 +1681,26 @@ function ColliderManager() {
 
 (function() {
   Object.defineProperties(Game_CharacterBase.prototype, {
-    px: { get: function() { return this._px; }, configurable: true },
-    py: { get: function() { return this._py; }, configurable: true }
+    x: {
+      get: function() {
+        return Math.floor(this.cx() / QMovement.tileSize);
+      },
+      configurable: true
+    },
+    y: {
+      get: function() {
+        return Math.floor(this.cy() / QMovement.tileSize);
+      },
+      configurable: true
+    },
+    px: {
+      get: function() { return this._px; },
+      configurable: true
+    },
+    py: {
+      get: function() { return this._py; },
+      configurable: true
+    }
   });
 
   var Alias_Game_CharacterBase_initMembers = Game_CharacterBase.prototype.initMembers;
@@ -2609,12 +2627,12 @@ function ColliderManager() {
     var code = command.code;
     var params = command.parameters;
     if (command.code === gc.ROUTE_SCRIPT) {
-      var qmove  = /^qmove\((.*)\)/i.exec(params[0]);
+      var qmove = /^qmove\((.*)\)/i.exec(params[0]);
       var qmove2 = /^qmove2\((.*)\)/i.exec(params[0]);
-      var arc    = /^arc\((.*)\)/i.exec(params[0]);
-      if (qmove)  this.subQMove(qmove[1]);
+      var arc = /^arc\((.*)\)/i.exec(params[0]);
+      if (qmove) this.subQMove(qmove[1]);
       if (qmove2) this.subQMove2(qmove2[1]);
-      if (arc)    this.subArc(arc[1]);
+      if (arc) this.subArc(arc[1]);
       if (qmove || qmove2 || arc) return true;
     }
     return false;
@@ -2654,33 +2672,40 @@ function ColliderManager() {
   };
 
   Game_Character.prototype.subQMove = function(settings) {
-    settings  = QPlus.stringToAry(settings);
-    var dir   = settings[0];
-    if (dir === 5) dir = this._direction;
-    var amt   = settings[1];
+    settings = QPlus.stringToAry(settings);
+    var dir = settings[0];
+    var amt = settings[1];
     var multi = settings[2] || 1;
-    var tot   = amt * multi;
+    var tot = amt * multi;
     var steps = Math.floor(tot / this.moveTiles());
     var moved = 0;
     var i;
     for (i = 0; i < steps; i++) {
       moved += this.moveTiles();
       var cmd = {};
-      cmd.code = 'fixedMove';
-      cmd.parameters = [dir, this.moveTiles()];
-      if (dir ===0) {
+      if (dir === 0) {
         cmd.code = 'fixedMoveBackward';
         cmd.parameters = [this.moveTiles()];
+      } else if (dir === 5) {
+        cmd.code = 'fixedMoveForward';
+        cmd.parameters = [this.moveTiles()];
+      } else {
+        cmd.code = 'fixedMove';
+        cmd.parameters = [dir, this.moveTiles()];
       }
       this._moveRoute.list.splice(this._moveRouteIndex + 1, 0, cmd);
     }
     if (moved < tot) {
       var cmd = {};
-      cmd.code = 'fixedMove';
-      cmd.parameters = [dir, tot - moved];
       if (dir === 0) {
         cmd.code = 'fixedMoveBackward';
-        cmd.parameters = [tot - moved];
+        cmd.parameters = [this.moveTiles()];
+      } else if (dir === 5) {
+        cmd.code = 'fixedMoveForward';
+        cmd.parameters = [this.moveTiles()];
+      } else {
+        cmd.code = 'fixedMove';
+        cmd.parameters = [dir, this.moveTiles()];
       }
       this._moveRoute.list.splice(this._moveRouteIndex + 1 + i, 0, cmd);
     }
@@ -2688,7 +2713,7 @@ function ColliderManager() {
   };
 
   Game_Character.prototype.subQMove2 = function(settings) {
-    settings  = QPlus.stringToAry(settings);
+    settings = QPlus.stringToAry(settings);
     var radian = settings[0];
     var dist = settings[1];
     var maxSteps = Math.floor(dist / this.moveTiles());
@@ -2754,6 +2779,7 @@ function ColliderManager() {
     var dy = this.deltaPYFrom(character.cy());
     var radian = Math.atan2(-dy, -dx);
     this.setDirection(this.radianToDirection(radian, QMovement.diagonal));
+    this._radian = radian;
   };
 
   Game_Character.prototype.turnAwayFromCharacter = function(character) {
@@ -2761,6 +2787,7 @@ function ColliderManager() {
     var dy = this.deltaPYFrom(character.cy());
     var radian = Math.atan2(dy, dx);
     this.setDirection(this.radianToDirection(radian, QMovement.diagonal));
+    this._radian = radian;
   };
 
   Game_Character.prototype.deltaPXFrom = function(x) {
@@ -2803,6 +2830,12 @@ function ColliderManager() {
 
   Game_Player.prototype.defaultColliderConfig = function() {
     return QMovement.playerCollider;
+  };
+
+  var Alias_Game_Player_refresh = Game_Player.prototype.refresh;
+  Game_Player.prototype.refresh = function() {
+    this.reloadColliders();
+    Alias_Game_Player_refresh.call(this);
   };
 
   Game_Player.prototype.requestMouseMove = function() {
