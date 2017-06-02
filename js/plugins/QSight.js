@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QSight = '1.1.5';
+Imported.QSight = '1.1.6';
 
 if (!Imported.QPlus) {
   alert('Error: QSight requires QPlus to work.');
@@ -17,7 +17,7 @@ if (!Imported.QPlus) {
  /*:
  * @plugindesc <QSight>
  * Real time line of sight
- * @author Quxios  | Version 1.1.5
+ * @author Quxios  | Version 1.1.6
  *
  * @requires QPlus
  *
@@ -155,7 +155,9 @@ function QSight() {
 
 (function() {
   var _PARAMS = QPlus.getParams('<QSight>');
-  var _SEETHROUGH = _PARAMS['See Through Terrain'].split(',').map(Number);
+  var _SEETHROUGH = _PARAMS['See Through Terrain'].split(',')
+    .filter(function(s) { return s.trim() !== '' })
+    .map(Number);
   var _SHOW = _PARAMS['Show'] === 'true';
 
   if (Imported.QMovement) {
@@ -257,7 +259,6 @@ function QSight() {
     var dx = this._realX - target._realX;
     var dy = this._realY - target._realY;
     if (Math.abs(dx) > this._sight.range + 1 ||  Math.abs(dy) > this._sight.range + 1) {
-      // Target too far away
       return false;
     }
     var cache = this._sight.cache;
