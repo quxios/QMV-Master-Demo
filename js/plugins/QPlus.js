@@ -3,13 +3,13 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QPlus = '1.3.3';
+Imported.QPlus = '1.3.4';
 
 //=============================================================================
  /*:
  * @plugindesc <QPlus> (Should go above all Q Plugins)
  * Some small changes to MV for easier plugin development.
- * @author Quxios  | Version 1.3.3
+ * @author Quxios  | Version 1.3.4
  *
  * @param Quick Test
  * @desc Enable quick testing.
@@ -404,7 +404,7 @@ function QPlus() {
     return arr.map(function(s) {
       s = s.trim();
       if (/^-?\d+\.?\d*$/.test(s)) return Number(s);
-      var p = /^\((\d+),\s*(\d+)/.exec(s);
+      var p = /^\((-?\d+.?\d*),\s*(-?\d+.?\d*)/.exec(s);
       if (p) {
         return new Point(Number(p[1]), Number(p[2]));
       }
@@ -442,6 +442,22 @@ function QPlus() {
     var x = index % maxCols;
     var y = Math.floor(index / maxCols);
     return new Point(x, y);
+  };
+
+  /**
+   * @static QPlus.adjustRadian
+   * Keeps the radian between 0 and MAth.PI * 2
+   * @param  {Int} radian
+   * @return {Int}
+   */
+  QPlus.adjustRadian = function(radian) {
+    while (radian < 0) {
+      radian += Math.PI * 2;
+    }
+    while (radian > Math.PI * 2) {
+      radian -= Math.PI * 2;
+    }
+    return radian;
   };
 
   QPlus.update = function() {
@@ -645,12 +661,11 @@ function SimpleTilemap() {
 
   var Alias_Scene_Map_update = Scene_Map.prototype.update;
   Scene_Map.prototype.update = function() {
-    this.updateMouseInsideWindow();
+    if (TouchInput.isMoved()) this.updateMouseInsideWindow();
     Alias_Scene_Map_update.call(this);
   };
 
   Scene_Map.prototype.updateMouseInsideWindow = function() {
-    // TODO only check this if mouse moved
     var inside = false;
     var windows = this._windowLayer.children;
     for (var i = 0; i < windows.length; i++) {
@@ -775,12 +790,7 @@ function SimpleTilemap() {
   };
 
   Game_CharacterBase.prototype.radianToDirection = function(radian, useDiag) {
-    while (radian < 0) {
-      radian += Math.PI * 2;
-    }
-    while (radian > Math.PI * 2) {
-      radian -= Math.PI * 2;
-    }
+    radian = QPlus.adjustRadian(radian);
     if (useDiag) {
       // use degrees for diagonals
       // since I don't know clean PI numbers for these degrees
