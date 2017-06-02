@@ -79,7 +79,7 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.5')) {
  * ~~~
  * {
  *   "1": [{"width": 0, "height": 0}],
- *   "2": [{"width": 48, "height": 4, "type": "box"}, {"width": 32, "height": 32, ox: 8, oy: 8, "type": "circle"}]
+ *   "2": [{"width": 48, "height": 4, "type": "box"}, {"width": 32, "height": 32, "ox": 8, "oy": 8, "type": "circle"}]
  * }
  * ~~~
  * *Note if the width and/or height are set to 0, that region will be marked as
