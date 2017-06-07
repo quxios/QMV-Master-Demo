@@ -3,13 +3,13 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QPlus = '1.3.4';
+Imported.QPlus = '1.3.5';
 
 //=============================================================================
  /*:
  * @plugindesc <QPlus> (Should go above all Q Plugins)
  * Some small changes to MV for easier plugin development.
- * @author Quxios  | Version 1.3.4
+ * @author Quxios  | Version 1.3.5
  *
  * @param Quick Test
  * @desc Enable quick testing.
@@ -404,7 +404,7 @@ function QPlus() {
     return arr.map(function(s) {
       s = s.trim();
       if (/^-?\d+\.?\d*$/.test(s)) return Number(s);
-      var p = /^\((-?\d+.?\d*),\s*(-?\d+.?\d*)/.exec(s);
+      var p = /^\((-?\d+\.?\d*),\s*(-?\d+\.?\d*)/.exec(s);
       if (p) {
         return new Point(Number(p[1]), Number(p[2]));
       }
@@ -550,7 +550,7 @@ function SimpleTilemap() {
   // Input
 
   Input.stopPropagation = function() {
-    var key = this._latestButton
+    var key = this._latestButton;
     this._currentState[key] = false;
     this._latestButton = null;
     for (var i = 0; i < this._gamepadStates.length; i++) {
