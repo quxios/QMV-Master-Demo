@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QSprite = '2.1.5';
+Imported.QSprite = '2.1.6';
 
 if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.2.0')) {
   alert('Error: QSprite requires QPlus 1.2.0 or newer to work.');
@@ -14,7 +14,7 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.2.0')) {
  /*:
  * @plugindesc <QSprite>
  * Lets you configure Spritesheets
- * @author Quxios  | Version 2.1.5
+ * @author Quxios  | Version 2.1.6
  *
  * @requires QPlus
  *
@@ -652,10 +652,12 @@ QSprite.json = null;
   };
 
   Game_CharacterBase.prototype.clearPose = function() {
+    this._pose = '';
     this._posePlaying = null;
     this._locked = false;
     this._animationCount = 0;
     this._pattern = 0;
+    this.updatePose(false);
   };
 
   Game_CharacterBase.prototype.isQCharacter = function() {
