@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QMovement = '1.3.9';
+Imported.QMovement = '1.3.10';
 
 if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.3.4')) {
   alert('Error: QMovement requires QPlus 1.3.4 or newer to work.');
@@ -14,7 +14,7 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.3.4')) {
  /*:
  * @plugindesc <QMovement>
  * More control over character movement
- * @author Quxios  | Version 1.3.9
+ * @author Quxios  | Version 1.3.10
  *
  * @repo https://github.com/quxios/QMovement
  *
@@ -3225,6 +3225,12 @@ function ColliderManager() {
     var oy = /<oy[=|:](-?[0-9]+)>/i.exec(this.comments(true)) || 0;
     if (ox) ox = Number(ox[1]) || 0;
     if (oy) oy = Number(oy[1]) || 0;
+    var nextOffset = new Point(ox, oy);
+    if (this._initialOffset) {
+      ox -= this._initialOffset.x;
+      oy -= this._initialOffset.y;
+    }
+    this._initialOffset = nextOffset;
     this.setPixelPosition(this.px + ox, this.py + oy);
   };
 
