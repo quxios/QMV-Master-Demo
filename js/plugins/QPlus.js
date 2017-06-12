@@ -3,23 +3,24 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QPlus = '1.3.5';
+Imported.QPlus = '1.4.0';
 
 //=============================================================================
  /*:
  * @plugindesc <QPlus> (Should go above all Q Plugins)
  * Some small changes to MV for easier plugin development.
- * @author Quxios  | Version 1.3.5
+ * @author Quxios  | Version 1.4.0
  *
  * @param Quick Test
  * @desc Enable quick testing.
  * Set to true or false
+ * @type Boolean
  * @default true
  *
  * @param Default Enabled Switches
- * @desc Turns on a list of switches on by default
- * Each switch should be seperated by a comma.
- * @default
+ * @desc Turns on a list of switches on new game
+ * @type switch[]
+ * @default []
  *
  * @help
  * ============================================================================
@@ -141,15 +142,28 @@ function QPlus() {
 }
 
 (function() {
-  QPlus._PARAMS = {};
+  QPlus._regex = {
+    isBoolean: /^(true|false)$/i,
+    isString: /^"(.*?)"$/,
+    isNumber: /^-?\d+$/,
+    isFloat: /^-?\d+\.?\d*$/,
+    isPoint: /^\((-?\d+\.?\d*),\s*(-?\d+\.?\d*)\)$/,
+    isArray: /^\[(.*?)\]$/,
+    isObj: /^\{(.*?)\}$/
+  }
 
-  QPlus.getParams = function(id) {
-    if (!this._PARAMS[id]) {
-      this._PARAMS[id] = $plugins.filter(function(p) {
-        return p.description.contains(id) && p.status
-      })[0].parameters;
+  QPlus.getParams = function(id, convert) {
+    var plugin = $plugins.filter(function(p) {
+      return p.description.contains(id) && p.status
+    });
+    if (!plugin[0]) return {};
+    var params = Object.assign({}, plugin[0].parameters);
+    if (convert) {
+      for (var param in params) {
+        params[param] = this.stringToType(params[param]);
+      }
     }
-    return this._PARAMS[id];
+    return params;
   };
 
   QPlus.versionCheck = function(version, targetVersion) {
@@ -401,18 +415,44 @@ function QPlus() {
         break;
       }
     }
-    return arr.map(function(s) {
-      s = s.trim();
-      if (/^-?\d+\.?\d*$/.test(s)) return Number(s);
-      var p = /^\((-?\d+\.?\d*),\s*(-?\d+\.?\d*)/.exec(s);
-      if (p) {
-        return new Point(Number(p[1]), Number(p[2]));
+    return arr.map(this.stringToType);
+  };
+
+  QPlus.stringToType = function(string) {
+    string = string.trim();
+    var rx = QPlus._regex;
+    if (rx.isString.test(string)) {
+      string = string.slice(1, -1);
+    }
+    if (rx.isBoolean.test(string)) {
+      return string.toLowerCase() === 'true';
+    }
+    if (rx.isFloat.test(string)) {
+      return Number(string);
+    }
+    var isPoint = rx.isPoint.exec(string);
+    if (isPoint) {
+      return new Point(Number(isPoint[1]), Number(isPoint[2]));
+    }
+    if (rx.isArray.test(string)) {
+      try {
+        return JSON.parse(string).map(QPlus.stringToType);
+      } catch (e) {
+        return string;
       }
-      if (s === 'true') return true;
-      if (s === 'false') return false;
-      if (s === 'null' || s === '') return null;
-      return s;
-    })
+    }
+    if (rx.isObj.test(string)) {
+      try {
+        var obj = JSON.parse(string);
+        for (var key in obj) {
+          obj[key] = QPlus.stringToType(obj[key]);
+        }
+        return obj;
+      } catch (e) {
+        return string;
+      }
+    }
+    return string;
   };
 
   /**
@@ -500,8 +540,7 @@ function SimpleTilemap() {
 
   var _PARAMS    = QPlus.getParams('<QPlus>');
   var _QUICKTEST = _PARAMS['Quick Test'].toLowerCase() == 'true';
-  var _SWITCHES  = _PARAMS['Default Enabled Switches'].split(',').map(Number);
-
+  var _SWITCHES  = JSON.parse(_PARAMS['Default Enabled Switches']).map(Number);
 
   //-----------------------------------------------------------------------------
   // Document body
