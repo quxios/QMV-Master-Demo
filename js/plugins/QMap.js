@@ -3,7 +3,6 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QMap = '1.4.1';
 
 if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.5')) {
   alert('Error: QMap requires QPlus 1.1.5 or newer to work.');
@@ -12,6 +11,8 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.5')) {
   alert('Error: QMap requires QMovement 1.2.1 or newer to work.');
   throw new Error('Error: QMap requires QMovement 1.2.1 or newer to work.');
 }
+
+Imported.QMap = '1.4.1';
 
 //=============================================================================
  /*:

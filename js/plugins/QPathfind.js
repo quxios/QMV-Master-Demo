@@ -3,52 +3,60 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QPathfind = '1.4.5';
 
-if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.3')) {
-  alert('Error: QPathfind requires QPlus 1.1.3 or newer to work.');
-  throw new Error('Error: QPathfind requires QPlus 1.1.3 or newer to work.');
+if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.4.0')) {
+  alert('Error: QPathfind requires QPlus 1.4.0 or newer to work.');
+  throw new Error('Error: QPathfind requires QPlus 1.4.0 or newer to work.');
 } else if (Imported.QMovement && !QPlus.versionCheck(Imported.QMovement, '1.1.9')) {
   alert('Error: QPathfind requires QMovement 1.1.9 or newer to work.');
   throw new Error('Error: QPathfind requires QMovement 1.1.9 or newer to work.');
 }
 
+Imported.QPathfind = '1.4.6';
+
 //=============================================================================
  /*:
  * @plugindesc <QPathfind>
  * A* Pathfinding algorithm
- * @author Quxios  | Version 1.4.5
+ * @author Quxios  | Version 1.4.6
  *
  * @requires QPlus
  *
  * @video TODO
  *
  * @param Diagonals
- * @desc Set to true to enable diagonals in the route
- * Set to false to disable diagonals
+ * @desc Set to true or false to enable diagonals in the route
+ * @type Boolean
+ * @on Enable
+ * @off Disable
  * @default false
  *
  * @param Any Angle
- * @desc (Only for QMovement) Set to true to enable moving in any angle
+ * @desc (Only for QMovement) Set to true or false to enable moving at
+ * any angle
+ * @type Boolean
+ * @on Enable
+ * @off Disable
  * @default false
  *
  * @param Intervals
  * @desc Set to the number of calculations per frame
  * Higher value will calculate faster but can lower frames
+ * @type Number
+ * @min 1
  * @default 100
  *
  * @param Smart Wait
- * @desc How long should the pathfind smart 2 wait until it tries again.
- * Default: 60
+ * @desc How long should the pathfind smart 2 wait(in frames) until it
+ * tries again. Default: 60
+ * @type Number
+ * @min 1
  * @default 60
- *
- * @param =============
- * @desc Spacer
- * @default
  *
  * @param Dash on Mouse
  * @desc Should player dash when mouse clicking?
  * MV Default: true
+ * @type Boolean
  * @default true
  *
  * @help
@@ -187,12 +195,12 @@ function QPathfind() {
 }
 
 (function() {
-  var _PARAMS = QPlus.getParams('<QPathfind>');
-  var _DIAGONALS = _PARAMS['Diagonals'] === 'true';
-  var _INTERVALS = Number(_PARAMS['Intervals']);
-  var _SMARTWAIT = Number(_PARAMS['Smart Wait']);
-  var _DASHONMOUSE = _PARAMS['Dash on Mouse'] === 'true';
-  var _ANYANGLE = _PARAMS['Any Angle'] === 'true'
+  var _PARAMS = QPlus.getParams('<QPathfind>', true);
+  var _DIAGONALS = _PARAMS['Diagonals'];
+  var _INTERVALS = _PARAMS['Intervals'];
+  var _SMARTWAIT = _PARAMS['Smart Wait'];
+  var _DASHONMOUSE = _PARAMS['Dash on Mouse'];
+  var _ANYANGLE = _PARAMS['Any Angle'];
   if (_ANYANGLE && Imported.QMovement) _DIAGONALS = false;
   var _DEFAULTOPTIONS = {
     smart: 0, // 0 no smart, 1 recalc on blocked, 2 recalc at intervals

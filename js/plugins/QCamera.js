@@ -3,34 +3,42 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QCamera = '1.1.2';
 
-if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.0.2')) {
-  alert('Error: QCamera requires QPlus 1.0.2 or newer to work.');
-  throw new Error('Error: QCamera requires QPlus 1.0.2 or newer to work.');
+if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.4.0')) {
+  alert('Error: QCamera requires QPlus 1.4.0 or newer to work.');
+  throw new Error('Error: QCamera requires QPlus 1.4.0 or newer to work.');
 }
+
+Imported.QCamera = '1.1.3';
 
 //=============================================================================
  /*:
  * @plugindesc <QCamera>
  * Better Camera control
- * @author Quxios  | Version 1.1.2
+ * @author Quxios  | Version 1.1.3
  *
  * @requires QPlus
  *
  * @param Offset
  * @desc Set the max distance the camera should be from the moving target.
  * Note: Offset gets modified by the characters speed
+ * @type Number
+ * @decimals 2
+ * @min 0
  * @default 0.5
  *
  * @param Shift Y
  * @desc Shifts the center of the camera up or down by a set pixel amount
  * Set to a negative value for up, positive value for down
+ * @type Number
+ * @min -100
  * @default 0
  *
  * @param Shift X
  * @desc Shifts the center of the camera left or right by a set pixel amount
  * Set to a negative value for left, positive value for right
+ * @type Number
+ * @min -100
  * @default 0
  *
  * @video https://www.youtube.com/watch?v=MbdXrReYwFw
@@ -134,10 +142,10 @@ function Sprite_Bars() {
 // QCamera
 
 (function() {
-  var _PARAMS = QPlus.getParams('<QCamera>');
-  var _OFFSET = Number(_PARAMS['Offset']) || 0.5;
-  var _CAMERAOX = Number(_PARAMS['Shift X']) || 0;
-  var _CAMERAOY = Number(_PARAMS['Shift Y']) || 0;
+  var _PARAMS = QPlus.getParams('<QCamera>', true);
+  var _OFFSET = _PARAMS['Offset'];
+  var _CAMERAOX = _PARAMS['Shift X'];
+  var _CAMERAOY = _PARAMS['Shift Y'];
 
   //-----------------------------------------------------------------------------
   // Game_Interpreter
@@ -145,8 +153,7 @@ function Sprite_Bars() {
   var Alias_Game_Interpreter_pluginCommand = Game_Interpreter.prototype.pluginCommand;
   Game_Interpreter.prototype.pluginCommand = function(command, args) {
     if (command.toLowerCase() === 'qcamera') {
-      this.qCameraCommand(args);
-      return;
+      return this.qCameraCommand(args);
     }
     Alias_Game_Interpreter_pluginCommand.call(this, command, args);
   };

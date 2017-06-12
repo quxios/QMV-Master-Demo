@@ -3,15 +3,13 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QMFollowers = '1.0.1';
 
-if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.5')) {
-  alert('Error: QM+Followers requires QPlus 1.1.5 or newer to work.');
-  throw new Error('Error: QM+Followers requires QPlus 1.1.5 or newer to work.');
-} else if (!Imported.QMovement || !QPlus.versionCheck(Imported.QMovement, '1.2.2')) {
+if (!Imported.QMovement || !QPlus.versionCheck(Imported.QMovement, '1.2.2')) {
   alert('Error: QM+Followers requires QMovement 1.2.2 or newer to work.');
   throw new Error('Error: QM+Followers requires QMovement 1.2.2 or newer to work.');
 }
+
+Imported.QMFollowers = '1.0.1';
 
 //=============================================================================
  /*:

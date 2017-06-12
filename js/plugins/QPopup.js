@@ -3,12 +3,13 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QPopup = '1.0.3';
 
 if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.2.2')) {
   alert('Error: QPopup requires QPlus 1.2.2 or newer to work.');
   throw new Error('Error: QPopup requires QPlus 1.2.2 or newer to work.');
 }
+
+Imported.QPopup = '1.0.3';
 
 //=============================================================================
  /*:

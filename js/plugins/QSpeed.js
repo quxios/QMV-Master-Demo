@@ -3,38 +3,39 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QSpeed = '1.2.1';
+Imported.QSpeed = '1.2.2';
 
-if (!Imported.QPlus) {
-  alert('Error: QSpeed requires QPlus to work.');
-  throw new Error('Error: QSpeed requires QPlus to work.');
+if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.4.0')) {
+  alert('Error: QSpeed requires QPlus 1.4.0 or newer to work.');
+  throw new Error('Error: QSpeed requires QPlus 1.4.0 or newer to work.');
 }
 
 //=============================================================================
  /*:
  * @plugindesc <QSpeed>
  * Allows for custom Move speeds and an acceleration effect
- * @author Quxios  | Version 1.2.1
+ * @author Quxios  | Version 1.2.2
  *
  * @requires QPlus
  *
  * @param Acceleration
  * @desc Set this to true to enable acceleration by default.
- * Set to false to disable by default.
+ * @type Boolean
+ * @on Enable
+ * @off Disable
  * @default true
  *
  * @param Duration
  * @desc Set this to value for the default time (in frames) it takes
- * a character to reach new speeds.   Default: 30
+ * a character to reach new speeds.
+ * @type Number
+ * @min 1
  * @default 30
- *
- * @param ===========
- * @desc spacer
- * @default
  *
  * @param Dash Inc
  * @desc Set this to value thats added to the characters speed when dashing
- * Default: 1          (can be a decimal)
+ * @type Number
+ * @decimals 2
  * @default 1
  *
  * @help
@@ -158,11 +159,10 @@ if (!Imported.QPlus) {
 // QSpeed
 
 (function() {
-  var _PARAMS = QPlus.getParams('<QSpeed>');
-  var _ACCEL = _PARAMS['Acceleration'] === 'true';
-  var _DEFAULTDURATION = Number(_PARAMS['Duration']) || 1;
-  if (_DEFAULTDURATION < 1) _DEFAULTDURATION = 1;
-  var _DASH = Number(_PARAMS['Dash Inc']) || 1;
+  var _PARAMS = QPlus.getParams('<QSpeed>', true);
+  var _ACCEL = _PARAMS['Acceleration'];
+  var _DEFAULTDURATION = _PARAMS['Duration'];
+  var _DASH = _PARAMS['Dash Inc'];
 
   //-----------------------------------------------------------------------------
   // Game_Interpreter

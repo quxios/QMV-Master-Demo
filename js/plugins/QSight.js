@@ -3,21 +3,22 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QSight = '1.1.6';
 
-if (!Imported.QPlus) {
-  alert('Error: QSight requires QPlus to work.');
-  throw new Error('Error: QSight requires QPlus to work.');
+if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.4.0')) {
+  alert('Error: QSight requires QPlus 1.4.0 or newer to work.');
+  throw new Error('Error: QSight requires QPlus 1.4.0 or newer to work.');
 } if (Imported.QMovement && !QPlus.versionCheck(Imported.QMovement, '1.1.4')) {
   alert('Error: QSight requires QMovement 1.1.4 or newer to work.');
   throw new Error('Error: QSight requires QMovement 1.1.4 or newer to work.');
 }
 
+Imported.QSight = '1.1.7';
+
 //=============================================================================
  /*:
  * @plugindesc <QSight>
  * Real time line of sight
- * @author Quxios  | Version 1.1.6
+ * @author Quxios  | Version 1.1.7
  *
  * @requires QPlus
  *
@@ -25,12 +26,15 @@ if (!Imported.QPlus) {
  *
  * @param See Through Terrain
  * @desc Set this to a list of terrains that characters can see through
- * Separate terrain ids with a comma, ex: 1, 2, 3
- * @default
+ * @type Number[]
+ * @default []
  *
  * @param Show
  * @desc Set this to true to show sight and shadows (For QMovement only)
  * When true, it will only appear during playtest
+ * @type boolean
+ * @on Show Sight
+ * @off Hide Sight
  * @default false
  *
  * @help
@@ -154,11 +158,9 @@ function QSight() {
 }
 
 (function() {
-  var _PARAMS = QPlus.getParams('<QSight>');
-  var _SEETHROUGH = _PARAMS['See Through Terrain'].split(',')
-    .filter(function(s) { return s.trim() !== '' })
-    .map(Number);
-  var _SHOW = _PARAMS['Show'] === 'true';
+  var _PARAMS = QPlus.getParams('<QSight>', true);
+  var _SEETHROUGH = _PARAMS['See Through Terrain'];
+  var _SHOW = _PARAMS['Show'];
 
   if (Imported.QMovement) {
     QSight.shadowCast = function(collider, from, length) {

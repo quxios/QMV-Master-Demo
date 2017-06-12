@@ -3,18 +3,19 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QM_CollisionMap = '1.0.0';
 
 if (!Imported.QMovement || !QPlus.versionCheck(Imported.QMovement, '1.0.2')) {
   alert('Error: QM+CollisionMap requires QMovement 1.0.2 or newer to work.');
   throw new Error('Error: QM+CollisionMap requires QMovement 1.0.2 or newer to work.');
 }
 
+Imported.QM_CollisionMap = '1.0.1';
+
 //=============================================================================
  /*:
  * @plugindesc <QMCollisionMap>
  * QMovement Addon: Adds image collision map feature
- * @author Quxios  | Version 1.0.0
+ * @author Quxios  | Version 1.0.1
  *
  * @requires QMovement
  *
@@ -23,6 +24,8 @@ if (!Imported.QMovement || !QPlus.versionCheck(Imported.QMovement, '1.0.2')) {
  * @param Scan Size
  * @desc How accurate to scan Collision Map, 1 is most Accurate
  * Default: 4
+ * @type Number
+ * @min 1
  * @default 4
  *
  * @param Folder
@@ -74,9 +77,9 @@ if (!Imported.QMovement || !QPlus.versionCheck(Imported.QMovement, '1.0.2')) {
 // QM CollisionMap
 
 (function() {
-  var _PARAMS = QPlus.getParams('<QMCollisionMap>');
+  var _PARAMS = QPlus.getParams('<QMCollisionMap>', true);
   var _CMFOLDER = _PARAMS['Folder'];
-  var _SCANSIZE = Number(_PARAMS['Scan Size']);
+  var _SCANSIZE = _PARAMS['Scan Size'];
 
   //-----------------------------------------------------------------------------
   // ColliderManager

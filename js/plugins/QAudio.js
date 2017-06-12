@@ -3,27 +3,32 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QAudio = '2.3.0';
 
-if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.0.1')) {
-  alert('Error: QAudio requires QPlus 1.0.1 or newer to work.');
-  throw new Error('Error: QAudio requires QPlus 1.0.1 or newer to work.');
+if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.4.0')) {
+  alert('Error: QAudio requires QPlus 1.4.0 or newer to work.');
+  throw new Error('Error: QAudio requires QPlus 1.4.0 or newer to work.');
 }
+
+Imported.QAudio = '2.3.1';
 
 //=============================================================================
  /*:
  * @plugindesc <QAudio>
  * Few new audio features
- * @author Quxios  | Version 2.3.0
+ * @author Quxios  | Version 2.3.1
  *
  * @requires QPlus
  *
  * @param Default Radius
  * @desc Default radius in tiles
+ * @type Number
+ * @min 0
  * @default 5
  *
  * @param Default Max Volume
  * @desc Default max volume
+ * @type Number
+ * @min 0
  * @default 100
  *
  * @help
@@ -155,9 +160,9 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.0.1')) {
 // QAudio
 
 (function() {
-  var _PARAMS = QPlus.getParams('<QAudio>');
-  var _DEFAULTRADIUS = Number(_PARAMS['Default Radius']) || 1;
-  var _DEFAULTVOLUME = Number(_PARAMS['Default Max Volume']) || 100;
+  var _PARAMS = QPlus.getParams('<QAudio>', true);
+  var _DEFAULTRADIUS = _PARAMS['Default Radius'];
+  var _DEFAULTVOLUME = _PARAMS['Default Max Volume'];
 
   //-----------------------------------------------------------------------------
   // Game_Interpreter

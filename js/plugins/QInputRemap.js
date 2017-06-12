@@ -3,89 +3,96 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QInputRemap = '2.1.0';
 
-if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.2.1')) {
-  alert('Error: QInputRemap requires QPlus 1.2.1 or newer to work.');
-  throw new Error('Error: QInputRemap requires QPlus 1.2.1 or newer to work.');
-} else if (!Imported.QInput || !QPlus.versionCheck(Imported.QInput, '2.1.1')) {
+if (!Imported.QInput || !QPlus.versionCheck(Imported.QInput, '2.1.1')) {
   alert('Error: QInputRemap requires QInput 2.1.1 or newer to work.');
   throw new Error('Error: QInputRemap requires QInput 2.1.1 or newer to work.');
 }
+
+Imported.QInputRemap = '2.1.1';
 
 //=============================================================================
  /*:
  * @plugindesc <QInputRemap>
  * Quasi Input Addon: Adds Key remapping to Options menu
- * @author Quxios  | Version 2.1.0
+ * @author Quxios  | Version 2.1.1
  *
  * @requires QInput
  *
  * @param Hide Keys
  * @desc Which keys to not show in Input Config
- * Default:
+ * @type String[]
  * @default
  *
  * @param Disable Keys
  * @desc Which keys to not be able to set in Input Config
- * Default: ok, escape
- * @default ok, escape
+ * @type String[]
+ * @default ["ok", "escape"]
  *
- * @param ===========
- * @desc spacer
- * @default
+ * @param Vocab
  *
  * @param Vocab: Ok
+ * @parent Vocab
  * @desc Vocab for Ok input
  * Default: Action
  * @default Action
  *
  * @param Vocab: Escape
+ * @parent Vocab
  * @desc Vocab for Escape input
  * Default: Cancel
  * @default Cancel
  *
  * @param Vocab: Shift
+ * @parent Vocab
  * @desc Vocab for Shift input
  * Default: Run
  * @default Run
  *
  * @param Vocab: Control
+ * @parent Vocab
  * @desc Vocab for Control input
  * Default: Control
  * @default Control
  *
  * @param Vocab: Tab
+ * @parent Vocab
  * @desc Vocab for Tab input
  * Default: Tab
  * @default Tab
  *
  * @param Vocab: Pageup
+ * @parent Vocab
  * @desc Vocab for Pageup input
  * Default: Next
  * @default Next
  *
  * @param Vocab: Pagedown
+ * @parent Vocab
  * @desc Vocab for Pagedown input
  * Default: Prev
  * @default Prev
  *
  * @param Vocab: Up
+ * @parent Vocab
  * @desc Vocab for Up input
  * Default: Up
  * @default Up
  *
  * @param Vocab: Down
+ * @parent Vocab
  * @desc Vocab for Down input
  * Default: Down
  * @default Down
  *
  * @param Vocab: Left
+ * @parent Vocab
  * @desc Vocab for Left input
  * Default: Left
  * @default Left
  *
  * @param Vocab: Right
+ * @parent Vocab
  * @desc Vocab for Right input
  * Default: Right
  * @default Right
@@ -122,11 +129,15 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.2.1')) {
  * ============================================================================
  * RPGMakerWebs:
  *
- *   http://forums.rpgmakerweb.com/index.php?threads/qplugins.73023/
+ *  http://forums.rpgmakerweb.com/index.php?threads/qplugins.73023/
  *
  * Terms of use:
  *
- *   https://github.com/quxios/QMV-Master-Demo/blob/master/readme.md
+ *  https://github.com/quxios/QMV-Master-Demo/blob/master/readme.md
+ *
+ * Like my plugins? Support me on Patreon!
+ *
+ *  https://www.patreon.com/quxios
  *
  * @tags input, options
  */
@@ -143,8 +154,8 @@ function Window_InputRemap() {
 // QInputRemap
 
 (function() {
-  var _PARAMS = QPlus.getParams('<QInputRemap>');
-  var _HIDE = QPlus.stringToAry(_PARAMS['Hide Keys']).concat([
+  var _PARAMS = QPlus.getParams('<QInputRemap>', true);
+  var _HIDE = _PARAMS['Hide Keys'].concat([
     'fps',
     'console',
     'restart',
@@ -152,7 +163,7 @@ function Window_InputRemap() {
     'streched',
     'fullscreen'
   ]);
-  var _DISABLE = QPlus.stringToAry(_PARAMS['Disable Keys']);
+  var _DISABLE = _PARAMS['Disable Keys'];
   var _VOCAB = {};
   for (var key in _PARAMS) {
     if (!_PARAMS.hasOwnProperty(key)) continue;

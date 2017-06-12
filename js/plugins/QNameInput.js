@@ -3,29 +3,33 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QNameInput = '2.0.2';
 
 if (!Imported.QInput) {
   alert('Error: QNameInput requires QInput to work.');
   throw new Error('Error: QNameInput requires QInput to work.');
 }
 
+Imported.QNameInput = '2.0.3';
+
 //=============================================================================
  /*:
  * @plugindesc <QNameInput>
  * Quasi Input addon: Adds Keyboard Input to Name Input Scene
- * @author Quxios  | Version 2.0.2
+ * @author Quxios  | Version 2.0.3
  *
  * @requires QInput
  *
  * @param Show Window with Keys
  * @desc Set to true or false to display the old input window.
  * Default: false    MV Default: true
+ * @type boolean
  * @default false
  *
  * @param Window Width
  * @desc Set the width of the window
  * MV Default: 480
+ * @type Number
+ * @min 1
  * @default 480
  *
  * @help
@@ -37,17 +41,20 @@ if (!Imported.QInput) {
  * ## How to use
  * ============================================================================
  * Place somewhere below QInput plugin.
- *
  * ============================================================================
  * ## Links
  * ============================================================================
  * RPGMakerWebs:
  *
- *   http://forums.rpgmakerweb.com/index.php?threads/qplugins.73023/
+ *  http://forums.rpgmakerweb.com/index.php?threads/qplugins.73023/
  *
  * Terms of use:
  *
- *   https://github.com/quxios/QMV-Master-Demo/blob/master/readme.md
+ *  https://github.com/quxios/QMV-Master-Demo/blob/master/readme.md
+ *
+ * Like my plugins? Support me on Patreon!
+ *
+ *  https://www.patreon.com/quxios
  *
  * @tags input
  */
@@ -57,11 +64,9 @@ if (!Imported.QInput) {
 // QNameInput
 
 (function() {
-  var _PARAMS = $plugins.filter(function(p) {
-    return p.description.contains('<QNameInput>') && p.status
-  })[0].parameters;
-  var _SHOW  = _PARAMS["Show Window with Keys"] === 'true';
-  var _WIDTH = Number(_PARAMS["Window Width"]) || 480;
+  var _PARAMS = QPlus.getParams('<QNameInput>', true);
+  var _SHOW  = _PARAMS["Show Window with Keys"];
+  var _WIDTH = _PARAMS["Window Width"];
 
   //-----------------------------------------------------------------------------
   // Scene_Name

@@ -3,18 +3,18 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QSprite = '2.1.6';
+Imported.QSprite = '2.1.7';
 
-if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.2.0')) {
-  alert('Error: QSprite requires QPlus 1.2.0 or newer to work.');
-  throw new Error('Error: QSprite requires QPlus 1.2.0 or newer to work.');
+if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.4.0')) {
+  alert('Error: QSprite requires QPlus 1.4.0 or newer to work.');
+  throw new Error('Error: QSprite requires QPlus 1.4.0 or newer to work.');
 }
 
 //=============================================================================
  /*:
  * @plugindesc <QSprite>
  * Lets you configure Spritesheets
- * @author Quxios  | Version 2.1.6
+ * @author Quxios  | Version 2.1.7
  *
  * @requires QPlus
  *
@@ -25,12 +25,13 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.2.0')) {
  *
  * @param Random Idle Interval
  * @desc Set the time interval between random Idles (in frames)
- * Set as a range seperated with a space. min value first
- * @default 60 300
+ * @type Struct<Range>
  *
  * @param Use New Adjust
  * @desc Use new pose speed adjust?
- * Set to true or false
+ * @type Boolean
+ * @on Yes
+ * @off No
  * @default true
  *
  * @help
@@ -229,6 +230,17 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.2.0')) {
  *
  * @tags character, sprite, animation
  */
+ /*~struct~Range:
+ * @param Min
+ * @desc Set to the min value
+ * @type Number
+ * @default 60
+ *
+ * @param Max
+ * @desc Set to max value
+ * @type Number
+ * @default 300
+ */
 //=============================================================================
 
 //=============================================================================
@@ -244,15 +256,18 @@ QSprite.json = null;
 // QSprite
 
 (function() {
-  var _PARAMS = QPlus.getParams('<QSprite>');
+  var _PARAMS = QPlus.getParams('<QSprite>', true);
   var _IDENTIFIER = _PARAMS['File Name Identifier'] || '%{config}-';
   _IDENTIFIER = _IDENTIFIER.replace('{config}', '(.+?)');
   _IDENTIFIER = new RegExp(_IDENTIFIER);
-  var _IDLEINTERVAL = _PARAMS['Random Idle Interval'].trim().split(' ').map(Number);
-  if (!_IDLEINTERVAL[1] || _IDLEINTERVAL[1] < _IDLEINTERVAL[0]) {
+  var _IDLEINTERVAL = [
+    _PARAMS['Random Idle Interval'].Min,
+    _PARAMS['Random Idle Interval'].Max
+  ]
+  if (_IDLEINTERVAL[1] < _IDLEINTERVAL[0]) {
     _IDLEINTERVAL[1] = _IDLEINTERVAL[0];
   }
-  var _USENEWADJUST = _PARAMS['Use New Adjust'] === 'true';
+  var _USENEWADJUST = _PARAMS['Use New Adjust'];
   var _HASQMOVEMENT = Imported.Quasi_Movement || Imported.QMovement;
 
   QPlus.request('data/QSprite.json')

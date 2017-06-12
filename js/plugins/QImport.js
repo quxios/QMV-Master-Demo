@@ -3,12 +3,13 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QImport = '1.0.2';
 
 if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.5')) {
   alert('Error: QImport requires QPlus 1.1.5 or newer to work.');
   throw new Error('Error: QImport requires QPlus 1.1.5 or newer to work.');
 }
+
+Imported.QImport = '1.0.2';
 
 //=============================================================================
  /*:
