@@ -3,118 +3,150 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QInput = '2.1.1';
 
 if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.2.1')) {
   alert('Error: QInput requires QPlus 1.2.1 or newer to work.');
   throw new Error('Error: QInput requires QPlus 1.2.1 or newer to work.');
 }
 
+Imported.QInput = '2.2.0';
+
 //=============================================================================
  /*:
  * @plugindesc <QInput>
  * Adds additional keys to Input class, and allows remapping keys.
- * @author Quxios  | Version 2.1.1
+ * @author Quxios  | Version 2.2.0
  *
  * @param Threshold
  * @desc The threshold for gamepad analog sticks to send input
- * MV Default: 0.5,   value should be between 0.1 to 1.0
+ * MV Default: 0.5
+ * @type Number
+ * @decimals 2
+ * @min 0.10
+ * @max 1.00
  * @default 0.5
  *
- * @param ========
- * @desc spacer
- * @default
+ * @param Input Remap
  *
  * @param Ok
+ * @parent Input Remap
  * @desc Which buttons will trigger the ok input
  * MV Default: #enter, #space, #z, $A
- * @default #enter, #space, #z, $A
+ * @type text[]
+ * @default ["#enter", "#space", "#z", "$A"]
  *
  * @param Escape / Cancel
+ * @parent Input Remap
  * @desc Which buttons will trigger the escape / cancel input
  * MV Default: #esc, #insert, #x, #num0, $B
- * @default #esc, #insert, #x, #num0, $B
+ * @type text[]
+ * @default ["#esc", "#insert", "#x", "#num0", "$B"]
  *
  * @param Menu
+ * @parent Input Remap
  * @desc Which buttons will trigger the menu input
  * MV Default: #esc, $Y
- * @default #esc, $Y
+ * @type text[]
+ * @default ["#esc", "$Y"]
  *
  * @param Shift
+ * @parent Input Remap
  * @desc Which buttons will trigger the shift input
  * MV Default: #shift, #cancel, $X
- * @default #shift, #cancel, $X
+ * @type text[]
+ * @default ["#shift", "#cancel", "$X"]
  *
  * @param Control
+ * @parent Input Remap
  * @desc Which buttons will trigger the control input
  * MV Default: #ctrl, #alt
- * @default #ctrl, #alt
+ * @type text[]
+ * @default ["#ctrl", "#alt"]
  *
  * @param Tab
+ * @parent Input Remap
  * @desc Which buttons will trigger the tab input
  * MV Default: #tab
- * @default #tab
+ * @type text[]
+ * @default ["#tab"]
  *
  * @param Pageup
+ * @parent Input Remap
  * @desc Which buttons will trigger the pageup input
  * MV Default: #pageup, #q, $L1
- * @default #pageup, #q, $L1
+ * @type text[]
+ * @default ["#pageup", "#q", "$L1"]
  *
  * @param Pagedown
+ * @parent Input Remap
  * @desc Which buttons will trigger the pagedown input
  * MV Default: #pagedown, #w, $R1
- * @default #pagedown, #w, $R1
+ * @type text[]
+ * @default ["#pagedown", "#w", "$R1"]
  *
  * @param Left
+ * @parent Input Remap
  * @desc Which buttons will trigger the left input
  * MV Default: #left, #num4, $LEFT
- * @default #left, #num4, $LEFT
+ * @type text[]
+ * @default ["#left", "#num4", "$LEFT"]
  *
  * @param Right
+ * @parent Input Remap
  * @desc Which buttons will trigger the right input
  * MV Default: #right, #num6, $RIGHT
- * @default #right, #num6, $RIGHT
+ * @type text[]
+ * @default ["#right", "#num6", "$RIGHT"]
  *
  * @param Up
+ * @parent Input Remap
  * @desc Which buttons will trigger the up input
  * MV Default: #up, #num8, $UP
- * @default #up, #num8, $UP
+ * @type text[]
+ * @default ["#up", "#num8", "$UP"]
  *
  * @param Down
+ * @parent Input Remap
  * @desc Which buttons will trigger the down input
  * MV Default: #down, #num2, $DOWN
- * @default #down, #num2, $DOWN
+ * @type text[]
+ * @default ["#down", "#num2", "$DOWN"]
  *
  * @param Debug
+ * @parent Input Remap
  * @desc Which buttons will trigger the debug input
  * MV Default: #f9
- * @default #f9
+ * @type text[]
+ * @default ["#f9"]
  *
- * @param ===========
- * @desc spacer
- * @default
+ * @param ControlKeys Remap
  *
  * @param FPS
+ * @parent ControlKeys Remap
  * @desc Which button will open fps
  * MV Default: f2
  * @default f2
  *
  * @param Streched
+ * @parent ControlKeys Remap
  * @desc Which button will strech Screen
  * MV Default: f3
  * @default f3
  *
  * @param FullScreen
+ * @parent ControlKeys Remap
  * @desc Which button will trigger fullscreen
  * MV Default: f4
  * @default f4
  *
  * @param Restart
+ * @parent ControlKeys Remap
  * @desc Which button will restart the game
  * MV Default: f5
  * @default f5
  *
  * @param Console
+ * @parent ControlKeys Remap
  * @desc Which button will open console during testing
  * MV Default: f8
  * @default f8
@@ -273,28 +305,29 @@ function QInput() {
 // QInput
 
 (function() {
-  var _PARAMS = QPlus.getParams('<QInput>');
-  var _THRESHOLD = Number(_PARAMS['Threshold']) || 0.2;
+  var _PARAMS = QPlus.getParams('<QInput>', true);
+  var _THRESHOLD = _PARAMS['Threshold'];
 
-  QInput.remapped = {};
-  QInput.remapped['ok']       = QPlus.stringToAry(_PARAMS['Ok']);
-  QInput.remapped['escape']   = QPlus.stringToAry(_PARAMS['Escape / Cancel']);
-  QInput.remapped['menu']     = QPlus.stringToAry(_PARAMS['Menu']);
-  QInput.remapped['shift']    = QPlus.stringToAry(_PARAMS['Shift']);
-  QInput.remapped['control']  = QPlus.stringToAry(_PARAMS['Control']);
-  QInput.remapped['tab']      = QPlus.stringToAry(_PARAMS['Tab']);
-  QInput.remapped['pageup']   = QPlus.stringToAry(_PARAMS['Pageup']);
-  QInput.remapped['pagedown'] = QPlus.stringToAry(_PARAMS['Pagedown']);
-  QInput.remapped['left']     = QPlus.stringToAry(_PARAMS['Left']);
-  QInput.remapped['right']    = QPlus.stringToAry(_PARAMS['Right']);
-  QInput.remapped['up']       = QPlus.stringToAry(_PARAMS['Up']);
-  QInput.remapped['down']     = QPlus.stringToAry(_PARAMS['Down']);
-  QInput.remapped['debug']    = QPlus.stringToAry(_PARAMS['Debug']);
-  QInput.remapped['fps']        = [_PARAMS['FPS']];
-  QInput.remapped['streched']   = [_PARAMS['Streched']];
-  QInput.remapped['fullscreen'] = [_PARAMS['FullScreen']];
-  QInput.remapped['restart']    = [_PARAMS['Restart']];
-  QInput.remapped['console']    = [_PARAMS['Console']];
+  QInput.remapped = {
+   ok: _PARAMS['Ok'],
+   escape: _PARAMS['Escape / Cancel'],
+   menu: _PARAMS['Menu'],
+   shift: _PARAMS['Shift'],
+   control: _PARAMS['Control'],
+   tab: _PARAMS['Tab'],
+   pageup: _PARAMS['Pageup'],
+   pagedown: _PARAMS['Pagedown'],
+   left: _PARAMS['Left'],
+   right: _PARAMS['Right'],
+   up: _PARAMS['Up'],
+   down: _PARAMS['Down'],
+   debug: _PARAMS['Debug'],
+   fps: [_PARAMS['FPS']],
+   streched: [_PARAMS['Streched']],
+   fullscreen: [_PARAMS['FullScreen']],
+   restart: [_PARAMS['Restart']],
+   console: [_PARAMS['Console']]
+  };
 
   // Key codes from
   // https://msdn.microsoft.com/en-us/library/dd375731(v=VS.85).aspx
@@ -639,32 +672,35 @@ function QInput() {
     if (newState[15]) {
       this._dirAxesA.x = 1;
     }
+    var max = 1 - _THRESHOLD;
     // left stick
     if (axes[0] < -_THRESHOLD) {
-      this._dirAxesA.x = axes[0];
+      this._dirAxesA.x = (axes[0] + _THRESHOLD) / max;
       newState[14] = true;    // left
       this._lastUsed = 'gamepad';
     } else if (axes[0] > _THRESHOLD) {
-      this._dirAxesA.x = axes[0];
+      this._dirAxesA.x = (axes[0] - _THRESHOLD) / max;
       newState[15] = true;    // right
       this._lastUsed = 'gamepad';
     }
     if (axes[1] < -_THRESHOLD) {
-      this._dirAxesA.y = axes[1];
+      this._dirAxesA.y = (axes[1] + _THRESHOLD) / max;
       newState[12] = true;    // up
       this._lastUsed = 'gamepad';
     } else if (axes[1] > _THRESHOLD) {
-      this._dirAxesA.y = axes[1];
+      this._dirAxesA.y = (axes[1] - _THRESHOLD) / max;
       newState[13] = true;    // down
       this._lastUsed = 'gamepad';
     }
     // right stick
     if (Math.abs(axes[2]) > _THRESHOLD) {
-      this._dirAxesB.x = axes[2];
+      var sign = axes[2] > 0 ? 1 : -1;
+      this._dirAxesB.x = (axes[2] + _THRESHOLD * sign) / max;
       this._lastUsed = 'gamepad';
     }
     if (Math.abs(axes[3]) > _THRESHOLD) {
-      this._dirAxesB.y = axes[3];
+      var sign = axes[3] > 0 ? 1 : -1;
+      this._dirAxesB.y = (axes[3] + _THRESHOLD * sign) / max;
       this._lastUsed = 'gamepad';
     }
     this._lastGamepadTriggered = null;
