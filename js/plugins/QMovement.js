@@ -9,13 +9,13 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.4.0')) {
   throw new Error('Error: QMovement requires QPlus 1.4.0 or newer to work.');
 }
 
-Imported.QMovement = '1.3.11';
+Imported.QMovement = '1.4.0';
 
 //=============================================================================
  /*:
  * @plugindesc <QMovement>
  * More control over character movement
- * @author Quxios  | Version 1.3.11
+ * @author Quxios  | Version 1.4.0
  *
  * @repo https://github.com/quxios/QMovement
  *
@@ -97,17 +97,28 @@ Imported.QMovement = '1.3.11';
  * @min 0
  * @default 0
  *
- * @param Default Colliders
+ * @param Colliders
  *
  * @param Player Collider
- * @parent Default Colliders
+ * @text Default Player Collider
+ * @parent Colliders
  * @desc Default collider for the player.
  * @type Struct<Collider>
+ * @default {"Type":"box","Width":"36","Height":"24","Offset X":"6","Offset Y":"24"}
  *
  * @param Event Collider
- * @parent Default Colliders
+ * @text Default Event Collider
+ * @parent Colliders
  * @desc Default collider for events.
  * @type Struct<Collider>
+ * @default {"Type":"box","Width":"36","Height":"24","Offset X":"6","Offset Y":"24"}
+ *
+ * @param Presets
+ * @parent Colliders
+ * @desc List of preset colliders that you can assign to
+ * events
+ * @type Struct<ColliderPreset>[]
+ * @default []
  *
  * @param Debug Settings
  *
@@ -184,15 +195,20 @@ Imported.QMovement = '1.3.11';
  * not found
  * - Collision: This collider is used for collision checking
  * - Interaction: This collider is used for checking interaction.
- * ============================================================================
- * ## Collider Terms
- * ============================================================================
+ * ----------------------------------------------------------------------------
+ * **Collider Presets**
+ * ----------------------------------------------------------------------------
+ * You can create colliders in the plugin parameters which you can use when
+ * setting up other colliders.
+ * ----------------------------------------------------------------------------
+ * **Collider Terms**
+ * ----------------------------------------------------------------------------
  * ![Colliders Terms Image](https://quxios.github.io/imgs/qmovement/colliderInfo.png)
  * ----------------------------------------------------------------------------
  * **Collider Notetag**
  * ----------------------------------------------------------------------------
  * ~~~
- *  <collider: shape, width, height, ox, oy>
+ *  <collider: [SHAPE], [WIDTH], [HEIGHT], [OX], [OY]>
  * ~~~
  * This notetag sets all collider types to these values.
  * - SHAPE: Set to box, circle or poly
@@ -206,7 +222,7 @@ Imported.QMovement = '1.3.11';
  * ----------------------------------------------------------------------------
  * ~~~
  *  <colliders>
- *  type: shape, width, height, ox, oy
+ *  [TYPE]: [SHAPE], [WIDTH], [HEIGHT], [OX], [OY]
  *  </colliders>
  * ~~~
  * This notetag sets all collider types to these values.
@@ -229,6 +245,32 @@ Imported.QMovement = '1.3.11';
  *  interaction: box: 32, 32, 8, 8
  *  </colliders>
  * ~~~
+ * ----------------------------------------------------------------------------
+ * **Using Preset**
+ * ----------------------------------------------------------------------------
+ * To use a collider preset in the notetag, the format is:
+ * ~~~
+ *  preset, [PRESETID]
+ * ~~~
+ * - PRESETID: The PresetID you set in the preset parameter.
+ *
+ * You will use this format instead of the: `SHAPE, WIDTH, HEIGHT, OX, OY`
+ *
+ * Example:
+ * ~~~
+ *  <collider: preset, largeCollider>
+ * ~~~
+ * Will look for the preset with the ID `largeCollider`
+ *
+ * Example 2:
+ * ~~~
+ *  <colliders>
+ *  default: preset, largeDefault
+ *  collision: preset, largeCollider
+ *  interaction: preset, largeInteraction
+ *  </colliders>
+ * ~~~
+ * Will use the presets; `largeDefault`, `largeCollider`, and `largeInteraction`
  * ----------------------------------------------------------------------------
  * **Poly Colliders**
  * ----------------------------------------------------------------------------
@@ -295,8 +337,10 @@ Imported.QMovement = '1.3.11';
  * Will make the character do a full 360 arc clockwise around the point 480, 480
  * and it'll take 60 frames.
  * ============================================================================
- * ## Notetags
+ * ## Event Notetags
  * ============================================================================
+ * **Offsets**
+ * ----------------------------------------------------------------------------
  * To shift an events initial starting position, you can use the following
  * note tags:
  * ~~~
@@ -305,6 +349,14 @@ Imported.QMovement = '1.3.11';
  *  <oy:X>
  * ~~~
  * Where X is the number of pixels to shift the event. Can be negative.
+ * ----------------------------------------------------------------------------
+ * **SmartDir**
+ * ----------------------------------------------------------------------------
+ * By default, when the player collides with an event it won't trigger the
+ * Smart Move Dir effect. To enable this, add following notetag to the event:
+ * ~~~
+ *  <smartDir>
+ * ~~~
  * ============================================================================
  * ## Plugin Commands
  * ============================================================================
@@ -454,6 +506,47 @@ Imported.QMovement = '1.3.11';
  /*~struct~Collider:
  * @param Type
  * @desc Set to box or circle
+ * @type select
+ * @option Box
+ * @value box
+ * @option Circle
+ * @value circle
+ * @default box
+ *
+ * @param Width
+ * @desc Set to the width of the collider.
+ * @type Number
+ * @default 36
+ *
+ * @param Height
+ * @desc Set to the height of the collider.
+ * @type Number
+ * @default 24
+ *
+ * @param Offset X
+ * @desc Set to the x offset of the collider.
+ * @type Number
+ * @min -9999
+ * @default 6
+ *
+ * @param Offset Y
+ * @desc Set to the y offset of the collider.
+ * @type Number
+ * @min -9999
+ * @default 24
+ */
+ /*~struct~ColliderPreset:
+ * @param ID
+ * @desc The ID of this preset, needs to be unique!
+ * @default
+ *
+ * @param Type
+ * @desc Set to box or circle
+ * @type select
+ * @option Box
+ * @value box
+ * @option Circle
+ * @value circle
  * @default box
  *
  * @param Width
@@ -501,20 +594,12 @@ function QMovement() {
   QMovement.water2 = '#0000FF'; // will be changable in a separate addon
   QMovement.water1Tag = 1; // will be changable in a separate addon
   QMovement.water2Tag = 2; // will be changable in a separate addon
-  QMovement.playerCollider = [
-    _PARAMS['Player Collider'].Type,
-    _PARAMS['Player Collider'].Width,
-    _PARAMS['Player Collider'].Height,
-    _PARAMS['Player Collider']['Offset X'],
-    _PARAMS['Player Collider']['Offset Y']
-  ];
-  QMovement.eventCollider = [
-    _PARAMS['Event Collider'].Type,
-    _PARAMS['Event Collider'].Width,
-    _PARAMS['Event Collider'].Height,
-    _PARAMS['Event Collider']['Offset X'],
-    _PARAMS['Event Collider']['Offset Y']
-  ];
+  QMovement.playerCollider = convertColliderStruct(_PARAMS['Player Collider']);
+  QMovement.eventCollider = convertColliderStruct(_PARAMS['Event Collider']);
+  QMovement.presets = {};
+  _PARAMS['Presets'].forEach(function(preset) {
+    QMovement.presets[preset.ID] = convertColliderStruct(preset);
+  });
   QMovement.showColliders = _PARAMS['Show Colliders'];
   QMovement.tileBoxes = {
     1537: [48, 6, 0, 42],
@@ -561,6 +646,16 @@ function QMovement() {
   // following will be changable in a separate addon
   QMovement.regionColliders = {};
   QMovement.colliderMap = {};
+
+  function convertColliderStruct(struct) {
+    return [
+      struct.Type,
+      struct.Width,
+      struct.Height,
+      struct['Offset X'],
+      struct['Offset Y']
+    ]
+  }
 })();
 
 //=============================================================================
@@ -607,12 +702,20 @@ function Polygon_Collider() {
   Object.defineProperty(Polygon_Collider.prototype, 'ox', {
     get() {
       return this._offset.x + this._pivot.x;
+    },
+    set(value) {
+      this._offset.x = value;
+      this.refreshVertices();
     }
   });
 
   Object.defineProperty(Polygon_Collider.prototype, 'oy', {
     get() {
       return this._offset.y + this._pivot.y;
+    },
+    set(value) {
+      this._offset.y = value - this._pivot.y;
+      this.refreshVertices();
     }
   });
 
@@ -763,7 +866,7 @@ function Polygon_Collider() {
     this._pivot.x = x;
     this._pivot.y = y;
     this.makeVectors();
-    this.refreshVertices();
+    this.rotate(0); // Resets base vertices
   };
 
   Polygon_Collider.prototype.centerPivot = function() {
@@ -771,7 +874,6 @@ function Polygon_Collider() {
     this._pivot.y = this.height / 2;
     this.makeVectors();
     this.rotate(0); // Resets base vertices
-    this.refreshVertices();
   };
 
   Polygon_Collider.prototype.setRadian = function(radian) {
@@ -1343,7 +1445,15 @@ function ColliderManager() {
   };
 
   ColliderManager.convertToCollider = function(arr) {
-    var type = arr[0];
+    var type = arr[0].toLowerCase();
+    if (type === 'preset') {
+      var arr = QMovement.presets[arr[1]];
+      if (!arr) {
+        alert("ERROR: Tried to use a collider preset that doesn't exist: ", type);
+        return null;
+      }
+      type = arr[0].toLowerCase();
+    }
     var w = arr[1] || 0;
     var h = arr[2] || 0;
     var ox = arr[3] || 0;
@@ -1744,6 +1854,19 @@ function ColliderManager() {
     var tileHeight = this.tileHeight();
     var originY = this.displayY() * tileHeight;
     return this.roundPY(originY + y);
+  };
+})();
+
+//-----------------------------------------------------------------------------
+// Game_Party
+
+(function() {
+  Game_Party.prototype.steps = function() {
+    return Math.floor(this._steps);
+  };
+
+  Game_Party.prototype.increaseSteps = function() {
+    this._steps += $gamePlayer.moveTiles() / QMovement.tileSize;
   };
 })();
 
@@ -2308,8 +2431,6 @@ function ColliderManager() {
   Game_CharacterBase.prototype.moveRadian = function(radian, dist) {
     dist = dist || this.moveTiles();
     this.fixedRadianMove(radian, dist);
-    // TODO make this better instead of using realDir
-    // try using different angles between +- 45 degrees
     if (!this.isMovementSucceeded() && this.smartMove() > 1) {
       var realDir = this.radianToDirection(radian, true);
       var xAxis = Math.cos(radian);
@@ -2422,11 +2543,28 @@ function ColliderManager() {
   };
 
   Game_CharacterBase.prototype.smartMoveDir8 = function(dir) {
+    var dist = this.moveTiles();
+    var collider = this.collider('collision');
     var x1 = this._px;
     var y1 = this._py;
-    var dist = this.moveTiles();
+    var x2 = $gameMap.roundPXWithDirection(x1, dir, dist);
+    var y2 = $gameMap.roundPYWithDirection(y1, dir, dist);
+    collider.moveTo(x2, y2);
+    var collided = false;
+    ColliderManager.getCharactersNear(collider, (function(chara) {
+      if (chara.isThrough() || chara === this || !chara.isNormalPriority() ||
+          /<smartdir>/i.test(chara.notes())) {
+        return false;
+      }
+      if (chara.collider('collision').intersects(collider)) {
+        collided = true;
+        return 'break';
+      }
+      return false;
+    }).bind(this));
+    collider.moveTo(x1, y1);
+    if (collided) return;
     var horz = [4, 6].contains(dir) ? true : false;
-    var collider = this.collider('collision');
     var steps = horz ? collider.height : collider.width;
     steps /= 2;
     var pass = false;
@@ -2453,22 +2591,6 @@ function ColliderManager() {
       if (pass) break;
     }
     if (!pass) return;
-    collider.moveTo(x2, y2);
-    var collided = false;
-    ColliderManager.getCharactersNear(collider, (function(chara) {
-      if (chara.isThrough() || chara === this || !chara.isNormalPriority()) {
-        return false;
-      }
-      if (chara.collider('collision').intersects(collider) &&
-        chara.notes && !/<smartdir>/i.test(chara.notes())) {
-        collided = true;
-        return 'break';
-      }
-      return false;
-    }).bind(this));
-    collider.moveTo(x1, y1);
-    if (collided) return;
-    collider.moveTo(x2, y2);
     var radian = QPlus.adjustRadian(Math.atan2(y2 - y1, x2 - x1));
     this._forwardRadian = radian;
     this._px = x2;
@@ -2477,58 +2599,6 @@ function ColliderManager() {
     this._realPY = y1;
     this._adjustFrameSpeed = false;
     this.setRadian(radian);
-    this.increaseSteps();
-  };
-
-  Game_CharacterBase.prototype.smartMoveRadian = function(radian, dist) {
-    // Incomplete func, might remove as results aren't as good as smartMoveDir8
-    // is a radian version of .smartMoveDir8
-    var radian2 = radian;
-    var horzSteps, vertSteps;
-    var horz, vert;
-    var x2, y2;
-    var a = Math.PI / 4;
-    var pass = false;
-    for (var i = 0; i < 2; i++) {
-      var sign = i === 0 ? 1 : -1;
-      for (var j = 1; j < 8; j++) {
-        radian2 = j !== 0 ? radian + a * sign / j : radian;
-        var xAxis = Math.cos(radian2);
-        var yAxis = Math.sin(radian2);
-        horzSteps = Math.round(Math.abs(xAxis) * dist);
-        vertSteps = Math.round(Math.abs(yAxis) * dist);
-        horz = xAxis > 0 ? 6 : xAxis < 0 ? 4 : 0;
-        vert = yAxis > 0 ? 2 : yAxis < 0 ? 8 : 0;
-        x2 = $gameMap.roundPXWithDirection(this._px, horz, horzSteps);
-        y2 = $gameMap.roundPYWithDirection(this._py, vert, vertSteps);
-        pass = this.canPassToFrom(x2, y2, this._px, this._py);
-        if (pass) break;
-      }
-      if (pass) break;
-    }
-    if (!pass) return;
-    var collider = this.collider('collision');
-    collider.moveTo(x2, y2);
-    var collided = false;
-    ColliderManager.getCharactersNear(collider, (function(chara) {
-      if (chara.isThrough() || chara === this || !chara.isNormalPriority()) {
-        return false;
-      }
-      if (chara.collider('collision').intersects(collider) &&
-        chara.notes && !/<smartdir>/i.test(chara.notes())) {
-        collided = true;
-        return 'break';
-      }
-      return false;
-    }).bind(this));
-    collider.moveTo(this._px, this._py);
-    if (collided) return;
-    this._adjustFrameSpeed = true;
-    this._realPX = this._px;
-    this._realPY = this._py;
-    this._px = x2;
-    this._py = y2;
-    this.setRadian(radian2);
     this.increaseSteps();
   };
 
@@ -2595,10 +2665,8 @@ function ColliderManager() {
   };
 
   Game_CharacterBase.prototype.makeCollider = function(name, settings) {
-    if (settings[0] === 'box' || settings[0] === 'circle') {
-      settings[4] = (settings[4] || 0) - this.shiftY();
-    }
     this._colliders[name] = ColliderManager.convertToCollider(settings);
+    this._colliders[name].oy -= this.shiftY();
     this._colliders[name]._charaId = this.charaId();
     ColliderManager.addCollider(this._colliders[name], -1, true);
   };
