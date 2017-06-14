@@ -22,7 +22,7 @@ Imported.QInputRemap = '2.1.1';
  * @param Hide Keys
  * @desc Which keys to not show in Input Config
  * @type String[]
- * @default
+ * @default []
  *
  * @param Disable Keys
  * @desc Which keys to not be able to set in Input Config
