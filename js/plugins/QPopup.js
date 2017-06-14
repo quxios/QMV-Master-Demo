@@ -9,15 +9,20 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.2.2')) {
   throw new Error('Error: QPopup requires QPlus 1.2.2 or newer to work.');
 }
 
-Imported.QPopup = '1.0.3';
+Imported.QPopup = '1.1.0';
 
 //=============================================================================
  /*:
  * @plugindesc <QPopup>
  * Lets you create popups in the map or on screen
- * @author Quxios  | Version 1.0.3
+ * @author Quxios  | Version 1.1.0
  *
  * @requires QPlus
+ *
+ * @param Presets
+ * @desc List of Popup presets
+ * @type Struct<PopupPreset>[]
+ * @default []
  *
  * @help
  * ============================================================================
@@ -25,6 +30,11 @@ Imported.QPopup = '1.0.3';
  * ============================================================================
  * This plugin lets you play a random popups at a set interval over an event.
  * It also lets you create your own popups that you can place where you want.
+ * ============================================================================
+ * ## Presets
+ * ============================================================================
+ * Presets can be created in the plugin parameters or with plugin commands.
+ * Presets have predefined rules for a popups style and transitions.
  * ============================================================================
  * ## Event Popups
  * ============================================================================
@@ -189,6 +199,47 @@ Imported.QPopup = '1.0.3';
  *
  * @tags map, popup
  */
+ /*~struct~PopupPreset:
+ * @param ID
+ * @desc The ID of this preset, needs to be unique!
+ * @default
+ *
+ * @param Style
+ *
+ * @param Font Face
+ * @parent Style
+ * @desc Set to the name of the font to use
+ * @default GameFont
+ *
+ * @param Font Size
+ * @parent Style
+ * @desc Set to size of the font
+ * @default 28
+ *
+ * @param Font Color
+ * @parent Style
+ * @desc Set to hex color of the font
+ * @default #ffffff
+ *
+ * @param Padding
+ * @parent Style
+ * @desc Set to the padding size
+ * @type Number
+ * @min 0
+ * @default 0
+ *
+ * @param Windowed
+ * @parent Style
+ * @desc If true, the window skin will be used
+ * @type Boolean
+ * @default false
+ *
+ * @param Transitions
+ * @desc List of transitions to play.
+ * See transitions section in the help for info.
+ * @type String[]
+ * @default []
+ */
 //=============================================================================
 
 //=============================================================================
@@ -209,7 +260,20 @@ function Window_QPopup() {
 // QPopup
 
 (function() {
-  var _PARAMS = QPlus.getParams('<QPopup>');
+  var _PARAMS = QPlus.getParams('<QPopup>', true);
+  var _PRESETS = {};
+  _PARAMS.Presets.forEach(function(preset) {
+    _PRESETS[preset.ID] = {
+      style: {
+        fontFace: preset['Font Face'],
+        fontSize: preset['Font Size'],
+        color: preset['Font Color'],
+        padding: preset['Padding'],
+        windowed: preset['Windowed']
+      },
+      transitions: preset.Transitions
+    }
+  });
 
   //-----------------------------------------------------------------------------
   // QPopup
@@ -298,7 +362,7 @@ function Window_QPopup() {
   var Alias_Game_System_initialize = Game_System.prototype.initialize;
   Game_System.prototype.initialize = function() {
     Alias_Game_System_initialize.call(this);
-    this._qPopupPresets = {};
+    this._qPopupPresets = JSON.parse(JSON.stringify(_PRESETS));
   };
 
   Game_System.prototype.qPopupPreset = function(id) {
