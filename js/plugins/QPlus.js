@@ -3,13 +3,13 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QPlus = '1.4.0';
+Imported.QPlus = '1.4.1';
 
 //=============================================================================
  /*:
  * @plugindesc <QPlus> (Should go above all Q Plugins)
  * Some small changes to MV for easier plugin development.
- * @author Quxios  | Version 1.4.0
+ * @author Quxios  | Version 1.4.1
  *
  * @param Quick Test
  * @desc Enable quick testing.
@@ -156,11 +156,20 @@ function QPlus() {
     var plugin = $plugins.filter(function(p) {
       return p.description.contains(id) && p.status
     });
-    if (!plugin[0]) return {};
+    var hasDefaults = convert.constructor === Object;
+    if (!plugin[0]) hasDefaults ? convert : {};
     var params = Object.assign({}, plugin[0].parameters);
     if (convert) {
       for (var param in params) {
         params[param] = this.stringToType(params[param]);
+        if (hasDefaults && convert[param] !== undefined) {
+          if (convert[param].constructor !== params[param].constructor) {
+            var err = 'Plugin Parameter value error. ' + id + ', Parameter: ' + param;
+            err += '\nDefault value will be used.'
+            console.warn(err);
+            params[param] = convert[param];
+          }
+        }
       }
     }
     return params;
@@ -507,6 +516,10 @@ function QPlus() {
   QPlus.updateWaiters = function() {
     var waiters = this._waitListeners;
     for (var i = waiters.length - 1; i >= 0; i--) {
+      if (!waiters[i]) {
+        waiters.splice(i, 1);
+        continue;
+      }
       if (waiters[i].duration <= 0) {
         if (typeof waiters[i].callback === 'function') {
           try {
@@ -514,7 +527,6 @@ function QPlus() {
           } catch (e) {
             console.error(e);
           }
-          waiters[i].callback = null;
         }
         waiters.splice(i, 1);
       } else {
@@ -538,9 +550,10 @@ function SimpleTilemap() {
   //-----------------------------------------------------------------------------
   // Get QPlus params
 
-  var _PARAMS    = QPlus.getParams('<QPlus>');
-  var _QUICKTEST = _PARAMS['Quick Test'].toLowerCase() == 'true';
-  var _SWITCHES  = JSON.parse(_PARAMS['Default Enabled Switches']).map(Number);
+  var _PARAMS = QPlus.getParams('<QPlus>', {
+    'Quick Test': false,
+    'Default Enabled Switches': []
+  });
 
   //-----------------------------------------------------------------------------
   // Document body
@@ -641,8 +654,8 @@ function SimpleTilemap() {
   var Alias_DataManager_setupNewGame = DataManager.setupNewGame;
   DataManager.setupNewGame = function() {
     Alias_DataManager_setupNewGame.call(this);
-    for (var i = 0; i < _SWITCHES.length; i++) {
-      $gameSwitches.setValue(_SWITCHES[i], true);
+    for (var i = 0; i <  _PARAMS['Default Enabled Switches'].length; i++) {
+      $gameSwitches.setValue( _PARAMS['Default Enabled Switches'][i], true);
     }
   };
 
@@ -683,7 +696,7 @@ function SimpleTilemap() {
   Scene_Boot.prototype.start = function() {
     if (DataManager.isBattleTest() || DataManager.isEventTest()) {
       Alias_Scene_Boot_start.call(this);
-    } else if (_QUICKTEST && Utils.isOptionValid('test')) {
+    } else if (_PARAMS['Quick Test'] && Utils.isOptionValid('test')) {
       Scene_Base.prototype.start.call(this);
       SoundManager.preloadImportantSounds();
       this.checkPlayerLocation();
