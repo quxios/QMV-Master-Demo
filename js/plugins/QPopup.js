@@ -9,13 +9,13 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.2.2')) {
   throw new Error('Error: QPopup requires QPlus 1.2.2 or newer to work.');
 }
 
-Imported.QPopup = '1.1.0';
+Imported.QPopup = '1.1.1';
 
 //=============================================================================
  /*:
  * @plugindesc <QPopup>
  * Lets you create popups in the map or on screen
- * @author Quxios  | Version 1.1.0
+ * @author Quxios  | Version 1.1.1
  *
  * @requires QPlus
  *
@@ -260,7 +260,9 @@ function Window_QPopup() {
 // QPopup
 
 (function() {
-  var _PARAMS = QPlus.getParams('<QPopup>', true);
+  var _PARAMS = QPlus.getParams('<QPopup>', {
+    'Presets': []
+  });
   var _PRESETS = {};
   _PARAMS.Presets.forEach(function(preset) {
     _PRESETS[preset.ID] = {
