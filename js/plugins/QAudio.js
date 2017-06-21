@@ -9,13 +9,13 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.4.0')) {
   throw new Error('Error: QAudio requires QPlus 1.4.0 or newer to work.');
 }
 
-Imported.QAudio = '2.3.1';
+Imported.QAudio = '2.3.2';
 
 //=============================================================================
  /*:
  * @plugindesc <QAudio>
  * Few new audio features
- * @author Quxios  | Version 2.3.1
+ * @author Quxios  | Version 2.3.2
  *
  * @requires QPlus
  *
@@ -339,7 +339,7 @@ Imported.QAudio = '2.3.1';
         return true;
       })
       var buffer = this.createBuffer(options.type, audio.name);
-      if (options.bindTo) {
+      if (options.bindTo !== undefined && options.bindTo !== null) {
         buffer.bindTo = options.bindTo;
       } else {
         buffer.mapX = options.x;
@@ -369,7 +369,7 @@ Imported.QAudio = '2.3.1';
         id: id,
         audio: audio,
         options: options
-      })
+      });
     }
   };
 
@@ -483,7 +483,7 @@ Imported.QAudio = '2.3.1';
     var y1 = $gamePlayer._realY;
     var x2 = buffer.mapX;
     var y2 = buffer.mapY;
-    if (buffer.bindTo || buffer.bindTo === 0) {
+    if (buffer.bindTo !== undefined) {
       var chara = QPlus.getCharacter(buffer.bindTo);
       x2 = chara._realX;
       y2 = chara._realY;
