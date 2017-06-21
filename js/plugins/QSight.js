@@ -12,13 +12,13 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.4.0')) {
   throw new Error('Error: QSight requires QMovement 1.1.4 or newer to work.');
 }
 
-Imported.QSight = '1.1.7';
+Imported.QSight = '1.1.8';
 
 //=============================================================================
  /*:
  * @plugindesc <QSight>
  * Real time line of sight
- * @author Quxios  | Version 1.1.7
+ * @author Quxios  | Version 1.1.8
  *
  * @requires QPlus
  *
@@ -158,7 +158,9 @@ function QSight() {
 }
 
 (function() {
-  var _PARAMS = QPlus.getParams('<QSight>', true);
+  var _PARAMS = QPlus.getParams('<QSight>', {
+    'See Through Terrain': []
+  });
   var _SEETHROUGH = _PARAMS['See Through Terrain'];
   var _SHOW = _PARAMS['Show'];
 
