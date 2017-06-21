@@ -9,13 +9,13 @@ if (!Imported.QInput || !QPlus.versionCheck(Imported.QInput, '2.1.1')) {
   throw new Error('Error: QInputRemap requires QInput 2.1.1 or newer to work.');
 }
 
-Imported.QInputRemap = '2.1.1';
+Imported.QInputRemap = '2.1.2';
 
 //=============================================================================
  /*:
  * @plugindesc <QInputRemap>
  * Quasi Input Addon: Adds Key remapping to Options menu
- * @author Quxios  | Version 2.1.1
+ * @author Quxios  | Version 2.1.2
  *
  * @requires QInput
  *
@@ -154,7 +154,10 @@ function Window_InputRemap() {
 // QInputRemap
 
 (function() {
-  var _PARAMS = QPlus.getParams('<QInputRemap>', true);
+  var _PARAMS = QPlus.getParams('<QInputRemap>', {
+    'Hide Keys': [],
+    'Disable Keys': ["ok", "escape"]
+  });
   var _HIDE = _PARAMS['Hide Keys'].concat([
     'fps',
     'console',
