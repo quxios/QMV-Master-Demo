@@ -9,13 +9,13 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.4.0')) {
   throw new Error('Error: QMovement requires QPlus 1.4.0 or newer to work.');
 }
 
-Imported.QMovement = '1.4.0';
+Imported.QMovement = '1.4.1';
 
 //=============================================================================
  /*:
  * @plugindesc <QMovement>
  * More control over character movement
- * @author Quxios  | Version 1.4.0
+ * @author Quxios  | Version 1.4.1
  *
  * @repo https://github.com/quxios/QMovement
  *
@@ -580,7 +580,15 @@ function QMovement() {
 }
 
 (function() {
-  var _PARAMS = QPlus.getParams('<QMovement>', true);
+  var _PARAMS = QPlus.getParams('<QMovement>', {
+    'Player Collider': {
+      "Type": "box", "Width": 36,"Height":24 ,"Offset X": 6,"Offset Y": 24
+    },
+    'Event Collider': {
+      "Type": "box", "Width": 36,"Height":24 ,"Offset X": 6,"Offset Y": 24
+    },
+    'Presets': []
+  });
 
   QMovement.grid = _PARAMS['Grid'];
   QMovement.tileSize = _PARAMS['Tile Size'];
