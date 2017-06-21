@@ -9,13 +9,13 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.2.1')) {
   throw new Error('Error: QInput requires QPlus 1.2.1 or newer to work.');
 }
 
-Imported.QInput = '2.2.0';
+Imported.QInput = '2.2.1';
 
 //=============================================================================
  /*:
  * @plugindesc <QInput>
  * Adds additional keys to Input class, and allows remapping keys.
- * @author Quxios  | Version 2.2.0
+ * @author Quxios  | Version 2.2.1
  *
  * @param Threshold
  * @desc The threshold for gamepad analog sticks to send input
@@ -305,28 +305,42 @@ function QInput() {
 // QInput
 
 (function() {
-  var _PARAMS = QPlus.getParams('<QInput>', true);
+  var _PARAMS = QPlus.getParams('<QInput>', {
+    'Ok': ["#enter", "#space", "#z", "$A"],
+    'Escape / Cancel': ["#esc", "#insert", "#x", "#num0", "$B"],
+    'Menu': ["#esc", "$Y"],
+    'Shift': ["#shift", "#cancel", "$X"],
+    'Control':  ["#ctrl", "#alt"],
+    'Tab': ["#tab"],
+    'Pageup': ["#pageup", "#q", "$L1"],
+    'Pagedown': ["#pagedown", "#w", "$R1"],
+    'Left': ["#left", "#num4", "$LEFT"],
+    'Right': ["#right", "#num6", "$RIGHT"],
+    'Up': ["#up", "#num8", "$UP"],
+    'Down': ["#down", "#num2", "$DOWN"],
+    'Debug': ["#f9"]
+  });
   var _THRESHOLD = _PARAMS['Threshold'];
 
   QInput.remapped = {
-   ok: _PARAMS['Ok'],
-   escape: _PARAMS['Escape / Cancel'],
-   menu: _PARAMS['Menu'],
-   shift: _PARAMS['Shift'],
-   control: _PARAMS['Control'],
-   tab: _PARAMS['Tab'],
-   pageup: _PARAMS['Pageup'],
-   pagedown: _PARAMS['Pagedown'],
-   left: _PARAMS['Left'],
-   right: _PARAMS['Right'],
-   up: _PARAMS['Up'],
-   down: _PARAMS['Down'],
-   debug: _PARAMS['Debug'],
-   fps: [_PARAMS['FPS']],
-   streched: [_PARAMS['Streched']],
-   fullscreen: [_PARAMS['FullScreen']],
-   restart: [_PARAMS['Restart']],
-   console: [_PARAMS['Console']]
+    ok: _PARAMS['Ok'],
+    escape: _PARAMS['Escape / Cancel'],
+    menu: _PARAMS['Menu'],
+    shift: _PARAMS['Shift'],
+    control: _PARAMS['Control'],
+    tab: _PARAMS['Tab'],
+    pageup: _PARAMS['Pageup'],
+    pagedown: _PARAMS['Pagedown'],
+    left: _PARAMS['Left'],
+    right: _PARAMS['Right'],
+    up: _PARAMS['Up'],
+    down: _PARAMS['Down'],
+    debug: _PARAMS['Debug'],
+    fps: [_PARAMS['FPS']],
+    streched: [_PARAMS['Streched']],
+    fullscreen: [_PARAMS['FullScreen']],
+    restart: [_PARAMS['Restart']],
+    console: [_PARAMS['Console']]
   };
 
   // Key codes from
