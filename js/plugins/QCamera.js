@@ -9,13 +9,13 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.4.0')) {
   throw new Error('Error: QCamera requires QPlus 1.4.0 or newer to work.');
 }
 
-Imported.QCamera = '1.1.3';
+Imported.QCamera = '1.1.4';
 
 //=============================================================================
  /*:
  * @plugindesc <QCamera>
  * Better Camera control
- * @author Quxios  | Version 1.1.3
+ * @author Quxios  | Version 1.1.4
  *
  * @requires QPlus
  *
@@ -299,7 +299,7 @@ function Sprite_Bars() {
   Game_Map.prototype.displayCenterX = function() {
     var half = this.screenTileX() / 2;
     var x = this.displayX() + half;
-    x -= _CAMERAOX / this.tileWidth()
+    x -= _CAMERAOX / this.tileWidth();
     x = this.roundX(x);
     return Math.round(x * this.tileWidth()) / this.tileWidth();
   };
@@ -307,14 +307,14 @@ function Sprite_Bars() {
   Game_Map.prototype.displayCenterY = function() {
     var half = this.screenTileY() / 2;
     var y = this.displayY() + half;
-    y -= _CAMERAOY / this.tileHeight()
+    y -= _CAMERAOY / this.tileHeight();
     y = this.roundY(y);
     return Math.round(y * this.tileHeight()) / this.tileHeight();
   };
 
   var Alias_Game_Map_parallaxOx = Game_Map.prototype.parallaxOx;
   Game_Map.prototype.parallaxOx = function() {
-    var ox = Alias_Game_Map_parallaxOy.call(this);
+    var ox = Alias_Game_Map_parallaxOx.call(this);
     return ox + _CAMERAOX;
   };
 
