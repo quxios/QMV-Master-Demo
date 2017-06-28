@@ -3,13 +3,13 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QPlus = '1.4.1';
+Imported.QPlus = '1.4.2';
 
 //=============================================================================
  /*:
  * @plugindesc <QPlus> (Should go above all Q Plugins)
  * Some small changes to MV for easier plugin development.
- * @author Quxios  | Version 1.4.1
+ * @author Quxios  | Version 1.4.2
  *
  * @param Quick Test
  * @desc Enable quick testing.
@@ -608,7 +608,7 @@ function SimpleTilemap() {
     for (var i = 0; i < this._gamepadStates.length; i++) {
       if (!this._gamepadStates[i]) continue;
       for (var j = 0; j < this._gamepadStates[i].length; j++) {
-        var button = this.gamepadMapper[j];
+        var button = Imported.QInput ? this.gamepadKeys[j] : this.gamepadMapper[j];
         if (button === key) {
           this._gamepadStates[i][j] = false;
           break;
