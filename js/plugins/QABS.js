@@ -9,15 +9,15 @@ if (!Imported.QMovement || !QPlus.versionCheck(Imported.QMovement, '1.4.0')) {
   throw new Error('Error: QABS requires QMovement 1.4.0 or newer to work.');
 }
 
-Imported.QABS = '1.2.1';
+Imported.QABS = '1.2.2';
 
 //=============================================================================
  /*:
  * @plugindesc <QABS>
  * Action Battle System for QMovement
- * @author Quxios  | Version 1.2.1
+ * @author Quxios  | Version 1.2.2
  *
- * @development
+ * @repo https://github.com/quxios/QABS
  *
  * @requires QMovement
  *
@@ -39,10 +39,21 @@ Imported.QABS = '1.2.1';
  * @off Can't Move
  * @default false
  *
- * @param Attack Towards Mouse
+ * @param Aim with Mouse
  * @parent Attack Settings
  * @desc All actions will be used towards your mouse location
- * Default: false   Set to true or false
+ * @type Boolean
+ * @on Towards mouse
+ * @off Towards player direction
+ * @default false
+ *
+ * @param Aim with Analog
+ * @parent Attack Settings
+ * @desc All actions will be used towards right analog stick when using a
+ * gamepad.
+ * @type Boolean
+ * @on Towards right analog
+ * @off Towards player direction
  * @default false
  *
  * @param Move Resistance Rate Stat
@@ -130,6 +141,10 @@ Imported.QABS = '1.2.1';
  *
  * **Note that the help section is still in development and may be missing
  * some info! Sorry!**
+ *
+ * For a demo visit the steamwork shop:
+ *
+ * http://steamcommunity.com/sharedfiles/filedetails/?id=952886994
  * ============================================================================
  * ## Is this for you?
  * ============================================================================
@@ -159,12 +174,16 @@ Imported.QABS = '1.2.1';
  *
  * When creating a skill key you have 4 parameters:
  *
- * - Keyboard Input: The keyboard input that will trigger this skill, set this
- *  to `mouse1` for left click, and `mouse2` for right click.
- * - Gamepad Input: The gamepad input that will trigger this skill.
- * - Rebind: If this is true, the skill that's assigned to this skill key can
- *  be reassigned.
- * - Skill Id: The skill that this skill key will use when triggered.
+ * - #### Keyboard Input:
+ *  - The keyboard input that will trigger this skill, set this to `mouse1` for
+ *  left click, and `mouse2` for right click.
+ * - #### Gamepad Input:
+ *  - The gamepad input that will trigger this skill.
+ * - #### Rebind:
+ *  - If this is true, the skill that's assigned to this skill key can be
+ *  reassigned.
+ * - #### Skill Id:
+ *  - The skill that this skill key will use when triggered.
  *
  * Note for input values, those are the button values; `ok`, 'cancel', ect. Or
  * if you're using an input plugin, use their value, for example in QInput you can
@@ -187,9 +206,15 @@ Imported.QABS = '1.2.1';
  *  [SKILL KEY NUMBER]: [SKILL ID] [REBIND?]
  *  </skillKeys>
  * ~~~
- * - SKILL KEY NUMBER: The skill key that you want to change
- * - SKILL ID: The skill to assign to this skill key number
- * - REBIND?: Set to true or false if this can be reassigned
+ * - #### SKILL KEY NUMBER:
+ *  - The skill key that you want to change
+ * - #### SKILL ID:
+ *  - The skill to assign to this skill key number
+ * - #### REBIND?:
+ *  - Set to true or false if this can be reassigned
+ *
+ * If the skill key that you're trying to change has its `Rebind` value set to false,
+ * nothing will happen since it can't be reassigned.
  *
  * *Important!* make sure the skill key you are trying to set is created in the
  * plugin parameters `Default Skills`. If it's not, the game will have an error.
@@ -217,8 +242,10 @@ Imported.QABS = '1.2.1';
  *  [SKILL KEY NUMBER]: [SKILL ID]
  *  </skillKeys>
  * ~~~
- * - SKILL KEY NUMBER: The skill key that you want to change
- * - SKILL ID: The skill to assign to this skill key number
+ * - #### SKILL KEY NUMBER:
+ *  - The skill key that you want to change
+ * - #### SKILL ID:
+ *  - The skill to assign to this skill key number
  *
  * *Important!* make sure the skill key you are trying to set is created in the
  * plugin parameters `Default Skills`. If it's not, the game will have an error.
@@ -230,7 +257,7 @@ Imported.QABS = '1.2.1';
  *  </skillKeys>
  * ~~~
  * Weapon skill keys take top priority, so they will replace both class keys
- * and teh default keys! This example will replace skill key 1 with the skill
+ * and the default keys! This example will replace skill key 1 with the skill
  * id 3
  * ============================================================================
  * ## Skills
@@ -255,26 +282,32 @@ Imported.QABS = '1.2.1';
  *  groundtarget: [NUMBER]
  *  selecttarget: [NUMBER]
  * ~~~
- * - collider: Set this to the collider this skill will use. See QMovement help
- * for details on colliders. Default: The users collider
- *   - format is `shape, width, height`
- * - cooldown: Set to the number of frames until you can use this skill again.
- * Default: 0
- * - infront: Set to true or false. When true, the collider will appear in front
- * of the user. When false the collider will be centered on the user. Default: false
- * - rotate: Set to true or false. When true, the collider will rotate based on
- * the users direction. Default: false
- * - through: Set to 0, 1, 2, or 3. Default: 0
+ * - #### collider:
+ *  - Set this to the collider this skill will use. See QMovement help for details
+ *   on colliders. Default: The users collider
+ *  - format is `shape, width, height`
+ * - #### cooldown:
+ *  - Set to the number of frames until you can use this skill again. Default: 0
+ * - #### infront:
+ *  - Set to true or false. When true, the collider will appear in front of the user.
+ *   When false the collider will be centered on the user. Default: false
+ * - #### rotate:
+ *  - Set to true or false. When true, the collider will rotate based on the users
+ *   direction when skill is starting. Default: false
+ * - #### through:
+ *  - Set to 0, 1, 2, or 3. Default: 0
  *   - 0: Goes through events and tiles
  *   - 1: Goes through tiles but stops when it hits an event
  *   - 2: Goes through events but stops when it hits a tile
  *   - 3: Stops when it hits an event or tile
- * - throughTerrain: Set to a list of terrains it can go through, separate each
- * terrain with a comma
- * - groundtarget: Set to the max distance for the ground target. If value is
- * 0 ground targeting will not be used. Default: 0
- * - selecttarget: Set to the max distance for the select target. If value is
- * 0 select targeting will not be used. Default: 0
+ * - #### throughTerrain:
+ *  - Set to a list of terrains it can go through, separate each terrain with a comma
+ * - #### groundtarget:
+ *  - Set to the max distance for the ground target. If value is 0 ground targeting
+ *   will not be used. Default: 0
+ * - #### selecttarget:
+ *  - Set to the max distance for the select target. If value is 0 select targeting
+ *   will not be used. Default: 0
  * ----------------------------------------------------------------------------
  * **Skill Sequence**
  * ----------------------------------------------------------------------------
@@ -318,11 +351,134 @@ Imported.QABS = '1.2.1';
  *  animation [ANIMATION ID]
  *  se [NAME] [VOLUME] [PITCH] [PAN]
  *  qaudio [NAME] [QAUDIO OPTIONS]
- *  forceSkill [SKILL ID] [ANGLE OFFSER IN DEGREES]
+ *  forceSkill [SKILL ID] [ANGLE OFFSET IN DEGREES]
  *  globalLock
  *  globalUnlock
  * ~~~
- * more info~ TODO
+ * - #### user casting [TRUE or FALSE]
+ *  - Set the user casting state. If the user is casting this skill can be
+ *   ended early if they get hit with a skill that has `user cancel` in it's
+ *   `absOnDamage`
+ *
+ * - #### user lock
+ *  - Locks the users movement. The user can't move or use any actions until
+ *  `user unlock` is called. `user unlock` is called automatically after every
+ *  skill ends to ensure the user can move again if the skill ended.
+ *
+ * - #### user unlock
+ *  - Unlocks the users movement. The user is unlocked if it was locked and can
+ *   move and use actions again. `user unlock` is called automatically after
+ *   every skill ends to ensure that user can move again if the skill ended.
+ *
+ * - #### user speed [INC or DEC] [VALUE]
+ *  - Changes the users move speed.
+ *  - INC or DEC: Set to `inc` to increase movespeed, set to `dec` to decrease
+ *   move speed
+ *  - VALUE: Set to a number to inc or dec the movespeed by.
+ *
+ * - #### user move [FORWARD or BACKWARD] [DIST] [WAIT? TRUE or FALSE]
+ *  - The user will move forward or backwards by X distance.
+ *  - FORWARD or BACKWARD: Set to forward or backwards depending on which direction
+ *   you want the user to move.
+ *  - DIST: Set to the distance the user should move, in pixels
+ *  - WAIT: Set to true or false. If true the sequencer will wait until the move
+ *   is complete before going to the next action
+ *
+ * - #### user moveHere [WAIT? TRUE or FALSE]
+ *  - The user will move to the skills current location
+ *  - WAIT: Set to true or false. If true the sequencer will wait until the move
+ *   is complete before going to the next action
+ *
+ * - #### user jump [FORWARD or BACKWARD] [DIST] [WAIT? TRUE or FALSE]
+ *  - The user will jump forward or backwards by X distance.
+ *  - FORWARD or BACKWARD: Set to forward or backwards depending on which direction
+ *   you want the user to jump.
+ *  - DIST: Set to the distance the user should jump, in pixels
+ *  - WAIT: Set to true or false. If true the sequencer will wait until the jump
+ *   is complete before going to the next action
+ *
+ * - #### user jumpHere [WAIT? TRUE or FALSE]
+ *  - The user will jump to the skills current location
+ *  - WAIT: Set to true or false. If true the sequencer will wait until the jump
+ *   is complete before going to the next action
+ *
+ * - #### user teleport
+ *  - The user will instantly move to the skills current location
+ *
+ * - #### user setDirection [DIR]
+ *  - Sets the users direction
+ *  - DIR: Set to; 2, 4, 6 or 8. For diagonals; 1, 3, 7, or 9
+ *
+ * - #### user directionFix [TRUE or FALSE]
+ *  - Sets the users direction fix.
+ *  - TRUE or FALSE: When true the users direction can't change
+ *
+ * - #### user pose [POSE NAME] [WAIT? TRUE or FALSE]
+ *  - Requires QSprite plugin
+ *  - If the user is a QSprite, it will play the pose set
+ *  - POSE NAME: The pose to play
+ *  - WAIT: Set to true or false. If true the sequencer will wait until the pose
+ *   is done playing before going to the next action
+ *
+ * - #### user forceSkill [SKILL ID] [ANGLE OFFSET IN DEGREES]
+ *  - Forces the user to use a skill.
+ *  - SKILL ID: The ID of the skill to use
+ *  - ANGLE OFFSET: Lets you offset the angle this skill be used towards.
+ *   This is optional and can be left out.
+ *
+ * - #### user animation [ANIMATION ID]
+ *  - Plays an animation on the user
+ *  - ANIMATION ID: The ID of the animation to play
+ *
+ * - #### user qaudio [NAME] [QAUDIO OPTIONS]
+ *  - Requires QAudio plugin
+ *  - Binds a QAudio to the users
+ *  - NAME: The name of the audio file to use
+ *  - QAUDIO OPTIONS: any of the QAudio options besides; xX, yY, bindToCHARAID.
+ *   View QAudio help for more details
+ *
+ * - #### store
+ *  - Stores the skills current location. This location value is used when
+ *  the actions `moveToStored` or 'waveToStored' are used.
+ *
+ * - #### move [FORWARD or BACKWARD] [DIST] [DURATION] [WAIT? TRUE or FALSE]
+ *  - Moves the skill forward or backwards by X dist in Y frames
+ *  - FORWARD or BACKWARD: Set to forward or backwards depending on which direction
+ *   you want the skill to move.
+ *  - DIST: The distance you want the skill to move, in pixels.
+ *  - DURATION: How long should it take to complete this move, in frames.
+ *  - WAIT: Set to true or false. If true the sequencer will wait until the skill
+ *   is done moving before going to the next action
+ *
+ * - #### moveToStored [DURATION] [WAIT? TRUE or FALSE]
+ *
+ * - #### wave [FORWARD or BACKWARD] [AMPLITUDE] [HARM] [DIST] [DURATION] [WAIT? TRUE or FALSE]
+ *
+ * - #### waveToStored [AMPLITUDE] [HARM] [DURATION] [WAIT? TRUE or FALSE]
+ *
+ * - #### trigger
+ *
+ * - #### adjustAim
+ *
+ * - #### wait [DURATION]
+ *
+ * - #### picture [FILE NAME] [ROTATABLE? TRUE or FALSE] [BASE DIRECTION]
+ *
+ * - #### trail [FILE NAME] [ROTATABLE? TRUE or FALSE] [BASE DIRECTION]
+ *
+ * - #### collider [SHOW or HIDE]
+ *
+ * - #### animation [ANIMAITON ID]
+ *
+ * - #### se [NAME] [VOLUME] [PITCH] [PAN]
+ *
+ * - #### qaudio [NAME] [QAUDIO OPTIONS]
+ *
+ * - #### forceSkill [SKILL ID] [ANGLE OFFSET]
+ *
+ * - #### globalLock
+ *
+ * - #### globalUnlock
  * ----------------------------------------------------------------------------
  * **Skill On Damage**
  * ----------------------------------------------------------------------------
@@ -495,7 +651,8 @@ function QABS() {
 
   QABS.quickTarget = _PARAMS['Quick Target'];
   QABS.lockTargeting = _PARAMS['Lock when Targeting'];
-  QABS.towardsMouse = _PARAMS['Attack Towards Mouse'];
+  QABS.towardsMouse = _PARAMS['Aim with Mouse'];
+  QABS.towardsAnalog = _PARAMS['Aim with Analog']
   QABS.radianAtks = QMovement.offGrid;
 
   QABS.lootDecay = _PARAMS['Loot Decay'];
@@ -531,7 +688,7 @@ function QABS() {
   QABS.stringToSkillKeyObj = function(string) {
     var obj = QPlus.stringToObj(string);
     for (var key in obj) {
-      var data = obj[key].split(' ').filter(function(i) {
+      var data = String(obj[key]).split(' ').filter(function(i) {
         return i !== '';
       }).map(function(i) {
         return i.trim();
@@ -2218,8 +2375,7 @@ function Skill_Sequencer() {
 
   var Alias_Game_Battler_startDamagePopup = Game_Battler.prototype.startDamagePopup;
   Game_Battler.prototype.startDamagePopup = function() {
-    var result = Object.assign({}, this._result);
-    this._damageQueue.push(result);
+    this._damageQueue.push(Object.assign({}, this._result));
     Alias_Game_Battler_startDamagePopup.call(this);
   };
 
@@ -2293,7 +2449,7 @@ function Skill_Sequencer() {
   Game_Actor.prototype.setup = function(actorId) {
     Alias_Game_Actor_setup.call(this, actorId);
     var meta = this.actor().qmeta;
-    this._popupOY = meta.popupOY;
+    this._popupOY = Number(meta.popupOY) || 0;
   };
 
   var Alias_Game_Actor_changeClass = Game_Actor.prototype.changeClass;
@@ -2326,18 +2482,18 @@ function Skill_Sequencer() {
       return Alias_Game_Actor_changeEquip.call(this, slotId, item);
     }
     var equips = this._equips;
-    var oldId, equipId = 0;
+    var oldId, newId = 0;
     var wasWeapon;
     if (equips[slotId] && equips[slotId].object()) {
       oldId = equips[slotId].object().baseItemId || equips[slotId].object().id;
-      wasWeapon = equips[i].isWeapon();
+      wasWeapon = equips[slotId].isWeapon();
     }
     Alias_Game_Actor_changeEquip.call(this, slotId, item);
     if (equips[slotId] && equips[slotId].object()) {
-      equipId = equips[slotId].object().baseItemId || equips[slotId].object().id;
+      newId = equips[slotId].object().baseItemId || equips[slotId].object().id;
     }
-    if (equipId && equipId !== oldId && equips[slotId].isWeapon()) {
-      this.changeWeaponSkill(equipId);
+    if (newId && newId !== oldId && equips[slotId].isWeapon()) {
+      this.changeWeaponSkill(newId);
     } else if (wasWeapon) {
       this.changeWeaponSkill(0);
     }
@@ -2345,7 +2501,13 @@ function Skill_Sequencer() {
 
   Game_Actor.prototype.changeWeaponSkill = function(id) {
     if (this !== $gameParty.leader()) return;
-    $gameSystem.changeABSWeaponSkills(QABS.weaponSkills(id));
+    var weaponSkills;
+    if (!$dataWeapons[id]) {
+      weaponSkills = {};
+    } else {
+      weaponSkills = QABS.weaponSkills(id);
+    }
+    $gameSystem.changeABSWeaponSkills(weaponSkills);
   };
 
   Game_Actor.prototype.displayLevelUp = function(newSkills) {
@@ -2945,14 +3107,22 @@ function Skill_Sequencer() {
   Game_Player.prototype.beforeSkill = function(skill) {
     var meta = skill.data.qmeta;
     var isGamepad = Imported.QInput && Input.preferGamepad();
-    var towardsMouse = QABS.towardsMouse && !isGamepad;
-    if (towardsMouse && !meta.dontTurn) {
-      var x1 = $gameMap.canvasToMapPX(TouchInput.x);
-      var y1 = $gameMap.canvasToMapPY(TouchInput.y);
-      var x2 = this.cx();
-      var y2 = this.cy();
-      this.setRadian(Math.atan2(y1 - y2, x1 - x2));
-      skill.radian = this._radian;
+    if (!meta.dontTurn) {
+      if (isGamepad && QABS.towardsAnalog) {
+        var horz = Input._dirAxesB.x;
+        var vert = Input._dirAxesB.y;
+        if (horz !== 0 || vert !== 0) {
+          this.setRadian(Math.atan2(vert, horz));
+          skill.radian = this._radian;
+        }
+      } else if (!isGamepad && QABS.towardsMouse) {
+        var x1 = $gameMap.canvasToMapPX(TouchInput.x);
+        var y1 = $gameMap.canvasToMapPY(TouchInput.y);
+        var x2 = this.cx();
+        var y2 = this.cy();
+        this.setRadian(Math.atan2(y1 - y2, x1 - x2));
+        skill.radian = this._radian;
+      }
     }
     if (meta.towardsMove) {
       var radian;
