@@ -9,13 +9,13 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.4.0')) {
   throw new Error('Error: QMovement requires QPlus 1.4.0 or newer to work.');
 }
 
-Imported.QMovement = '1.4.1';
+Imported.QMovement = '1.4.2';
 
 //=============================================================================
  /*:
  * @plugindesc <QMovement>
  * More control over character movement
- * @author Quxios  | Version 1.4.1
+ * @author Quxios  | Version 1.4.2
  *
  * @repo https://github.com/quxios/QMovement
  *
@@ -399,8 +399,8 @@ Imported.QMovement = '1.4.1';
  *  qMovement setPos [CHARAID] [X] [Y] [OPTIONS]
  * ~~~
  * - CHARAID: The character identifier.
- *   - For player: 0, p, or player
- *   - For events: EVENTID, eEVENTID, eventEVENTID or this for the event that called this (replace EVENTID with a number)
+ *  - For player: 0, p, or player
+ *  - For events: EVENTID, eEVENTID, eventEVENTID or this for the event that called this (replace EVENTID with a number)
  * - X: The x position to set to, in pixels
  * - Y: The y position to set to, in pixels
  *
@@ -408,6 +408,34 @@ Imported.QMovement = '1.4.1';
  *
  * - dirX: Set X to the dir to face after the transfer.
  *   - Can be 2, 4, 6, 8, or for diagonals 1, 3, 7, 9
+ *
+ * ----------------------------------------------------------------------------
+ * **Change Collider**
+ * ----------------------------------------------------------------------------
+ * This command will let you change a collider for a character. Note that you
+ * should use this carefully. If you don't you can get that character stuck.
+ * ~~~
+ *  qMovement changeCollider [CHARAID] [TYPE] [SHAPE] [WIDTH] [HEIGHT] [OX] [OY]
+ * ~~~
+ * - CHARAID: The character identifier.
+ *  - For player: 0, p, or player
+ *  - For events: EVENTID, eEVENTID, eventEVENTID or this for the event that called this (replace EVENTID with a number)
+ * - TYPE: The type of collider, set to default, collision or interaction
+ * - SHAPE: Set to box or circle
+ * - WIDTH: The width of the collider, in pixels
+ * - HEIGHT: The height of the collider, in pixels
+ * - OX: The X Offset of the collider, in pixels
+ * - OY: The Y Offset of the collider, in pixels
+ *
+ * You can also set it to a preset by using the format:
+ * ~~~
+ *  qMovement changeCollider [CHARAID] [TYPE] preset [PRESETID]
+ * ~~~
+ * - CHARAID: The character identifier.
+ *  - For player: 0, p, or player
+ *  - For events: EVENTID, eEVENTID, eventEVENTID or this for the event that called this (replace EVENTID with a number)
+ * - TYPE: The type of collider, set to default, collision or interaction
+ * - PRESETID: The PresetID you set in the preset parameter.
  * ============================================================================
  * ## Tips
  * ============================================================================
@@ -1497,15 +1525,12 @@ function ColliderManager() {
 
   Game_Interpreter.prototype.qMovementCommand = function(args) {
     var cmd = args.shift().toLowerCase();
-    if (cmd === 'setcollider') {
+    if (cmd === 'changecollider') {
       var chara = QPlus.getCharacter(args[0]);
       if (!chara) return;
       var type = args[1];
-      var width  = Number(args[2]) || 0;
-      var height = Number(args[3]) || 0;
-      var ox = Number(args[4]) || 0;
-      var oy = Number(args[5]) || 0;
-      // TODO
+      var data = args.slice(2).map(QPlus.stringToType);
+      chara.changeCollider(type, data);
       return;
     }
     if (cmd === 'transfer') {
@@ -1927,6 +1952,8 @@ function ColliderManager() {
     this._passabilityLevel = 0; // TODO
     this._isMoving = false;
     this._smartMove = 0;
+    this._colliders = null;
+    this._overrideColliders = {};
   };
 
   Game_CharacterBase.prototype.direction8 = function(horz, vert) {
@@ -2664,19 +2691,24 @@ function ColliderManager() {
     } else if (!configs.default) {
       configs.default = QPlus.stringToAry(defaultCollider);
     }
+    Object.assign(configs, this._overrideColliders);
     for (var collider in configs) {
-      if (!configs.hasOwnProperty(collider)) continue;
       this.makeCollider(collider, configs[collider]);
     }
     this.makeBounds();
     this.moveColliders();
   };
 
-  Game_CharacterBase.prototype.makeCollider = function(name, settings) {
-    this._colliders[name] = ColliderManager.convertToCollider(settings);
-    this._colliders[name].oy -= this.shiftY();
-    this._colliders[name]._charaId = this.charaId();
-    ColliderManager.addCollider(this._colliders[name], -1, true);
+  Game_CharacterBase.prototype.makeCollider = function(type, settings) {
+    this._colliders[type] = ColliderManager.convertToCollider(settings);
+    this._colliders[type].oy -= this.shiftY();
+    this._colliders[type]._charaId = this.charaId();
+    ColliderManager.addCollider(this._colliders[type], -1, true);
+  };
+
+  Game_CharacterBase.prototype.changeCollider = function(type, settings) {
+    this._overrideColliders[type] = settings;
+    this.reloadColliders();
   };
 
   Game_CharacterBase.prototype.makeBounds = function() {
