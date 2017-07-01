@@ -12,13 +12,13 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.4.0')) {
   throw new Error('Error: QSight requires QMovement 1.1.4 or newer to work.');
 }
 
-Imported.QSight = '1.1.8';
+Imported.QSight = '1.1.9';
 
 //=============================================================================
  /*:
  * @plugindesc <QSight>
  * Real time line of sight
- * @author Quxios  | Version 1.1.8
+ * @author Quxios  | Version 1.1.9
  *
  * @requires QPlus
  *
@@ -218,9 +218,9 @@ function QSight() {
     }
     if (args2[0].toLowerCase() === 'check') {
       var shape = args2[1];
-      var range = Number(args[2]);
-      var handler = args[3];
-      var target = args[4] || 0;
+      var range = Number(args2[2]);
+      var handler = args2[3];
+      var target = args2[4] || 0;
       if (target === 'this') {
         target = this.character(0).charaId();
       }
@@ -228,7 +228,7 @@ function QSight() {
         shape: shape,
         range: range,
         targetId: target
-      })
+      });
       if (/^[0-9]+$/.test(handler)) {
         $gameSwitches.setValue(Number(handler), canSee);
       } else if (chara.constructor === Game_Event) {
@@ -420,6 +420,7 @@ function QSight() {
           if (!options.cache.tiles[tile.id]) {
             shadowData = QSight.shadowCast(tile, this, options.range * QMovement.tileSize);
             shadow = new Polygon_Collider(shadowData.points);
+            shadow.id = 'sight' + this.charaId() + '-tile' + tile.id;
             shadow.moveTo(shadowData.origin.x, shadowData.origin.y);
             shadow.color = '#000000';
             options.cache.tiles[tile.id] = shadow;
@@ -430,6 +431,53 @@ function QSight() {
               shadowData = QSight.shadowCast(tile, this, options.range * QMovement.tileSize);
               shadow.initialize(shadowData.points);
               shadow.moveTo(shadowData.origin.x, shadowData.origin.y);
+              shadow.id = oldId;
+            }
+          }
+          if (shadow.containsPoint(target.cx(), target.cy())) {
+            inside = true;
+            if (_SHOW) {
+              ColliderManager.draw(shadow, 120);
+            }
+            return 'break';
+          } else {
+            shadow.kill = true;
+          }
+          return false;
+        }
+      }.bind(this));
+      return inside;
+    };
+
+    Game_CharacterBase.prototype.isInsideEventShadow = function(target, options) {
+      var inside = false;
+      ColliderManager.getCharactersNear(options.base, function(chara) {
+        if (chara === this || chara === target) {
+          return false;
+        }
+        if (this.canSeeThroughChara(chara)) return false;
+        var charaId = chara.charaId();
+        var collider = chara.collider('collision');
+        if (collider.intersects(options.base)) {
+          var shadowData;
+          var shadow;
+          var cache = options.cache.charas[charaId];
+          if (!cache || !cache.shadow) {
+            shadowData = QSight.shadowCast(collider, this, options.range * QMovement.tileSize);
+            shadow = new Polygon_Collider(shadowData.points);
+            shadow.id = 'sight' + this.charaId() + '-shadow' + charaId;
+            shadow.moveTo(shadowData.origin.x, shadowData.origin.y);
+            shadow.color = '#000000';
+            options.cache.charas[charaId] = options.cache.charas[charaId] || {};
+            Object.assign(options.cache.charas[charaId], {
+              shadow: shadow
+            });
+          } else {
+            shadow = cache.shadow;
+            if (options.reshape || cache.reshape) {
+              var oldId = shadow.id;
+              shadowData = QSight.shadowCast(collider, this, options.range * QMovement.tileSize);
+              shadow.initialize(shadowData.points, shadowData.origin.x, shadowData.origin.y);
               shadow.id = oldId;
             }
           }
@@ -468,52 +516,6 @@ function QSight() {
       return !chara.castsShadow();
     };
 
-    Game_CharacterBase.prototype.isInsideEventShadow = function(target, options) {
-      var inside = false;
-      ColliderManager.getCharactersNear(options.base, function(chara) {
-        if (chara === this || chara === target) {
-          return false;
-        }
-        if (this.canSeeThroughChara(chara)) return false;
-        var charaId = chara.charaId();
-        var collider = chara.collider('collision');
-        if (collider.intersects(options.base)) {
-          var shadowData;
-          var shadow;
-          var cache = options.cache.charas[charaId];
-          if (!cache || !cache.shadow) {
-            shadowData = QSight.shadowCast(collider, this, options.range * QMovement.tileSize);
-            shadow = new Polygon_Collider(shadowData.points);
-            shadow.moveTo(shadowData.origin.x, shadowData.origin.y);
-            shadow.color = '#000000';
-            options.cache.charas[charaId] = options.cache.charas[charaId] || {};
-            Object.assign(options.cache.charas[charaId], {
-              shadow: shadow
-            })
-          } else {
-            shadow = cache.shadow;
-            if (options.reshape || cache.reshape) {
-              var oldId = shadow.id;
-              shadowData = QSight.shadowCast(collider, this, options.range * QMovement.tileSize);
-              shadow.initialize(shadowData.points, shadowData.origin.x, shadowData.origin.y);
-              shadow.id = oldId;
-            }
-          }
-          if (shadow.containsPoint(target.cx(), target.cy())) {
-            inside = true;
-            if (_SHOW) {
-              ColliderManager.draw(shadow, 120);
-            }
-            return 'break';
-          } else {
-            shadow.kill = true;
-          }
-          return false;
-        }
-      }.bind(this));
-      return inside;
-    };
-
     Game_CharacterBase.prototype.createSightShape = function(shape, range) {
       range *= QMovement.tileSize;
       var collider;
@@ -536,6 +538,7 @@ function QSight() {
         rad -= Math.PI / 2; // Rotate because base shape is facing down
         collider.setRadian(rad);
       }
+      collider.id = 'sight' + this.charaId();
       collider.moveTo(this.cx(), this.cy());
       return collider;
     };
