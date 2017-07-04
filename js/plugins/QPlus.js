@@ -3,13 +3,13 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QPlus = '1.4.2';
+Imported.QPlus = '1.4.3';
 
 //=============================================================================
  /*:
  * @plugindesc <QPlus> (Should go above all Q Plugins)
  * Some small changes to MV for easier plugin development.
- * @author Quxios  | Version 1.4.2
+ * @author Quxios  | Version 1.4.3
  *
  * @param Quick Test
  * @desc Enable quick testing.
@@ -156,7 +156,7 @@ function QPlus() {
     var plugin = $plugins.filter(function(p) {
       return p.description.contains(id) && p.status
     });
-    var hasDefaults = convert.constructor === Object;
+    var hasDefaults = typeof convert === 'object';
     if (!plugin[0]) hasDefaults ? convert : {};
     var params = Object.assign({}, plugin[0].parameters);
     if (convert) {
