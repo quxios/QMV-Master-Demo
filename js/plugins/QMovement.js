@@ -9,13 +9,13 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.4.0')) {
   throw new Error('Error: QMovement requires QPlus 1.4.0 or newer to work.');
 }
 
-Imported.QMovement = '1.4.2';
+Imported.QMovement = '1.4.3';
 
 //=============================================================================
  /*:
  * @plugindesc <QMovement>
  * More control over character movement
- * @author Quxios  | Version 1.4.2
+ * @author Quxios  | Version 1.4.3
  *
  * @repo https://github.com/quxios/QMovement
  *
@@ -2006,8 +2006,8 @@ function ColliderManager() {
 
   var Alias_Game_CharacterBase_setDirection = Game_CharacterBase.prototype.setDirection;
   Game_CharacterBase.prototype.setDirection = function(d) {
+    if (d) this._radian = this.directionToRadian(d);
     if (!this.isDirectionFixed() && d) {
-      this._radian = this.directionToRadian(d);
       if ([1, 3, 7, 9].contains(d)) {
         this._diagonal = d;
         var horz = [1, 7].contains(d) ? 4 : 6;
