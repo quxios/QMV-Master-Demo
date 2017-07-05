@@ -9,13 +9,13 @@ if (!Imported.QMovement || !QPlus.versionCheck(Imported.QMovement, '1.4.0')) {
   throw new Error('Error: QABS requires QMovement 1.4.0 or newer to work.');
 }
 
-Imported.QABS = '1.2.2';
+Imported.QABS = '1.2.3';
 
 //=============================================================================
  /*:
  * @plugindesc <QABS>
  * Action Battle System for QMovement
- * @author Quxios  | Version 1.2.2
+ * @author Quxios  | Version 1.2.3
  *
  * @repo https://github.com/quxios/QABS
  *
@@ -695,9 +695,17 @@ function QABS() {
       });
       var skillId = Number(data[0]) || 0;
       var rebind = data[1] === 'true';
+      var msg;
+      if (skillId && !$dataSkills[skillId]) {
+        msg = 'ERROR: Attempted to apply a Skill Id that does not exist in database.\n';
+        msg += 'Skill Key Number: ' + key;
+        alert(msg);
+        delete obj[key];
+        continue;
+      }
       if (!QABS.skillKey[key]) {
-        var msg = 'ERROR: Attempted to apply a skill key that has not been setup';
-        msg += ' in the plugin parameters.\n';
+        msg = 'ERROR: Attempted to apply a skill key that has not been setup ';
+        msg += 'in the plugin parameters.\n';
         msg += 'Skill Key Number: ' + key;
         alert(msg);
         delete obj[key];
@@ -2641,9 +2649,9 @@ function Skill_Sequencer() {
     return Alias_Game_CharacterBase_canMove.call(this);
   };
 
-  Game_CharacterBase.prototype.canInputSkill = function() {
+  Game_CharacterBase.prototype.canInputSkill = function(fromEvent) {
     if (this._globalLocked > 0) return false;
-    if ($gameMap.isEventRunning()) return false;
+    if (!fromEvent && $gameMap.isEventRunning()) return false;
     if (!$gameSystem._absEnabled) return false;
     if (!this.battler()) return false;
     if (this.battler().isDead()) return false;
@@ -2740,7 +2748,12 @@ function Skill_Sequencer() {
   };
 
   Game_CharacterBase.prototype.updateABS = function() {
-    if (this.battler().hp <= 0) return this.onDeath();
+    if (this.battler().isDead()) {
+      if (!this._isDead) {
+        this.onDeath();
+      }
+      return;
+    }
     this.updateSkills();
     this.battler().updateABS();
   };
@@ -2791,8 +2804,8 @@ function Skill_Sequencer() {
     this._selectTargeting = null;
   };
 
-  Game_CharacterBase.prototype.useSkill = function(skillId) {
-    if (!this.canInputSkill()) return null;
+  Game_CharacterBase.prototype.useSkill = function(skillId, fromEvent) {
+    if (!this.canInputSkill(fromEvent)) return null;
     if (!this.canUseSkill(skillId)) return null;
     if (this._groundTargeting) {
       this.onTargetingCancel();
@@ -2961,7 +2974,6 @@ function Skill_Sequencer() {
   };
 
   Game_Player.prototype.onDeath = function() {
-    if (this._isDead) return;
     this.clearABS();
     this._isDead = true;
     SceneManager.goto(Scene_Gameover);
@@ -3166,10 +3178,7 @@ function Skill_Sequencer() {
   };
 
   Game_Event.prototype.battler = function() {
-    if (this._battlerId) {
-      return this._battler;
-    }
-    return null;
+    return this._battler;
   };
 
   Game_Event.prototype.setupBattler = function() {
@@ -3248,10 +3257,12 @@ function Skill_Sequencer() {
   };
 
   Game_Event.prototype.updateABS = function() {
+    if ($gameSystem.isDisabled(this._mapId, this._eventId)) return;
     Game_CharacterBase.prototype.updateABS.call(this);
-    if (!this._isDead && this.isNearTheScreen()) {
-      this.updateAI(this._aiType);
-    } else if (this._respawn >= 0) {
+    if (this.page() && !this._isDead && this.isNearTheScreen()) {
+      return this.updateAI(this._aiType);
+    }
+    if (this._respawn >= 0) {
       this.updateRespawn();
     }
   };
@@ -3444,7 +3455,6 @@ function Skill_Sequencer() {
   };
 
   Game_Event.prototype.onDeath = function() {
-    if (this._isDead) return;
     if (this._onDeath) {
       try {
         eval(this._onDeath);
