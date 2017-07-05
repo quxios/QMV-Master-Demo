@@ -9,13 +9,13 @@ if (!Imported.QABS || !QPlus.versionCheck(Imported.QABS, '1.0.0')) {
   throw new Error('Error: QABS+Skillbar requires QABS 1.0.0 or newer to work.');
 }
 
-Imported.QABS_Skillbar = '1.0.0';
+Imported.QABS_Skillbar = '1.0.1';
 
 //=============================================================================
  /*:
  * @plugindesc <QABSSkillbar>
  * QABS Addon: Adds a skillbar
- * @author Quxios  | Version 1.0.0
+ * @author Quxios  | Version 1.0.1
  *
  * @requires QABS
  *
@@ -277,9 +277,9 @@ function Sprite_SkillInfo() {
 
   Sprite_Skillbar.prototype.createButtonIcon = function(skillId) {
     var skill = $dataSkills[skillId];
-    var icon = new Sprite_Icon(skill.iconIndex || 0);
-    if (!$gameParty.leader().isLearnedSkill(skillId) &&
-        !$gameParty.leader().addedSkills().contains(skillId)) {
+    var icon = new Sprite_Icon(skill ? skill.iconIndex : 0);
+    if (!skill || (!$gameParty.leader().isLearnedSkill(skillId) &&
+        !$gameParty.leader().addedSkills().contains(skillId))) {
       icon.alpha = 0.5;
     }
     return icon;
