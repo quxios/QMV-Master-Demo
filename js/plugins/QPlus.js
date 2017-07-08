@@ -3,13 +3,13 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QPlus = '1.4.3';
+Imported.QPlus = '1.4.4';
 
 //=============================================================================
  /*:
  * @plugindesc <QPlus> (Should go above all Q Plugins)
  * Some small changes to MV for easier plugin development.
- * @author Quxios  | Version 1.4.3
+ * @author Quxios  | Version 1.4.4
  *
  * @param Quick Test
  * @desc Enable quick testing.
@@ -157,8 +157,8 @@ function QPlus() {
       return p.description.contains(id) && p.status
     });
     var hasDefaults = typeof convert === 'object';
-    if (!plugin[0]) hasDefaults ? convert : {};
-    var params = Object.assign({}, plugin[0].parameters);
+    if (!plugin[0]) return hasDefaults ? convert : {};
+    var params = Object.assign({}, hasDefaults ? convert : {}, plugin[0].parameters);
     if (convert) {
       for (var param in params) {
         params[param] = this.stringToType(params[param]);
@@ -686,7 +686,15 @@ function SimpleTilemap() {
   Scene_Base.prototype.initialize = function() {
     Alias_Scene_Base_initialize.call(this);
     this._waitListeners = [];
-    QPlus.mixinWait(this);
+    if (this.mixinWait()) {
+      QPlus.mixinWait(this);
+    }
+  };
+
+  Scene_Base.prototype.mixinWait = function() {
+    // In your own scene, have this return true to be able to
+    // use the .wait(duration, callback) function
+    return false;
   };
 
   //-----------------------------------------------------------------------------
