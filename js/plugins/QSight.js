@@ -12,13 +12,13 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.4.0')) {
   throw new Error('Error: QSight requires QMovement 1.1.4 or newer to work.');
 }
 
-Imported.QSight = '1.1.9';
+Imported.QSight = '1.1.10';
 
 //=============================================================================
  /*:
  * @plugindesc <QSight>
  * Real time line of sight
- * @author Quxios  | Version 1.1.9
+ * @author Quxios  | Version 1.1.10
  *
  * @requires QPlus
  *
@@ -675,13 +675,15 @@ function QSight() {
     Alias_Game_Event_setupPage.call(this);
     var sight = /<sight:(.*?)>/i.exec(this.comments(true));
     if (sight) {
-      var options = sight[1].split(',');
+      var options = sight[1].split(',').map(function(s) {
+        return s.trim();
+      });
       this.setupSight({
         shape: options[0].toLowerCase() || 'poly',
         range: Number(options[1]) || 1,
         handler: options[2] || 'A',
         targetId: options[3] || '0'
-      })
+      });
     } else {
       this._sight = null;
     }
@@ -715,7 +717,7 @@ function QSight() {
     this._sight = Object.assign({}, options, {
       cache: cache,
       base: base
-    })
+    });
   };
 
   Game_Event.prototype.castsShadow = function() {
