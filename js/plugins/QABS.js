@@ -9,13 +9,13 @@ if (!Imported.QMovement || !QPlus.versionCheck(Imported.QMovement, '1.4.0')) {
   throw new Error('Error: QABS requires QMovement 1.4.0 or newer to work.');
 }
 
-Imported.QABS = '1.2.3';
+Imported.QABS = '1.2.4';
 
 //=============================================================================
  /*:
  * @plugindesc <QABS>
  * Action Battle System for QMovement
- * @author Quxios  | Version 1.2.3
+ * @author Quxios  | Version 1.2.4
  *
  * @repo https://github.com/quxios/QABS
  *
@@ -1311,14 +1311,22 @@ function Skill_Sequencer() {
       skippable: true,
       wait: false
     }
-    var radian = this._character._radian;
+    var radian = oldRadian = this._character._radian;
     if (action[0] === 'backward') {
-      radian -= Math.PI / 2;
+      radian -= Math.PI;
     }
     route.list.push({
       code: Game_Character.ROUTE_SCRIPT,
       parameters: ['qmove2(' + radian + ',' + dist + ')']
     });
+    if (action[0] === 'backward') {
+      route.list.unshift({
+        code: 35
+      });
+      route.list.push({
+        code: this._character.isDirectionFixed() ? 35 : 36
+      });
+    }
     route.list.push({
       code: 0
     });
@@ -1354,25 +1362,24 @@ function Skill_Sequencer() {
 
   Skill_Sequencer.prototype.userJump = function(action) {
     var dist = Number(action[1]) || 0;
-    var x1 = x2 = this._character.px;
-    var y1 = y2 = this._character.py;
-    var dir = this._character._direction;
+    var x1 = this._character.px;
+    var y1 = this._character.py;
+    var radian = oldRadian = this._character._radian;
     if (action[0] === 'backward') {
-      x2 -= dir === 6 ? dist : dir === 4 ? -dist : 0;
-      y2 -= dir === 2 ? dist : dir === 8 ? -dist : 0;
-    } else if (action[0] === 'forward') {
-      x2 += dir === 6 ? dist : dir === 4 ? -dist : 0;
-      y2 += dir === 2 ? dist : dir === 8 ? -dist : 0;
+      radian -= Math.PI;
     }
+    var x2 = x1 + Math.cos(radian) * dist;
+    var y2 = y1 + Math.sin(radian) * dist;
     var final = this._character.adjustPosition(x2, y2);
     var dx = final.x - x1;
     var dy = final.y - y1;
-    dist = Math.sqrt(dx * dx + dy * dy);
+    var lastDirectionFix = this._character.isDirectionFixed();
     if (action[0] === 'backward') {
-      this._character.pixelJumpBackward(dist);
-    } else if (action[0] === 'forward') {
-      this._character.pixelJumpForward(dist);
+      this._character.setDirectionFix(true);
     }
+    this._character.pixelJump(dx, dy);
+    this._character.setDirectionFix(lastDirectionFix);
+    this._character.setRadian(oldRadian);
     this._waitForUserJump = action[2] ? action[2] === 'true' : false;
   };
 
@@ -1474,7 +1481,7 @@ function Skill_Sequencer() {
     ColliderManager.draw(this._skill.collider, duration);
     var radian = this._skill.radian;
     if (dir === 'backward') {
-      radian -= Math.PI / 2;
+      radian -= Math.PI;
     }
     radian += radian < 0 ? Math.PI * 2 : 0;
     this._waitForMove = action[3] === 'true';
@@ -1506,7 +1513,7 @@ function Skill_Sequencer() {
     ColliderManager.draw(this._skill.collider, duration);
     var radian = this._skill.radian;
     if (dir === 'backward') {
-      radian -= Math.PI / 2;
+      radian -= Math.PI;
     }
     radian += radian < 0 ? Math.PI * 2 : 0;
     this.setSkillRadian(Number(radian));
@@ -3178,13 +3185,14 @@ function Skill_Sequencer() {
   };
 
   Game_Event.prototype.battler = function() {
+    if ($gameSystem.isDisabled(this._mapId, this._eventId)) return null;
+    if (!this.page() || this._isDead) return null;
     return this._battler;
   };
 
   Game_Event.prototype.setupBattler = function() {
     var foe = /<enemy:([0-9]*?)>/i.exec(this.notes());
-    var disabled = $gameSystem.isDisabled(this._mapId, this._eventId);
-    if (foe && !disabled) {
+    if (foe) {
       this.clearABS();
       this._battlerId = Number(foe[1]);
       this._battler = new Game_Enemy(this._battlerId, 0, 0);
@@ -3214,6 +3222,14 @@ function Skill_Sequencer() {
       this._team = this._battler._team;
       this._isDead = false;
     }
+  };
+
+  var Alias_Game_Event_comments = Game_Event.prototype.comments;
+  Game_Event.prototype.comments = function() {
+    var comments = Alias_Game_Event_comments.call(this);
+    if (!this._aiSight) return comments;
+    var range = this._aiRange / QMovement.tileSize;
+    return comments + '<sight:circle,' + range + ', AI, 0>';
   };
 
   Game_Event.prototype.disableEnemy = function() {
@@ -3369,7 +3385,10 @@ function Skill_Sequencer() {
       }
       this._sight.range /= QMovement.tileSize;
       if (prev !== this._sight.range) {
-        if (this._sight.base) this._sight.base.kill = true;
+        if (this._sight.base) {
+          this._sight.base.kill = true;
+          this._sight.base.id = 'sightOld' + this.charaId();
+        }
         this._sight.base = null;
         this._sight.cache.dir = null;
       }
