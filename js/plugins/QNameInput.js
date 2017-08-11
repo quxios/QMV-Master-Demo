@@ -14,7 +14,7 @@ Imported.QNameInput = '2.0.3';
 //=============================================================================
  /*:
  * @plugindesc <QNameInput>
- * Quasi Input addon: Adds Keyboard Input to Name Input Scene
+ * QInput addon: Adds Keyboard Input to Name Input Scene
  * @author Quxios  | Version 2.0.3
  *
  * @requires QInput
