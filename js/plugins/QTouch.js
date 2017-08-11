@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QTouch = '1.0.2';
+Imported.QTouch = '1.1.0';
 
 if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.4.0')) {
   alert('Error: QTouch requires QPlus 1.4.0 or newer to work.');
@@ -14,7 +14,7 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.4.0')) {
  /*:
  * @plugindesc <QTouch>
  * Better mouse handling for MV
- * @author Quxios  | Version 1.0.2
+ * @author Quxios  | Version 1.1.0
  *
  * @video https://youtu.be/2UrazG-XRxw
  *
@@ -26,12 +26,12 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.4.0')) {
  * @default 60
  *
  * @param Default Cursor
- * @desc Set the image to use for the default cursor.
+ * @desc Set the filepath to the image to use for the default cursor.
  * Leave blank to use default cursor.
  * @default
  *
  * @param Pointer Cursor
- * @desc Set the image to use for the pointer cursor.
+ * @desc Set the filepath to the image to use for the pointer cursor.
  * Leave blank to use pointer cursor.
  * @default
  *
@@ -49,6 +49,21 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.4.0')) {
  * ## How to use
  * ============================================================================
  * Just install this plugin and configure the plugin parameters.
+ *
+ * The filepath is from the base directory. So if your cursor is in the system
+ * folder your path should be something like:
+ * ~~~
+ *  img/system/myCursor.png
+ * ~~~
+ * ============================================================================
+ * ## Plugin commands
+ * ============================================================================
+ * To change the cursors image:
+ * ~~~
+ *  qTouch change TYPE FILE
+ * ~~~
+ * - TYPE: Set to 'default' or 'pointer'
+ * - FILE: The file path to the cursor from the base directory
  * ============================================================================
  * ## Links
  * ============================================================================
@@ -85,6 +100,15 @@ function Sprite_QButton() {
     default: _PARAMS['Default Cursor'],
     pointer: _PARAMS['Pointer Cursor']
   }
+
+  //-----------------------------------------------------------------------------
+  // Game_Temp
+
+  var Alias_Game_Temp_initialize = Game_Temp.prototype.initialize;
+  Game_Temp.prototype.initialize = function() {
+    Alias_Game_Temp_initialize.call(this);
+    this._CURSOROVERRIDES = {};
+  };
 
   //-----------------------------------------------------------------------------
   // TouchInput
@@ -134,11 +158,38 @@ function Sprite_QButton() {
   TouchInput.setCursor = function(cursor) {
     if (this._cursor === cursor) return;
     this._cursor = cursor || this._cursor;
-    var cursorImg = _CURSORIMGS[this._cursor];
+    var overrides = $gameTemp ? $gameTemp._CURSOROVERRIDES : {};
+    var cursorImg = overrides[this._cursor] || _CURSORIMGS[this._cursor];
     if (cursorImg) {
       document.body.style.cursor = `url('${cursorImg}'), ${this._cursor}`;
     } else {
       document.body.style.cursor = this._cursor;
+    }
+  };
+
+  TouchInput.changeCursorImg = function(cursor, img) {
+    if (!$gameTemp) return;
+    $gameTemp._CURSOROVERRIDES[cursor] = img;
+    this.setCursor();
+  };
+
+  //-----------------------------------------------------------------------------
+  // Game_Interpreter
+
+  var Alias_Game_Interpreter_pluginCommand = Game_Interpreter.prototype.pluginCommand;
+  Game_Interpreter.prototype.pluginCommand = function(command, args) {
+    if (command.toLowerCase() === 'qtouch') {
+      return this.qTouchCommand(args);
+    }
+    Alias_Game_Interpreter_pluginCommand.call(this, command, args);
+  };
+
+  Game_Interpreter.prototype.qTouchCommand = function(args) {
+    var cmd = args.shift().toLowerCase();
+    if (cmd === 'change') {
+      var type = args.shift().toLowerCase();
+      var img = args.join(' ');
+      TouchInput.changeCursorImg(type, img);
     }
   };
 
@@ -194,7 +245,7 @@ function Sprite_QButton() {
     Alias_Window_Selectable_initialize.call(this, x, y, width, height);
     this._oldTouchX = TouchInput.x;
     this._oldTouchY = TouchInput.y;
-    this._isPointing = true;
+    this._isPointing = false;
   };
 
   Window_Selectable.prototype.isPointing = function() {
@@ -236,6 +287,13 @@ function Sprite_QButton() {
       return true;
     }
     return false;
+  };
+
+  //-----------------------------------------------------------------------------
+  // Sprite_Button
+
+  Sprite_Button.prototype.isPointing = function() {
+    return this.isActive() && this.isButtonTouched();
   };
 
   //-----------------------------------------------------------------------------
@@ -312,10 +370,6 @@ function Sprite_QButton() {
     if (this._mouseOutHandler) {
       this._mouseOutHandler();
     }
-  };
-
-  Sprite_QButton.prototype.isPointing = function() {
-    return this.isActive() && this.isButtonTouched();
   };
 
   Sprite_QButton.prototype.update = function() {
