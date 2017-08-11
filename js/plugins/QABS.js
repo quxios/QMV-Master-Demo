@@ -9,13 +9,13 @@ if (!Imported.QMovement || !QPlus.versionCheck(Imported.QMovement, '1.4.0')) {
   throw new Error('Error: QABS requires QMovement 1.4.0 or newer to work.');
 }
 
-Imported.QABS = '1.2.4';
+Imported.QABS = '1.3.0';
 
 //=============================================================================
  /*:
  * @plugindesc <QABS>
  * Action Battle System for QMovement
- * @author Quxios  | Version 1.2.4
+ * @author Quxios  | Version 1.3.0
  *
  * @repo https://github.com/quxios/QABS
  *
@@ -33,10 +33,10 @@ Imported.QABS = '1.2.4';
  *
  * @param Lock when Targeting
  * @parent Attack Settings
- * @desc Player can not move when using Ground / Select targeting skills
+ * @desc Player can't move when using Ground / Select targeting skills
  * @type Boolean
- * @on Can Move
- * @off Can't Move
+ * @on Can't Move
+ * @off Can Move
  * @default false
  *
  * @param Aim with Mouse
@@ -451,34 +451,81 @@ Imported.QABS = '1.2.4';
  *   is done moving before going to the next action
  *
  * - #### moveToStored [DURATION] [WAIT? TRUE or FALSE]
+ *  - Moves the skill to the stored position
+ *  - DURATION: How long should it take to complete this move, in frames.
+ *  - WAIT: Set to true or false. If true the sequencer will wait until the skill
+ *   is done moving before going to the next action
  *
  * - #### wave [FORWARD or BACKWARD] [AMPLITUDE] [HARM] [DIST] [DURATION] [WAIT? TRUE or FALSE]
  *
  * - #### waveToStored [AMPLITUDE] [HARM] [DURATION] [WAIT? TRUE or FALSE]
  *
  * - #### trigger
+ *  - Activates the skill at it's current location
  *
  * - #### adjustAim
+ *  - Recalculates the direction the skill should move. This is only works
+ *   when the skill is used from an enemy.
  *
  * - #### wait [DURATION]
+ *  - The sequencer will wait before moving to the next action
+ *  - DURATION: How long should the wait last, in frames
  *
  * - #### picture [FILE NAME] [ROTATABLE? TRUE or FALSE] [BASE DIRECTION]
+ *  - Bind a picture to the skill
+ *  - FILE NAME: The file name of the picture. Should be located in the
+ *   Pictures folder. For an animated picture it should have the format:
+ *   - %[COLS-SPEED]
+ *   - COLS: The number of slices in the picture
+ *   - SPEED: The time to wait between frames
+ *  - ROTATABLE: Set to true or false. If true the picture will rotate based
+ *   on the direction the skill is moving
+ *  - BASE DIRECTION: The direction the skill is facing by default. The directions
+ *   should be 2, 4, 6, or 8
  *
  * - #### trail [FILE NAME] [ROTATABLE? TRUE or FALSE] [BASE DIRECTION]
+ *  - Binds a picture that stretches from the user to the skills position
+ *  - FILE NAME: The file name of the picture. Should be located in the
+ *   Pictures folder.
+ *  - ROTATABLE: Set to true or false. If true the picture will rotate based
+ *   on the direction the skill is moving
+ *  - BASE DIRECTION: The direction the skill is facing by default. The directions
+ *   should be 2, 4, 6, or 8
  *
  * - #### collider [SHOW or HIDE]
+ *  - Shows the skills collider
+ *  - SHOW or HIDE: Set to show to show the collider.
+ *   Set to hide to hide the collider
  *
- * - #### animation [ANIMAITON ID]
+ * - #### animation [ANIMATION ID]
+ *  - Play an animation at the skills current location
+ *  - ANIMATION ID: The ID of the animation to play
  *
  * - #### se [NAME] [VOLUME] [PITCH] [PAN]
+ *  - Play an se
+ *  - NAME: The name of the SE to play
+ *  - VOLUME: The volume of the SE, default: 90
+ *  - PITCH: The pitch of the SE, default: 100
+ *  - PAN: The pan of the SE, default: 0
  *
  * - #### qaudio [NAME] [QAUDIO OPTIONS]
+ *  - Play a qAudio at the skills location
+ *  - NAME: The name of the audio file
+ *  - QAUDIO OPTIONS: Visit the QAudio help for information. The options
+ *   are the same from the plugin commands. x, y, bindTo options will not work.
  *
  * - #### forceSkill [SKILL ID] [ANGLE OFFSET]
+ *  - Force a skill at the skills current location
+ *  - SKILL ID: The ID of the skill to use
+ *  - ANGLE OFFSET: Lets you offset the angle this skill be used towards.
+ *   This is optional and can be left out.
  *
  * - #### globalLock
+ *  - Locks all characters movement
  *
  * - #### globalUnlock
+ *  - Unlocks all characters movement
+ *
  * ----------------------------------------------------------------------------
  * **Skill On Damage**
  * ----------------------------------------------------------------------------
@@ -973,16 +1020,23 @@ function QABSManager() {
   QABSManager.startAnimation = function(id, x, y) {
     var scene = SceneManager._scene;
     if (scene.constructor !== Scene_Map) return;
-    var temp = new Sprite_Base();
-    temp.realX = x;
-    temp.realY = y;
-    temp.z = 8;
     if (id < 0) id = 1;
     if (id <= 0) return;
     var animation = $dataAnimations[id];
+    var temp = new Sprite_MapAnimation(animation);
+    temp.move(x, y);
     this._animations.push(temp);
     scene._spriteset._tilemap.addChild(temp);
-    temp.startAnimation(animation, false, 0);
+  };
+
+  QABSManager.removeAnimation = function(sprite) {
+    var scene = SceneManager._scene;
+    if (scene.constructor !== Scene_Map) return;
+    var i = this._animations.indexOf(sprite);
+    if (i < 0) return;
+    this._animations[i] = null;
+    this._animations.splice(i, 1);
+    scene._spriteset._tilemap.removeChild(sprite);
   };
 
   QABSManager._pictures = [];
@@ -1058,6 +1112,39 @@ function QABSManager() {
     $gameMap._events[id].clearABS();
     $gameMap._events[id] = null;
     this._freeEventIds.push(id);
+  };
+
+  QABSManager.preloadSkill = function(skill) {
+    var aniId = skill.animationId;
+    aniId = aniId < 0 ? 1 : aniId;
+    var ani = $dataAnimations[aniId];
+    if (ani) {
+      ImageManager.loadAnimation(ani.animation1Name, ani.animation1Hue);
+      ImageManager.loadAnimation(ani.animation2Name, ani.animation2Hue);
+    }
+    var sequence = QABS.getSkillSequence(skill);
+    for (var i = 0; i < sequence.length; i++) {
+      var action = sequence[i];
+      var ani = /^animation (.*)/i.exec(action);
+      var pic = /^picture (.*)/i.exec(action);
+      var forced = /forceSkill (\d+)/i.exec(action);
+      if (ani) {
+        ani = ani[1].trim();
+        ani = $dataAnimations[ani];
+        if (ani) {
+          ImageManager.loadAnimation(ani.animation1Name, ani.animation1Hue);
+          ImageManager.loadAnimation(ani.animation2Name, ani.animation2Hue);
+        }
+      }
+      if (pic) {
+        pic = QPlus.makeArgs(pic[1])[0];
+        ImageManager.loadPicture(pic);
+      }
+      if (forced) {
+        var forcedSkill = $dataSkills[Number(forced[1])];
+        if (forcedSkill) this.preloadSkill(forcedSkill);
+      }
+    }
   };
 })();
 
@@ -1560,20 +1647,27 @@ function Skill_Sequencer() {
   };
 
   Skill_Sequencer.prototype.actionPicture = function(action) {
-    // TODO add animated
-    this._skill.picture = new Sprite();
+    this._skill.picture = new Sprite_SkillPicture();
     this._skill.picture.bitmap = ImageManager.loadPicture(action[0]);
     this._skill.picture.rotatable = action[1] === 'true';
     this._skill.picture.originDirection = Number(action[2]);
     this._skill.picture.z = 3;
     this._skill.picture.anchor.x = 0.5;
     this._skill.picture.anchor.y = 0.5;
+    var isAnimated = /%\[(\d+)-(\d+)\]/.exec(action[0]);
+    if (isAnimated) {
+      var frames = Number(isAnimated[1]);
+      var speed = Number(isAnimated[2]);
+      this._skill.picture.setupAnim(frames, speed);
+    }
     this.setSkillPictureRadian(this._skill.picture, this._skill.radian);
-    QABSManager.addPicture(this._skill.picture);
+    this._skill.picture.bitmap.addLoadListener(function() {
+      QABSManager.addPicture(this);
+    }.bind(this._skill.picture));
   };
 
   Skill_Sequencer.prototype.actionTrail = function(action) {
-    this._skill.trail = new TilingSprite();
+    this._skill.trail = new Sprite_SkillTrail();
     this._skill.trail.bitmap = ImageManager.loadPicture(action[0]);
     this._skill.trail.move(0, 0, Graphics.width, Graphics.height);
     this._skill.trail.rotatable = action[1] === 'true';
@@ -1585,20 +1679,17 @@ function Skill_Sequencer() {
     this._skill.trail.startX = x;
     this._skill.trail.startY = y;
     this._skill.trail.bitmap.addLoadListener(function() {
-      var w = this._skill.trail.bitmap.width;
-      var h = this._skill.trail.bitmap.height;
-      this._skill.trail.move(x, y, w, h);
-      QABSManager.addPicture(this._skill.trail);
-    }.bind(this));
+      var w = this.bitmap.width;
+      var h = this.bitmap.height;
+      this.move(x, y, w, h);
+      QABSManager.addPicture(this);
+    }.bind(this._skill.trail));
   };
 
   Skill_Sequencer.prototype.actionCollider = function(action) {
     var display = action[0];
     if (display === 'show') {
       this._skill.pictureCollider = new Sprite_SkillCollider(this._skill.collider);
-      var x = this._skill.collider.center.x;
-      var y = this._skill.collider.center.y;
-      this._skill.pictureCollider.move(x, y);
       QABSManager.addPicture(this._skill.pictureCollider);
     } else if (display === 'hide' && this._skill.pictureCollider) {
       QABSManager.removePicture(this._skill.pictureCollider);
@@ -1891,7 +1982,8 @@ function Skill_Sequencer() {
     }
     if (through === 1 || through === 3) {
       ColliderManager.getCharactersNear(this._skill.collider, function(chara) {
-        if (chara === this._character) return false;
+        if (chara === this._character || chara.isThrough() || !chara.isNormalPriority()) return false;
+        if (chara.isLoot || chara._erased || chara.isDead) return false;
         if (this._skill.collider.intersects(chara.collider('collision'))) {
           collided = true;
           return 'break';
@@ -1995,9 +2087,6 @@ function Skill_Sequencer() {
     var y3 = collider.center.y;
     if (this._skill.picture) {
       this._skill.picture.move(x3, y3);
-    }
-    if (this._skill.pictureCollider) {
-      this._skill.pictureCollider.move(x3, y3);
     }
     if (this._skill.trail) {
       var x4 = this._skill.trail.startX;
@@ -2143,7 +2232,7 @@ function Skill_Sequencer() {
       this._absClassKeys,
       this._absWeaponKeys
     );
-    this.preloadSkills();
+    this.preloadAllSkills();
     this.checkAbsMouse();
   };
 
@@ -2187,33 +2276,11 @@ function Skill_Sequencer() {
     this.checkAbsMouse();
   };
 
-  Game_System.prototype.preloadSkills = function() {
+  Game_System.prototype.preloadAllSkills = function() {
     var absKeys = this.absKeys();
     for (var key in absKeys) {
       var skill = $dataSkills[absKeys[key].skillId];
-      if (skill) {
-        var aniId = skill.animationId;
-        aniId = aniId < 0 ? 1 : aniId;
-        var ani = $dataAnimations[aniId];
-        if (ani) {
-          ImageManager.loadAnimation(ani.animation1Name, ani.animation1Hue);
-          ImageManager.loadAnimation(ani.animation2Name, ani.animation2Hue);
-        }
-        var sequence = QABS.getSkillSequence(skill);
-        for (var i = 0; i < sequence.length; i++) {
-          var action = sequence[i];
-          var ani = /^animation(.*)/i.exec(action);
-          var pic = /^picture(.*)/i.exec(action);
-          if (ani) {
-            ani = ani[1].trim();
-            ani = $dataAnimations[ani];
-            if (ani) {
-              ImageManager.loadAnimation(ani.animation1Name, ani.animation1Hue);
-              ImageManager.loadAnimation(ani.animation2Name, ani.animation2Hue);
-            }
-          }
-        }
-      }
+      if (skill) QABSManager.preloadSkill(skill);
     }
   };
 
@@ -2918,10 +2985,6 @@ function Skill_Sequencer() {
       skill.collider.color = '#00ff00';
       skill.index = 0;
       this.updateSkillTarget();
-    } else {
-      var x = $gameMap.canvasToMapPX(TouchInput.x) - skill.collider.width / 2;
-      var y = $gameMap.canvasToMapPY(TouchInput.y) - skill.collider.height / 2;
-      skill.picture.move(x, y);
     }
     QABSManager.addPicture(skill.picture);
     return skill;
@@ -3075,7 +3138,6 @@ function Skill_Sequencer() {
     var x = target.cx() - w / 2;
     var y = target.cy() - h / 2;
     skill.collider.moveTo(x, y);
-    skill.picture.move(x + w / 2, y + h / 2);
   };
 
   Game_Player.prototype.updateGroundTargeting = function() {
@@ -3115,7 +3177,6 @@ function Skill_Sequencer() {
     this.setRadian(Math.atan2(y1 - this.cy(), x1 - this.cx()));
     skill.radian = this._radian;
     skill.collider.moveTo(x2, y2);
-    skill.picture.move(x2 + w / 2, y2 + h / 2);
     var dx = Math.abs(this.cx() - x2 - w / 2);
     var dy = Math.abs(this.cy() - y2 - h / 2);
     var distance = Math.sqrt(dx * dx + dy * dy);
@@ -3724,7 +3785,7 @@ function Game_Loot() {
   var Alias_Scene_Map_initialize = Scene_Map.prototype.initialize;
   Scene_Map.prototype.initialize = function() {
     Alias_Scene_Map_initialize.call(this);
-    $gameSystem.preloadSkills();
+    $gameSystem.preloadAllSkills();
   };
 
   var Alias_Scene_Map_isMenuCalled = Scene_Map.prototype.isMenuCalled;
@@ -3844,6 +3905,160 @@ function Sprite_Icon() {
 })();
 
 //-----------------------------------------------------------------------------
+// Sprite_SkillPicture
+
+function Sprite_SkillPicture() {
+  this.initialize.apply(this, arguments);
+}
+
+(function() {
+  Sprite_SkillPicture.prototype = Object.create(Sprite.prototype);
+  Sprite_SkillPicture.prototype.constructor = Sprite_SkillPicture;
+
+  Sprite_SkillPicture.prototype.initialize = function() {
+    Sprite.prototype.initialize.call(this);
+    this._maxFrames = 1;
+    this._speed = 0;
+    this._isAnimated = false;
+    this._tick = 0;
+    this._frameI = 0;
+    this._lastFrameI = null;
+    this._realX = this.x;
+    this._realY = this.y;
+  };
+
+  Sprite_SkillPicture.prototype.setupAnim = function(frames, speed) {
+    this._isAnimated = true;
+    this._maxFrames = frames;
+    this._speed = speed;
+  };
+
+  Sprite_SkillPicture.prototype.update = function() {
+    Sprite.prototype.update.call(this);
+    this.updatePosition();
+    if (this._isAnimated) this.updateAnimation();
+    this.updateFrame();
+  };
+
+  Sprite_SkillPicture.prototype.updatePosition = function() {
+    this.x = this._realX;
+    this.x -= $gameMap.displayX() * QMovement.tileSize;
+    this.y = this._realY;
+    this.y -= $gameMap.displayY() * QMovement.tileSize;
+  };
+
+  Sprite_SkillPicture.prototype.updateAnimation = function() {
+    if (this._tick % this._speed === 0) {
+      this._frameI = (this._frameI + 1) % this._maxFrames;
+    }
+    this._tick = (this._tick + 1) % this._speed;
+  };
+
+  Sprite_SkillPicture.prototype.updateFrame = function() {
+    if (this._lastFrameI !== null) {
+      if (this._lastFrameI === this._frameI) return;
+    }
+    var i = this._frameI;
+    var pw = this.bitmap.width / this._maxFrames;
+    var ph = this.bitmap.height;
+    var sx = i * pw;
+    this.setFrame(sx, 0, pw, ph);
+    this._lastFrameI = i;
+  };
+
+  Sprite_SkillPicture.prototype.move = function(x, y) {
+    Sprite.prototype.move.call(this, x, y);
+    this._realX = x;
+    this._realY = y;
+    this.updatePosition();
+  };
+})();
+
+//-----------------------------------------------------------------------------
+// Sprite_SkillTrail
+
+function Sprite_SkillTrail() {
+  this.initialize.apply(this, arguments);
+}
+
+(function() {
+  Sprite_SkillTrail.prototype = Object.create(TilingSprite.prototype);
+  Sprite_SkillTrail.prototype.constructor = Sprite_SkillTrail;
+
+  Sprite_SkillTrail.prototype.initialize = function() {
+    TilingSprite.prototype.initialize.call(this);
+    this._realX = this.x;
+    this._realY = this.y;
+  };
+
+  Sprite_SkillTrail.prototype.update = function() {
+    TilingSprite.prototype.update.call(this);
+    this.updatePosition();
+  };
+
+  Sprite_SkillTrail.prototype.updatePosition = function() {
+    this.x = this._realX;
+    this.x -= $gameMap.displayX() * QMovement.tileSize;
+    this.y = this._realY;
+    this.y -= $gameMap.displayY() * QMovement.tileSize;
+  };
+
+  Sprite_SkillTrail.prototype.move = function(x, y, width, height) {
+    TilingSprite.prototype.move.call(this, x, y, width, height);
+    this._realX = x;
+    this._realY = y;
+    this.updatePosition();
+  };
+})();
+
+//-----------------------------------------------------------------------------
+// Sprite_MapAnimation
+
+function Sprite_MapAnimation() {
+  this.initialize.apply(this, arguments);
+}
+
+(function() {
+  Sprite_MapAnimation.prototype = Object.create(Sprite_Base.prototype);
+  Sprite_MapAnimation.prototype.constructor = Sprite_MapAnimation;
+
+  Sprite_MapAnimation.prototype.initialize = function(animation) {
+    Sprite_Base.prototype.initialize.call(this);
+    this.z = 8;
+    this._realX = this.x;
+    this._realY = this.y;
+    this._animation = animation;
+    this._hasStarted = false;
+  };
+
+  Sprite_MapAnimation.prototype.update = function() {
+    Sprite_Base.prototype.update.call(this);
+    this.updatePosition();
+    if (!this._hasStarted && this.parent) {
+      this.startAnimation(this._animation, false, 0);
+      this._hasStarted = true;
+    }
+    if (this._hasStarted && !this.isAnimationPlaying()) {
+      QABSManager.removeAnimation(this);
+    }
+  };
+
+  Sprite_MapAnimation.prototype.updatePosition = function() {
+    this.x = this._realX;
+    this.x -= $gameMap.displayX() * QMovement.tileSize;
+    this.y = this._realY;
+    this.y -= $gameMap.displayY() * QMovement.tileSize;
+  };
+
+  Sprite_MapAnimation.prototype.move = function(x, y) {
+    Sprite_Base.prototype.move.call(this, x, y);
+    this._realX = x;
+    this._realY = y;
+    this.updatePosition();
+  };
+})();
+
+//-----------------------------------------------------------------------------
 // Sprite_SkillCollider
 
 function Sprite_SkillCollider() {
@@ -3920,50 +4135,8 @@ function Sprite_SkillCollider() {
   var Alias_Spriteset_Map_updateTilemap = Spriteset_Map.prototype.updateTilemap;
   Spriteset_Map.prototype.updateTilemap = function() {
     Alias_Spriteset_Map_updateTilemap.call(this);
-    this.updateTempAnimations();
-    this.updatePictures();
-  };
-
-  Spriteset_Map.prototype.updatePictures = function() {
     if (this._pictures !== QABSManager._pictures) this.addPictures();
-    for (var i = 0; i < this._pictures.length; i++) {
-      this._pictures[i].x = this._pictures[i].realX;
-      this._pictures[i].x -= $gameMap.displayX() * QMovement.tileSize;
-      this._pictures[i].y = this._pictures[i].realY;
-      this._pictures[i].y -= $gameMap.displayY() * QMovement.tileSize;
-    }
-  };
-
-  Spriteset_Map.prototype.updateTempAnimations = function() {
     if (this._tempAnimations !== QABSManager._animations) this.addAnimations();
-    if (this._tempAnimations.length > 0) {
-      for (var i = this._tempAnimations.length - 1; i >= 0; i--) {
-        this._tempAnimations[i].x = this._tempAnimations[i].realX;
-        this._tempAnimations[i].x -= $gameMap.displayX() * QMovement.tileSize;
-        this._tempAnimations[i].y = this._tempAnimations[i].realY;
-        this._tempAnimations[i].y -= $gameMap.displayY() * QMovement.tileSize;
-        this._tempAnimations[i].update();
-        if (!this._tempAnimations[i].isAnimationPlaying()) {
-          this._tilemap.removeChild(this._tempAnimations[i].sprite);
-          this._tempAnimations[i] = null;
-          this._tempAnimations.splice(i, 1);
-        }
-      }
-    }
-  };
-
-  var Alias_Sprite_move = Sprite.prototype.move;
-  Sprite.prototype.move = function(x, y) {
-    Alias_Sprite_move.call(this, x, y);
-    this.realX = x;
-    this.realY = y;
-  };
-
-  var Alias_TilingSprite_move = TilingSprite.prototype.move;
-  TilingSprite.prototype.move = function(x, y, width, height) {
-    Alias_TilingSprite_move.call(this, x, y, width, height);
-    this.realX = x;
-    this.realY = y;
   };
 })();
 
