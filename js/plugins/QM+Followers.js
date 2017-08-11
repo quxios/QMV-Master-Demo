@@ -9,13 +9,13 @@ if (!Imported.QMovement || !QPlus.versionCheck(Imported.QMovement, '1.2.2')) {
   throw new Error('Error: QM+Followers requires QMovement 1.2.2 or newer to work.');
 }
 
-Imported.QMFollowers = '1.0.1';
+Imported.QMFollowers = '1.0.2';
 
 //=============================================================================
  /*:
  * @plugindesc <QMFollowers>
  * QMovement Addon: Adds follower support
- * @author Quxios  | Version 1.0.1
+ * @author Quxios  | Version 1.0.2
  *
  * @requires QMovement
  *
@@ -60,7 +60,8 @@ Imported.QMFollowers = '1.0.1';
   var Alias_Game_Player_onPositionChange = Game_Player.prototype.onPositionChange;
   Game_Player.prototype.onPositionChange = function() {
     Alias_Game_Player_onPositionChange.call(this);
-    this._followers.addMove(this._px, this._py, this.realMoveSpeed(), this._direction);
+    var dir = this.radianToDirection(this._radian, QMovement.diagonal);
+    this._followers.addMove(this._px, this._py, this.realMoveSpeed(), dir);
   };
 
   //-----------------------------------------------------------------------------
