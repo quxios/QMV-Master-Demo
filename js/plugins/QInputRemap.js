@@ -9,13 +9,13 @@ if (!Imported.QInput || !QPlus.versionCheck(Imported.QInput, '2.1.1')) {
   throw new Error('Error: QInputRemap requires QInput 2.1.1 or newer to work.');
 }
 
-Imported.QInputRemap = '2.1.2';
+Imported.QInputRemap = '2.1.3';
 
 //=============================================================================
  /*:
  * @plugindesc <QInputRemap>
- * Quasi Input Addon: Adds Key remapping to Options menu
- * @author Quxios  | Version 2.1.2
+ * QInput Addon: Adds Key remapping to Options menu
+ * @author Quxios  | Version 2.1.3
  *
  * @requires QInput
  *
@@ -199,7 +199,7 @@ function Window_InputRemap() {
   };
 
   Scene_Options.prototype.setDefaultInput = function() {
-    ConfigManager.keys = JSON.parse(JSON.stringify(QuasiInput.remapped));
+    ConfigManager.keys = JSON.parse(JSON.stringify(QInput.remapped));
     ConfigManager.save();
     this._inputWindow.refresh();
     this._inputWindow.activate();
