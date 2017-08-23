@@ -12,13 +12,13 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.5')) {
   throw new Error('Error: QMap requires QMovement 1.2.1 or newer to work.');
 }
 
-Imported.QMap = '1.4.1';
+Imported.QMap = '1.5.0';
 
 //=============================================================================
  /*:
  * @plugindesc <QMap>
  * Creates maps made with QMap Editor
- * @author Quxios  | Version 1.4.1
+ * @author Quxios  | Version 1.5.0
  *
  * @requires QPlus
  *
@@ -353,23 +353,31 @@ var $dataQMap = null;
      *  @param scaleX [int]
      *  @param scaleY [int]
      *  @param angle [int]
+     *  @param conditions [object[]]
      *  @param note [string]
+     *  @param meta [object]
      *  @param isQSprite [string]
      *  @param pose [string]
      */
     for (var prop in objData) {
-      if (objData.hasOwnProperty(prop)) {
-        var propName = String(prop);
-        var value = objData[prop];
-        if (propName === 'notes') continue;
-        if (propName === 'x') {
-          propName = 'px';
-        }
-        if (propName === 'y') {
-          propName = 'py';
-        }
-        this[propName] = value;
+      var propName = String(prop);
+      var value = objData[prop];
+      if (propName === 'notes' || propName === 'meta') {
+        continue;
       }
+      if (propName === 'conditions') {
+        value = value.map(function(v) {
+          v.value = QPlus.stringToType(JSON.stringify(v.value));
+          return v;
+        });
+      }
+      if (propName === 'x') {
+        propName = 'px';
+      }
+      if (propName === 'y') {
+        propName = 'py';
+      }
+      this[propName] = value;
     }
     this.meta = this.qmeta || {};
     if (Imported.QSprite && this.isQSprite) {
@@ -397,6 +405,7 @@ var $dataQMap = null;
     this.alpha = 1;
     this.scale = new Point(this.scaleX, this.scaleY);
     this.rotation = this.angle * (Math.PI / 180);
+    this.visible = true;
     this.setupBreath();
     this.setupTone();
   };
@@ -437,7 +446,7 @@ var $dataQMap = null;
   };
 
   Game_MapObj.prototype.isThrough = function() {
-    return false;
+    return !this.visible;
   };
 
   Game_MapObj.prototype.isNormalPriority = function() {
@@ -449,6 +458,8 @@ var $dataQMap = null;
   };
 
   Game_MapObj.prototype.update = function() {
+    this.updateConditions();
+    if (!this.visible) return;
     var playerX = $gamePlayer._realX;
     var playerY = $gamePlayer._realY;
     if (this._playerX !== playerX || this._playerY !== playerY) {
@@ -459,6 +470,24 @@ var $dataQMap = null;
       this._playerY = playerY;
     }
     if (this.meta.breath) this.updateBreath();
+  };
+
+  Game_MapObj.prototype.updateConditions = function() {
+    var isOk = true;
+    for (var i = 0; i < this.conditions.length; i++) {
+      var cond = this.conditions[i];
+      if (cond.type === "switch") {
+        isOk = $gameSwitches.value(cond.value[0]) === cond.value[1];
+      }
+      if (cond.type === "var") {
+        isOk = $gameVariables.value(cond.value[0]) === cond.value[1];
+      }
+      if (cond.type === "js") {
+        isOk = !!(eval(value[0]));
+      }
+      if (!isOk) break;
+    }
+    this.visible = isOk;
   };
 
   Game_MapObj.prototype.updatePlayerMoved = function(dx, dy) {
@@ -483,6 +512,9 @@ var $dataQMap = null;
   };
 
   Game_MapObj.prototype.intersectsWith = function(type, chara) {
+    if (!this.visible) {
+      return false;
+    }
     if (!Imported.QMovement) {
       return this.intersectsWithSimple(type, chara._realX, chara._realY);
     } else {
@@ -698,6 +730,7 @@ var $dataQMap = null;
     this.scale.x = this._mapObj.scale.x;
     this.scale.y = this._mapObj.scale.y;
     this.rotation = this._mapObj.rotation;
+    this.visible = this._mapObj.visible;
     this.setColorTone(this._mapObj.tone);
   };
 
