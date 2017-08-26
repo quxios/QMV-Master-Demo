@@ -9,13 +9,13 @@ if (!Imported.QMovement || !QPlus.versionCheck(Imported.QMovement, '1.4.0')) {
   throw new Error('Error: QABS requires QMovement 1.4.0 or newer to work.');
 }
 
-Imported.QABS = '1.3.0';
+Imported.QABS = '1.3.1';
 
 //=============================================================================
  /*:
  * @plugindesc <QABS>
  * Action Battle System for QMovement
- * @author Quxios  | Version 1.3.0
+ * @author Quxios  | Version 1.3.1
  *
  * @repo https://github.com/quxios/QABS
  *
@@ -3639,6 +3639,7 @@ function Game_Loot() {
     this._itemIcon = new Sprite_Icon(iconIndex);
     this._itemIcon.move(this._px, this._py);
     this._itemIcon.z = 1;
+    this._itemIcon._isFixed = true;
     QABSManager.addPicture(this._itemIcon);
   };
 
@@ -3891,6 +3892,9 @@ function Sprite_Icon() {
     this._iconSheet = sheet || 'IconSet';
     this._iconW = w || 32;
     this._iconH = h || 32;
+    this._realX = this.x;
+    this._realY = this.y;
+    this._isFixed = false;
     this.setBitmap();
   };
 
@@ -3901,6 +3905,25 @@ function Sprite_Icon() {
     var sx = this._iconIndex % 16 * pw;
     var sy = Math.floor(this._iconIndex / 16) * ph;
     this.setFrame(sx, sy, pw, ph);
+  };
+
+  Sprite_Icon.prototype.update = function() {
+    Sprite.prototype.update.call(this);
+    if (this._isFixed) this.updatePosition();
+  };
+
+  Sprite_Icon.prototype.updatePosition = function() {
+    this.x = this._realX;
+    this.x -= $gameMap.displayX() * QMovement.tileSize;
+    this.y = this._realY;
+    this.y -= $gameMap.displayY() * QMovement.tileSize;
+  };
+
+  Sprite_Icon.prototype.move = function(x, y) {
+    Sprite.prototype.move.call(this, x, y);
+    this._realX = x;
+    this._realY = y;
+    this.updatePosition();
   };
 })();
 
