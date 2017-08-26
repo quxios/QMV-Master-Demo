@@ -12,13 +12,13 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.5')) {
   throw new Error('Error: QMap requires QMovement 1.2.1 or newer to work.');
 }
 
-Imported.QMap = '1.5.0';
+Imported.QMap = '1.5.1';
 
 //=============================================================================
  /*:
  * @plugindesc <QMap>
  * Creates maps made with QMap Editor
- * @author Quxios  | Version 1.5.0
+ * @author Quxios  | Version 1.5.1
  *
  * @requires QPlus
  *
@@ -290,7 +290,8 @@ var $dataQMap = null;
     var data = $dataQMap[this._mapId] || [];
     for (var i = 0; i < data.length; i++) {
       if (data[i]) {
-        var mapObj = new Game_MapObj(this._mapId, data[i])
+        var objData = JSON.parse(JSON.stringify(data[i]));
+        var mapObj = new Game_MapObj(this._mapId, objData);
         this._mapObjs.push(mapObj);
         if (mapObj.collider('collision')) {
           this._mapObjsWithColliders.push(mapObj);
@@ -378,6 +379,9 @@ var $dataQMap = null;
         propName = 'py';
       }
       this[propName] = value;
+    }
+    if (!this.conditions) {
+      this.conditions = [];
     }
     this.meta = this.qmeta || {};
     if (Imported.QSprite && this.isQSprite) {
