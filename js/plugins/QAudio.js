@@ -9,13 +9,13 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.4.0')) {
   throw new Error('Error: QAudio requires QPlus 1.4.0 or newer to work.');
 }
 
-Imported.QAudio = '2.3.2';
+Imported.QAudio = '2.3.3';
 
 //=============================================================================
  /*:
  * @plugindesc <QAudio>
  * Few new audio features
- * @author Quxios  | Version 2.3.2
+ * @author Quxios  | Version 2.3.3
  *
  * @requires QPlus
  *
@@ -51,10 +51,11 @@ Imported.QAudio = '2.3.2';
  *
  * Possible options:
  *
- * - loop: this audio will loop
- * - noPan: this audio will not update its pan
  * - idX: where X the ID for the audio (needed for stopping)
  * - type: bgm, bgs, me, or se (Default: bgm)
+ * - loop: this audio will loop
+ * - noPan: this audio will not update its pan
+ * - pitchX: where X is the pitch %, default is 100
  * - maxV: where V is the max volume for this audio, between 0-100
  * - fadeinT: where T is the time to fade in, in seconds
  * - xX: where X is the x position for the audio
@@ -196,11 +197,9 @@ Imported.QAudio = '2.3.2';
       if (max === null) {
         max = _DEFAULTVOLUME;
       }
-      max /= 100;
+      max = Number(max) / 100;
       var radius = QPlus.getArg(args2, /^radius(\d+)/i) ;
-      if (radius === null) {
-        radius = _DEFAULTRADIUS;
-      }
+      radius = radius === null ? _DEFAULTRADIUS : Number(radius);
       var bindTo = QPlus.getArg(args2, /^bindTo(.+)/i);
       if (bindTo) {
         if (bindTo.toLowerCase() === 'this') {
@@ -208,30 +207,29 @@ Imported.QAudio = '2.3.2';
         }
       }
       var x = QPlus.getArg(args2, /^x(\d+)/i);
-      if (x === null) {
-        x = $gamePlayer.x;
-      }
+      x = x === null ? $gamePlayer.x : Number(x);
       var y = QPlus.getArg(args2, /^y(\d+)/i);
-      if (y === null) {
-        y = $gamePlayer.y;
-      }
+      y = y === null ? $gamePlayer.y : Number(y);
       var fadein = QPlus.getArg(args2, /^fadein(\d+)/i);
+      fadein = fadein === null ? 0 : Number(fadein);
+      var pitch = QPlus.getArg(args2, /^pitch(\d+)/i);
+      pitch = pitch === null ? 100 : Number(pitch);
       var audio = {
         name: name,
         volume: 100,
-        pitch: 0,
+        pitch: pitch / 100,
         pan: 0
       }
       AudioManager.playQAudio(id, audio, {
         type: type,
         loop: loop,
-        maxVolume: Number(max),
-        radius: Number(radius),
-        x: Number(x),
-        y: Number(y),
+        maxVolume: max,
+        radius: radius,
+        x: x,
+        y: y,
         bindTo: bindTo,
         doPan: !dontPan,
-        fadeIn: Number(fadein) || 0
+        fadeIn: fadein
       })
       return;
     }
@@ -352,6 +350,7 @@ Imported.QAudio = '2.3.2';
       buffer.doPan = options.doPan;
       buffer.rVolume = 1;
       buffer.fadingIn = null;
+      buffer.pitch = audio.pitch;
       if (options.fadeIn) {
         buffer.rVolume = 0;
         buffer.fadingIn = {
