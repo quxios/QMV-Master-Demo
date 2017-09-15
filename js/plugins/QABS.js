@@ -9,13 +9,13 @@ if (!Imported.QMovement || !QPlus.versionCheck(Imported.QMovement, '1.4.0')) {
   throw new Error('Error: QABS requires QMovement 1.4.0 or newer to work.');
 }
 
-Imported.QABS = '1.3.2';
+Imported.QABS = '1.4.0';
 
 //=============================================================================
  /*:
  * @plugindesc <QABS>
  * Action Battle System for QMovement
- * @author Quxios  | Version 1.3.2
+ * @author Quxios  | Version 1.4.0
  *
  * @repo https://github.com/quxios/QABS
  *
@@ -259,6 +259,37 @@ Imported.QABS = '1.3.2';
  * Weapon skill keys take top priority, so they will replace both class keys
  * and the default keys! This example will replace skill key 1 with the skill
  * id 3
+ * ----------------------------------------------------------------------------
+ * **Override Skill keys**
+ * ----------------------------------------------------------------------------
+ * You can manually override a skill key with a plugin command. Override skill keys
+ * take priority over weapon, class and default skill keys.
+ *
+ * Plugin command:
+ * ~~~
+ *  qabs override SKILLKEYNUMBER SKILLID
+ * ~~~
+ * - #### SKILLKEYNUMBER:
+ *  - The skill key that you want to change
+ * - #### SKILLID:
+ *  - The skill to assign to this skill key number. Set to -1 if you want to
+ *  remove this override
+ *
+ * *Important!* make sure the skill key you are trying to set is created in the
+ * plugin parameters `Default Skills`. If it's not, the game will have an error.
+ *
+ * Also note that the player still needs to know the skill to be able to use it.
+ * Assign it won't let him use it if he doesn't know it.
+ *
+ * Example:
+ * ~~~
+ *  qabs override 1 3
+ * ~~~
+ * Will override skill key 1 and assign the skill with id 3. To remove this
+ * override later on use the plugin command:
+ * ~~~
+ *  qabs override 1 -1
+ * ~~~
  * ============================================================================
  * ## Skills
  * ============================================================================
@@ -613,6 +644,44 @@ Imported.QABS = '1.3.2';
  * - 2: Enemy team
  * - 3+ can also be used
  * *Note teams don't do much because there is no team based AI*
+ * ============================================================================
+ * ## Disabling QABS
+ * ============================================================================
+ * You can disable the QABS or disable certain events with a plugin command.
+ *
+ * To disable the QABS for everything use the plugin command
+ * ~~~
+ *  qabs disable
+ * ~~~
+ * To re-enable use the plugin command:
+ * ~~~
+ *  qabs enable
+ * ~~~
+ *
+ * To disable certain event(s) use the plugin command
+ * ~~~
+ *  qabs disable [LIST OF CHARAIDS TO DISABLE]
+ * ~~~
+ * CHARAID - The character identifier.
+ * - For events: EVENTID, eEVENTID, eventEVENTID or this for the event that
+ *  called this (replace EVENTID with a number)
+ *
+ * Where each CHARAID is separated with a space. CHARAID can only be for events.
+ *
+ * Example:
+ * ~~~
+ *  qabs disable event1 e2 4
+ * ~~~
+ * Will disable events 1, 2 and 4. Used different types of CHARAIDs as an example
+ * but you can use whichever one you like
+ *
+ * To re-enable event(s) use the plugin command
+ * ~~~
+ *  qabs enable [LIST OF CHARAIDS TO DISABLE]
+ * ~~~
+ *
+ * *Note* that disabling ABS doesn't remove it from the event, it just "pauses"
+ * it until it's re-enabled.
  * ============================================================================
  * ## States
  * ============================================================================
@@ -2177,6 +2246,15 @@ function Skill_Sequencer() {
       }
       return;
     }
+    if (cmd === 'override') {
+      var key = Number(args.shift());
+      var skillId = Number(args.shift());
+      if (skillId === -1) {
+        skillId = null;
+      }
+      $gameSystem.changeABSOverrideSkill(key, skillId);
+      return;
+    }
   };
 })();
 
@@ -2190,6 +2268,7 @@ function Skill_Sequencer() {
     this._absKeys = QABS.getDefaultSkillKeys();
     this._absClassKeys = {};
     this._absWeaponKeys = {};
+    this._absOverrideKeys = {};
     this._absEnabled = true;
     this._disabledEnemies = {};
     this.checkAbsMouse();
@@ -2213,7 +2292,7 @@ function Skill_Sequencer() {
     if (!this._disabledEnemies[mapId]) {
       return false;
     }
-    return this._disabledEnemies[mapId][eventId];
+    return this._disabledEnemies[mapId][eventId] || !this._absEnabled;
   };
 
   Game_System.prototype.loadClassABSKeys = function() {
@@ -2227,11 +2306,15 @@ function Skill_Sequencer() {
   };
 
   Game_System.prototype.resetABSKeys = function() {
-    this._absKeys = Object.assign({},
-      QABS.getDefaultSkillKeys(),
-      this._absClassKeys,
-      this._absWeaponKeys
-    );
+    this._absKeys = QABS.getDefaultSkillKeys();
+    for (var key in this._absKeys) {
+      Object.assign(
+        this._absKeys[key],
+        this._absClassKeys[key] || {},
+        this._absWeaponKeys[key] || {},
+        this._absOverrideKeys[key] || {}
+      );
+    }
     this.preloadAllSkills();
     this.checkAbsMouse();
   };
@@ -2239,20 +2322,29 @@ function Skill_Sequencer() {
   Game_System.prototype.absKeys = function() {
     return this._absKeys;
   };
-
-  Game_System.prototype.changeABSSkill = function(skillNumber, skillId, forced) {
+  Game_System.prototype.changeABSOverrideSkill = function(skillNumber, skillId, forced) {
     var absKeys = this.absKeys();
+    var override = this._absOverrideKeys;
     if (!absKeys[skillNumber]) return;
     if (!forced && !absKeys[skillNumber].rebind) return;
-    for (var key in absKeys) {
-      if (absKeys[key].skillId === skillId) {
-        if (absKeys[key].rebind) {
-          absKeys[key].skillId = null;
-        }
-        break;
-      }
+    if (!override[skillNumber]) {
+      override[skillNumber] = {};
     }
-    absKeys[skillNumber].skillId = skillId;
+    if (skillId !== null) {
+      if (skillId > 0) {
+        for (var key in absKeys) {
+          if (absKeys[key].skillId === skillId) {
+            if (!override[key]) {
+              override[key] = {};
+            }
+            override[key].skillId = null;
+          }
+        }
+      }
+      override[skillNumber].skillId = skillId;
+    } else {
+      delete override[skillNumber].skillId;
+    }
     this.resetABSKeys();
   };
 
@@ -2263,16 +2355,25 @@ function Skill_Sequencer() {
 
   Game_System.prototype.changeABSSkillInput = function(skillNumber, input) {
     var absKeys = this.absKeys();
+    var override = this._absOverrideKeys;
     if (!absKeys[skillNumber]) return;
+    if (!override[skillNumber]) {
+      override[skillNumber] = {};
+    }
     for (var key in absKeys) {
       var i = absKeys[key].input.indexOf(input);
       if (i !== -1) {
-        absKeys[key].input.splice(i, 1);
+        if (!override[key]) {
+          override[key] = {
+            input: absKeys[key].input.clone()
+          };
+        }
+        override[key].input.splice(i, 1);
         break;
       }
     }
     var i = /^\$/.test(input) ? 1 : 0;
-    absKeys[skillNumber].input[i] = input;
+    override[skillNumber].input[i] = input;
     this.checkAbsMouse();
   };
 
@@ -2818,7 +2919,7 @@ function Skill_Sequencer() {
   var Alias_Game_CharacterBase_update = Game_CharacterBase.prototype.update;
   Game_CharacterBase.prototype.update = function() {
     Alias_Game_CharacterBase_update.call(this);
-    if (this.battler()) this.updateABS();
+    if (this.battler() && $gameSystem._absEnabled) this.updateABS();
   };
 
   Game_CharacterBase.prototype.updateABS = function() {
