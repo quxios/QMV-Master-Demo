@@ -4,18 +4,18 @@
 
 var Imported = Imported || {};
 
-if (!Imported.QABS || !QPlus.versionCheck(Imported.QABS, '1.0.0')) {
-  alert('Error: QABS+Skillbar requires QABS 1.0.0 or newer to work.');
-  throw new Error('Error: QABS+Skillbar requires QABS 1.0.0 or newer to work.');
+if (!Imported.QABS || !QPlus.versionCheck(Imported.QABS, '1.4.0')) {
+  alert('Error: QABS+Skillbar requires QABS 1.4.0 or newer to work.');
+  throw new Error('Error: QABS+Skillbar requires QABS 1.4.0 or newer to work.');
 }
 
-Imported.QABS_Skillbar = '1.0.1';
+Imported.QABS_Skillbar = '1.0.2';
 
 //=============================================================================
  /*:
  * @plugindesc <QABSSkillbar>
  * QABS Addon: Adds a skillbar
- * @author Quxios  | Version 1.0.1
+ * @author Quxios  | Version 1.0.2
  *
  * @requires QABS
  *
@@ -137,15 +137,9 @@ function Sprite_SkillInfo() {
     QABSSkillbar.requestRefresh = true;
   };
 
-  var Alias_Game_System_changeABSSkill = Game_System.prototype.changeABSSkill;
-  Game_System.prototype.changeABSSkill = function(skillNumber, skillId, forced) {
-    Alias_Game_System_changeABSSkill.call(this, skillNumber, skillId, forced);
-    QABSSkillbar.requestRefresh = true;
-  };
-
-  var Alias_Game_System_changeABSWeaponSkills = Game_System.prototype.changeABSWeaponSkills;
-  Game_System.prototype.changeABSWeaponSkills = function(skillNumber, skillId, forced) {
-    Alias_Game_System_changeABSWeaponSkills.call(this, skillNumber, skillId, forced);
+  var Alias_Game_System_resetABSKeys = Game_System.prototype.resetABSKeys;
+  Game_System.prototype.resetABSKeys = function() {
+    Alias_Game_System_resetABSKeys.call(this);
     QABSSkillbar.requestRefresh = true;
   };
 
