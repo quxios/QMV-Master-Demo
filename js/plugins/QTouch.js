@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QTouch = '1.1.1';
+Imported.QTouch = '1.1.2';
 
 if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.4.0')) {
   alert('Error: QTouch requires QPlus 1.4.0 or newer to work.');
@@ -14,7 +14,7 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.4.0')) {
  /*:
  * @plugindesc <QTouch>
  * Better mouse handling for MV
- * @author Quxios  | Version 1.1.1
+ * @author Quxios  | Version 1.1.2
  *
  * @video https://youtu.be/2UrazG-XRxw
  *
@@ -260,7 +260,11 @@ function Sprite_QButton() {
         var hitIndex = this.hitTest(x, y);
         if (hitIndex >= 0 && this.isCursorMovable() && this.mouseMoved()) {
           this._isPointing = true;
+          var lastIndex = this.index();
           this.select(hitIndex);
+          if (this.index() !== lastIndex) {
+            SoundManager.playCursor();
+          }
         } else if (hitIndex < 0) {
           if (y < this.padding) {
             this._isPointing = true;
