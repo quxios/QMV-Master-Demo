@@ -37,6 +37,7 @@ Imported.QPicture = '1.1.0';
  *  qPicture [PICID] [MOUSEEVENT] [HANDLER] [ARG1]
  * ~~~
  * PICID - The ID (Picture Number) of the picture to apply this to
+ *
  * MOUSEEVENT - The mouse event to add to this picture, can be:
  *  - onClick: Runs when the picture is left clicked
  *  - onRightClick: Runs when the picture is right clicked
@@ -46,11 +47,13 @@ Imported.QPicture = '1.1.0';
  *  may be best to use onMouseEnter instead)
  *  - onMouseOut: Runs when the mouse isn't over the picture (for performance reasons
  *  may be best to use onMouseExit instead)
+ *
  * HANDLER - What to do when the mouse event runs, can be:
  *  - switchX: Where X is the switch ID, changes a switchs value to what is set
  *  on ARG1
  *  - ceX: Where X is the common event ID, runs a common event
  *  - clear: Removes the handler that assigned to this picture
+ *
  * ARG1 - Only used when handler is `switchX`, set this to:
  *  - true: Makes the switch true whenever this mouse event runs
  *  - false: Makes the switch false whenever this mouse event runs
@@ -66,6 +69,7 @@ Imported.QPicture = '1.1.0';
  *  qPicture [PICID] alpha [TRUE or FALSE]
  * ~~~
   * PICID - The ID (Picture Number) of the picture to apply this to
+  *
   * TRUE or FALSE - Set to true to click through alpha, set to false to
   *  go back to default behavior.
  * ----------------------------------------------------------------------------
@@ -75,10 +79,12 @@ Imported.QPicture = '1.1.0';
  *  qPicture [PICID] ease [TYPE] [MODE]
  * ~~~
  * PICID - The ID (Picture Number) of the picture to apply this to
+ *
  * TYPE - What to apply this easing to, can be:
  *  - move
  *  - scale
  *  - opacity
+ *  
  * MODE - The easing mode (Default: linear)
  *  - linear
  *  - easeIn
