@@ -242,7 +242,7 @@ Imported.QMovement = '1.4.3';
  *  <colliders>
  *  default: box, 48, 48
  *  collision: circle, 24, 24, 12, 12
- *  interaction: box: 32, 32, 8, 8
+ *  interaction: box, 32, 32, 8, 8
  *  </colliders>
  * ~~~
  * ----------------------------------------------------------------------------
