@@ -140,6 +140,10 @@ Imported.QMap = '1.5.1';
  * ============================================================================
  * ## Links
  * ============================================================================
+ * Formated Help:
+ *
+ *  https://quxios.github.io/#/plugins/QMap
+ *
  * RPGMakerWebs:
  *
  *  http://forums.rpgmakerweb.com/index.php?threads/qplugins.73023/

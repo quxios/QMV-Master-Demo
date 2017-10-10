@@ -271,6 +271,10 @@ Imported.QInput = '2.2.1';
  * ============================================================================
  * ## Links
  * ============================================================================
+ * Formated Help:
+ *
+ *  https://quxios.github.io/#/plugins/QInput
+ *
  * RPGMakerWebs:
  *
  *  http://forums.rpgmakerweb.com/index.php?threads/qplugins.73023/

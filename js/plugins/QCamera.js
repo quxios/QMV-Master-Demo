@@ -115,6 +115,10 @@ Imported.QCamera = '1.1.4';
  * ============================================================================
  * ## Links
  * ============================================================================
+ * Formated Help:
+ *
+ *  https://quxios.github.io/#/plugins/QCamera
+ *
  * RPGMakerWebs:
  *
  *  http://forums.rpgmakerweb.com/index.php?threads/qplugins.73023/

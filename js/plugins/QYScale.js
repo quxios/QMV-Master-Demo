@@ -52,6 +52,10 @@ if (!Imported.QPlus) {
  * ============================================================================
  * ## Links
  * ============================================================================
+ * Formated Help:
+ *
+ *  https://quxios.github.io/#/plugins/QYScale
+ *
  * RPGMakerWebs:
  *
  *   http://forums.rpgmakerweb.com/index.php?threads/qplugins.73023/

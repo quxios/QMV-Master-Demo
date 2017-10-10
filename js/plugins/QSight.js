@@ -134,6 +134,10 @@ Imported.QSight = '1.1.10';
  * ============================================================================
  * ## Links
  * ============================================================================
+ * Formated Help:
+ *
+ *  https://quxios.github.io/#/plugins/QSight
+ *
  * RPGMakerWebs:
  *
  *   http://forums.rpgmakerweb.com/index.php?threads/qplugins.73023/

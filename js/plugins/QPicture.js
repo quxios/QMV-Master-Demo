@@ -84,7 +84,7 @@ Imported.QPicture = '1.1.0';
  *  - move
  *  - scale
  *  - opacity
- *  
+ *
  * MODE - The easing mode (Default: linear)
  *  - linear
  *  - easeIn
@@ -120,6 +120,10 @@ Imported.QPicture = '1.1.0';
  * ============================================================================
  * ## Links
  * ============================================================================
+ * Formated Help:
+ *
+ *  https://quxios.github.io/#/plugins/QPicture
+ *
  * RPGMakerWebs:
  *
  *  http://forums.rpgmakerweb.com/index.php?threads/qplugins.73023/
