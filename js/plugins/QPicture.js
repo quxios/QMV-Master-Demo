@@ -9,13 +9,13 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.4.4')) {
   throw new Error('Error: QPicture requires QPlus 1.4.4 or newer to work.');
 }
 
-Imported.QPicture = '1.1.0';
+Imported.QPicture = '1.1.1';
 
 //=============================================================================
  /*:
  * @plugindesc <QPicture>
  * Adds additional features to Pictures
- * @author Quxios  | Version 1.1.0
+ * @author Quxios  | Version 1.1.1
  *
  * @requires QPlus
  *
@@ -479,8 +479,16 @@ var QEase;
     Alias_Scene_Map_updateMouseInsideWindow.call(this);
     if (TouchInput.insideWindow) return;
     var inside = false;
-    var sprites = this._spriteset._pictureContainer.children;
+    var sprites;
+    if (Imported.TDDP_BindPicturesToMap) {
+      sprites = this._spriteset._pictureStorage;
+    } else {
+      sprites = this._spriteset._pictureContainer.children;
+    }
     for (var i = 0; i < sprites.length; i++) {
+      if (!sprites[i]) {
+        continue;
+      }
       if (sprites[i].visible && sprites[i].isTouched()) {
         inside = true;
         break;
