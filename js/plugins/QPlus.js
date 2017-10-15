@@ -3,13 +3,13 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QPlus = '1.4.4';
+Imported.QPlus = '1.4.5';
 
 //=============================================================================
  /*:
  * @plugindesc <QPlus> (Should go above all Q Plugins)
  * Some small changes to MV for easier plugin development.
- * @author Quxios  | Version 1.4.4
+ * @author Quxios  | Version 1.4.5
  *
  * @param Quick Test
  * @desc Enable quick testing.
@@ -739,6 +739,15 @@ function SimpleTilemap() {
       }
     }
     TouchInput.insideWindow = inside;
+  };
+
+  //-----------------------------------------------------------------------------
+  // Game_Temp
+
+  var Alias_Game_Temp_isDestinationValid = Game_Temp.prototype.isDestinationValid;
+  Game_Temp.prototype.isDestinationValid = function() {
+    var valid = Alias_Game_Temp_isDestinationValid.call(this);
+    return !TouchInput.insideWindow && valid;
   };
 
   //-----------------------------------------------------------------------------
