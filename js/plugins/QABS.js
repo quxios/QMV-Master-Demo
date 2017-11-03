@@ -9,13 +9,13 @@ if (!Imported.QMovement || !QPlus.versionCheck(Imported.QMovement, '1.4.0')) {
   throw new Error('Error: QABS requires QMovement 1.4.0 or newer to work.');
 }
 
-Imported.QABS = '1.4.1';
+Imported.QABS = '1.4.2';
 
 //=============================================================================
  /*:
  * @plugindesc <QABS>
  * Action Battle System for QMovement
- * @author Quxios  | Version 1.4.1
+ * @author Quxios  | Version 1.4.2
  *
  * @repo https://github.com/quxios/QABS
  *
@@ -2203,19 +2203,13 @@ function Skill_Sequencer() {
     if (this._skill.picture) {
       this._skill.picture.move(x4, y4);
     }
-    if (this._skill.pictureCollider) {
-      this._skill.pictureCollider.move(x4, y4);
-    }
-    if (this._skill.theta >= this._skill.waveLength) {
+    if (!this.canSkillMove() || this._skill.theta >= this._skill.waveLength) {
       this._skill.targetsHit = [];
       this._skill.waving = false;
       this._skill.moving = false;
       this._waitForMove = false;
     }
     this._skill.theta += this._skill.waveSpeed;
-    if (this.canSkillMove()) {
-      this._skill.waving = false;
-    }
   };
 
 })();
