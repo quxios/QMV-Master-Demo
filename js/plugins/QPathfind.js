@@ -12,13 +12,13 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.4.0')) {
   throw new Error('Error: QPathfind requires QMovement 1.1.9 or newer to work.');
 }
 
-Imported.QPathfind = '1.4.6';
+Imported.QPathfind = '1.4.7';
 
 //=============================================================================
  /*:
  * @plugindesc <QPathfind>
  * A* Pathfinding algorithm
- * @author Quxios  | Version 1.4.6
+ * @author Quxios  | Version 1.4.7
  *
  * @requires QPlus
  *
@@ -770,8 +770,8 @@ function QPathfind() {
     if (args2[0].toLowerCase() === 'chase') {
       if (args2[1].toLowerCase() === 'this') {
         chara.initChase(this.character(0).charaId());
-      } else {
-        chara.initChase(args2[1]);
+      } else if (QPlus.getCharacter(args2[1])) {
+        chara.initChase(QPlus.getCharacter(args2[1]).charaId());
       }
       return;
     }
@@ -914,7 +914,7 @@ function QPathfind() {
     Game_CharacterBase.prototype.ignoreCharacters = function(type) {
       var ignores = Alias_Game_CharacterBase_ignoreCharacters.call(this, type);
       if (this._isChasing !== false && type === '_pathfind') {
-        ignores.push(this._isChasing);
+        ignores.push(Number(this._isChasing));
       }
       return ignores;
     };
@@ -953,15 +953,8 @@ function QPathfind() {
 
   // if using QMovement, x and y are pixel values
   Game_Character.prototype.initPathfind = function(x, y, options) {
-    if (this._pathfind) {
-      var oldX1 = this._pathfind._originalEnd.x;
-      var oldY1 = this._pathfind._originalEnd.y;
-      var oldX2 = this._pathfind._endNode.x;
-      var oldY2 = this._pathfind._endNode.y;
-      if ((x === oldX1 && y === oldY1) || (x === oldX2 && y === oldY2)) {
-        // TODO check if any options changed
-        return;
-      }
+    if (!this.isSamePathfind(x, y, options)) {
+      return;
     }
     if (this._isPathfinding) {
       this.clearPathfind();
@@ -982,6 +975,23 @@ function QPathfind() {
       adjustEnd: true,
       //towards: true
     })
+  };
+
+  Game_Character.prototype.isSamePathfind = function(x, y, options) {
+    if (!this._pathfind) {
+      return true;
+    }
+    if (options.chase !== undefined) {
+      return options.chase !== this._isChasing;
+    }
+    var oldX1 = this._pathfind._originalEnd.x;
+    var oldY1 = this._pathfind._originalEnd.y;
+    var oldX2 = this._pathfind._endNode.x;
+    var oldY2 = this._pathfind._endNode.y;
+    if ((x === oldX1 && y === oldY1) || (x === oldX2 && y === oldY2)) {
+      return false;
+    }
+    return true;
   };
 
   Game_Character.prototype.restartPathfind = function() {
