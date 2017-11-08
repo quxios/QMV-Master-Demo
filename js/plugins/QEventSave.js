@@ -9,57 +9,57 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.4.4')) {
   throw new Error('Error: QEventSave requires QPlus 1.4.4 or newer to work.');
 }
 
-Imported.QEventSave = '1.0.0';
+Imported.QEventSave = '1.0.1';
 
 //=============================================================================
- /*:
- * @plugindesc <QEventSave>
- * Save Events position on Map change
- * @author Quxios  | Version 1.0.0
- * 
- * @requires QPlus
- *
- * @help
- * ============================================================================
- * ## About
- * ============================================================================
- * This plugin allows you to save events position and move route when switching
- * maps.
- * ============================================================================
- * ## How to use
- * ============================================================================
- * **Plugin Commands**
- * ----------------------------------------------------------------------------
- * To enable for all events on the map, add the following notetag to the map:
- * ~~~
- *  <saveEvents>
- * ~~~
- *
- * To enable this for a specific event, add the following notetag to the event:
- * ~~~
- *  <save>
- * ~~~
- * ============================================================================
- * ## Links
- * ============================================================================
- * Formated Help:
- *
- *  https://quxios.github.io/#/plugins/QEventSave
- *
- * RPGMakerWebs:
- *
- *  http://forums.rpgmakerweb.com/index.php?threads/qplugins.73023/
- *
- * Terms of use:
- *
- *  https://github.com/quxios/QMV-Master-Demo/blob/master/readme.md
- *
- * Like my plugins? Support me on Patreon!
- *
- *  https://www.patreon.com/quxios
- *
- * @tags events, save
- */
+/*:
+* @plugindesc <QEventSave>
+* Save Events position on Map change
+* @author Quxios  | Version 1.0.1
+* 
+* @requires QPlus
+*
+* @help
+* ============================================================================
+* ## About
+* ============================================================================
+* This plugin allows you to save events position and move route when switching
+* maps.
+* ============================================================================
+* ## How to use
+* ============================================================================
+* **Plugin Commands**
+* ----------------------------------------------------------------------------
+* To enable for all events on the map, add the following notetag to the map:
+* ~~~
+*  <saveEvents>
+* ~~~
+*
+* To enable this for a specific event, add the following notetag to the event:
+* ~~~
+*  <save>
+* ~~~
+* ============================================================================
+* ## Links
+* ============================================================================
+* Formated Help:
+*
+*  https://quxios.github.io/#/plugins/QEventSave
+*
+* RPGMakerWebs:
+*
+*  http://forums.rpgmakerweb.com/index.php?threads/qplugins.73023/
+*
+* Terms of use:
+*
+*  https://github.com/quxios/QMV-Master-Demo/blob/master/readme.md
+*
+* Like my plugins? Support me on Patreon!
+*
+*  https://www.patreon.com/quxios
+*
+* @tags events, save
+*/
 //=============================================================================
 
 //=============================================================================
@@ -107,24 +107,6 @@ function QEventSave() {
     if (Imported.QMovement) {
       event.setRadian(info._radian);
     }
-  };
-
-  //-----------------------------------------------------------------------------
-  // Game_Interpreter
-
-  var Alias_Game_Interpreter_pluginCommand = Game_Interpreter.prototype.pluginCommand;
-  Game_Interpreter.prototype.pluginCommand = function(command, args) {
-    if (command.toLowerCase() === 'qplugin') {
-      this.qPluginCommand(args);
-      return;
-    }
-    Alias_Game_Interpreter_pluginCommand.call(this, command, args);
-  };
-
-  Game_Interpreter.prototype.qPluginCommand = function(args) {
-    //var args2 = args.slice(2);
-    //QPlus.getCharacter(args[0]);
-    //QPlus.getArg(args2, /lock/i)
   };
 
   //-----------------------------------------------------------------------------
