@@ -12,146 +12,146 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.4.0')) {
   throw new Error('Error: QSight requires QMovement 1.1.4 or newer to work.');
 }
 
-Imported.QSight = '1.1.10';
+Imported.QSight = '1.1.12';
 
 //=============================================================================
- /*:
- * @plugindesc <QSight>
- * Real time line of sight
- * @author Quxios  | Version 1.1.10
- *
- * @requires QPlus
- *
- * @video
- *
- * @param See Through Terrain
- * @desc Set this to a list of terrains that characters can see through
- * @type Number[]
- * @default []
- *
- * @param Show
- * @desc Set this to true to show sight and shadows (For QMovement only)
- * When true, it will only appear during playtest
- * @type boolean
- * @on Show Sight
- * @off Hide Sight
- * @default false
- *
- * @help
- * ============================================================================
- * ## About
- * ============================================================================
- * This plugin lets you add real time line of sight to characters. A line of
- * sight is similar to a sensor plugin, except characters can't see behind
- * objects that block their view.
- *
- * This plugin has built-in compatibilty for QMovement. When using QMovement
- * the line of sight will be more accurate since it'll use a shadow casting
- * algorithm. When not using QMovement it'll use a simple ray casting.
- * ============================================================================
- * ## How to use
- * ============================================================================
- * **Sight Notetag / Comment**
- * ----------------------------------------------------------------------------
- * To give an event sight, add a note or comment in the following format:
- * ~~~
- *  <sight:SHAPE,RANGE,SWITCH,TARGET>
- * ~~~
- * - SHAPE: box, circle or poly
- * - RANGE: How far the character can see, in grid spaces
- * - SWITCH: Which switch to toggle. Set to a number or A, B, C, D for self switch
- * - TARGET(Optional): Set to the CHARAID of who to look for. Default: 0
- *   * CHARAID - The character identifier.
- *    - For player: 0, p, or player
- *    - For events: EVENTID, eEVENTID, or eventEVENTID (replace EVENTID with a number)
- *
- * *Note: Notes are applied to all the pages in the event, comments are page based.*
- * ----------------------------------------------------------------------------
- * **Sight examples**
- * ----------------------------------------------------------------------------
- * Here's an example of a poly sight with a range of 6 and toggles self switch A
- * ~~~
- *  <sight:poly,6,A>
- * ~~~
- *
- * Here's an example of a circle sight with a range of 4 and toggles switch 1
- * ~~~
- *  <sight:circle,4,1>
- * ~~~
- *
- * *Note: I left out TARGET because it defaults to player*
- * ============================================================================
- * ## See through events/tiles
- * ============================================================================
- * **See through events**
- * ----------------------------------------------------------------------------
- * To make an event see through add the following note or comment:
- * ~~~
- *  <invisible>
- * ~~~
- * *Note: Notes are applied to all the pages in the event, comments are page based.*
- * ----------------------------------------------------------------------------
- * **See through tiles**
- * ----------------------------------------------------------------------------
- * Set the tile's terrain id to the no shadow terrain id set in the plugin
- * parameters.
- *
- * When using QMovement and QM+RegionColliders, you can also create a RegionCollider
- * and add the following in the note:
- * ~~~
- *  <noShadow>
- * ~~~
- * ============================================================================
- * ## Plugin Commands
- * ============================================================================
- * **Check sight**
- * ----------------------------------------------------------------------------
- * Use this plugin command to manually check if a character can see another
- * character.
- * ~~~
- *  qSight CHARAID check SHAPE RANGE SWITCH TARGETID
- * ~~~
- * - CHARAID: The character identifier.
- *  - For player: 0, p, or player
- *  - For events: EVENTID, eEVENTID, eventEVENTID or this for the event that called this
- *  (replace EVENTID with a number)
- * - SHAPE: box, circle or poly
- * - RANGE: How far the character can see, in grid spaces
- * - SWITCH: Which switch to toggle. Set to a number or A, B, C, D for self switch
- * - TARGETID: Set to the CHARAID of who to look for
- * ----------------------------------------------------------------------------
- * **Toggle charcter invisible**
- * ----------------------------------------------------------------------------
- * To make a character be invisible use the following
- * ~~~
- *  qSight CHARAID visible BOOL
- * ~~~
- * - CHARAID: The character identifier.
- *  - For player: 0, p, or player
- *  - For events: EVENTID, eEVENTID, eventEVENTID or this for the event that called this
- *  (replace EVENTID with a number)
- * - BOOL: Set this to true or false
- * ============================================================================
- * ## Links
- * ============================================================================
- * Formated Help:
- *
- *  https://quxios.github.io/#/plugins/QSight
- *
- * RPGMakerWebs:
- *
- *   http://forums.rpgmakerweb.com/index.php?threads/qplugins.73023/
- *
- * Terms of use:
- *
- *   https://github.com/quxios/QMV-Master-Demo/blob/master/readme.md
- *
- * Like my plugins? Support me on Patreon!
- *
- *  https://www.patreon.com/quxios
- *
- * @tags character, sight, los
- */
+/*:
+* @plugindesc <QSight>
+* Real time line of sight
+* @author Quxios  | Version 1.1.12
+*
+* @requires QPlus
+*
+* @video
+*
+* @param See Through Terrain
+* @desc Set this to a list of terrains that characters can see through
+* @type Number[]
+* @default []
+*
+* @param Show
+* @desc Set this to true to show sight and shadows (For QMovement only)
+* When true, it will only appear during playtest
+* @type boolean
+* @on Show Sight
+* @off Hide Sight
+* @default false
+*
+* @help
+* ============================================================================
+* ## About
+* ============================================================================
+* This plugin lets you add real time line of sight to characters. A line of
+* sight is similar to a sensor plugin, except characters can't see behind
+* objects that block their view.
+*
+* This plugin has built-in compatibilty for QMovement. When using QMovement
+* the line of sight will be more accurate since it'll use a shadow casting
+* algorithm. When not using QMovement it'll use a simple ray casting.
+* ============================================================================
+* ## How to use
+* ============================================================================
+* **Sight Notetag / Comment**
+* ----------------------------------------------------------------------------
+* To give an event sight, add a note or comment in the following format:
+* ~~~
+*  <sight:SHAPE,RANGE,SWITCH,TARGET>
+* ~~~
+* - SHAPE: box, circle or poly
+* - RANGE: How far the character can see, in grid spaces
+* - SWITCH: Which switch to toggle. Set to a number or A, B, C, D for self switch
+* - TARGET(Optional): Set to the CHARAID of who to look for. Default: 0
+*   * CHARAID - The character identifier.
+*    - For player: 0, p, or player
+*    - For events: EVENTID, eEVENTID, or eventEVENTID (replace EVENTID with a number)
+*
+* *Note: Notes are applied to all the pages in the event, comments are page based.*
+* ----------------------------------------------------------------------------
+* **Sight examples**
+* ----------------------------------------------------------------------------
+* Here's an example of a poly sight with a range of 6 and toggles self switch A
+* ~~~
+*  <sight:poly,6,A>
+* ~~~
+*
+* Here's an example of a circle sight with a range of 4 and toggles switch 1
+* ~~~
+*  <sight:circle,4,1>
+* ~~~
+*
+* *Note: I left out TARGET because it defaults to player*
+* ============================================================================
+* ## See through events/tiles
+* ============================================================================
+* **See through events**
+* ----------------------------------------------------------------------------
+* To make an event see through add the following note or comment:
+* ~~~
+*  <invisible>
+* ~~~
+* *Note: Notes are applied to all the pages in the event, comments are page based.*
+* ----------------------------------------------------------------------------
+* **See through tiles**
+* ----------------------------------------------------------------------------
+* Set the tile's terrain id to the no shadow terrain id set in the plugin
+* parameters.
+*
+* When using QMovement and QM+RegionColliders, you can also create a RegionCollider
+* and add the following in the note:
+* ~~~
+*  <noShadow>
+* ~~~
+* ============================================================================
+* ## Plugin Commands
+* ============================================================================
+* **Check sight**
+* ----------------------------------------------------------------------------
+* Use this plugin command to manually check if a character can see another
+* character.
+* ~~~
+*  qSight CHARAID check SHAPE RANGE SWITCH TARGETID
+* ~~~
+* - CHARAID: The character identifier.
+*  - For player: 0, p, or player
+*  - For events: EVENTID, eEVENTID, eventEVENTID or this for the event that called this
+*  (replace EVENTID with a number)
+* - SHAPE: box, circle or poly
+* - RANGE: How far the character can see, in grid spaces
+* - SWITCH: Which switch to toggle. Set to a number or A, B, C, D for self switch
+* - TARGETID: Set to the CHARAID of who to look for
+* ----------------------------------------------------------------------------
+* **Toggle charcter invisible**
+* ----------------------------------------------------------------------------
+* To make a character be invisible use the following
+* ~~~
+*  qSight CHARAID visible BOOL
+* ~~~
+* - CHARAID: The character identifier.
+*  - For player: 0, p, or player
+*  - For events: EVENTID, eEVENTID, eventEVENTID or this for the event that called this
+*  (replace EVENTID with a number)
+* - BOOL: Set this to true or false
+* ============================================================================
+* ## Links
+* ============================================================================
+* Formated Help:
+*
+*  https://quxios.github.io/#/plugins/QSight
+*
+* RPGMakerWebs:
+*
+*   http://forums.rpgmakerweb.com/index.php?threads/qplugins.73023/
+*
+* Terms of use:
+*
+*   https://github.com/quxios/QMV-Master-Demo/blob/master/readme.md
+*
+* Like my plugins? Support me on Patreon!
+*
+*  https://www.patreon.com/quxios
+*
+* @tags character, sight, los
+*/
 //=============================================================================
 
 //=============================================================================
@@ -202,7 +202,7 @@ function QSight() {
   var Alias_Game_Interpreter_pluginCommand = Game_Interpreter.prototype.pluginCommand;
   Game_Interpreter.prototype.pluginCommand = function(command, args) {
     if (command.toLowerCase() === 'qsight') {
-      return this.qSightCommand(args);
+      return this.qSightCommand(QPlus.makeArgs(args));
     }
     Alias_Game_Interpreter_pluginCommand.call(this, command, args);
   };
@@ -266,7 +266,7 @@ function QSight() {
     var target = QPlus.getCharacter(this._sight.targetId);
     var dx = this._realX - target._realX;
     var dy = this._realY - target._realY;
-    if (Math.abs(dx) > this._sight.range + 1 ||  Math.abs(dy) > this._sight.range + 1) {
+    if (Math.abs(dx) > this._sight.range + 1 || Math.abs(dy) > this._sight.range + 1) {
       return false;
     }
     var cache = this._sight.cache;
@@ -527,7 +527,7 @@ function QSight() {
         collider = new Circle_Collider(range * 2, range * 2, -range, -range);
       } else if (shape === 'box') {
         collider = new Box_Collider(range * 2, range * 2, -range, -range);
-      // TODO add a line shape ?
+        // TODO add a line shape ?
       } else if (shape === 'poly') {
         var w = this.collider('collision').width;
         var h = this.collider('collision').height;
@@ -599,9 +599,9 @@ function QSight() {
         7: [4, 8], 9: [6, 8]
       }
       var directions = {
-        '1,0': 6,   '0,1': 2,
-        '-1,0': 4,  '0,-1': 8,
-        '1,1': 3,   '-1,1': 1,
+        '1,0': 6, '0,1': 2,
+        '-1,0': 4, '0,-1': 8,
+        '1,1': 3, '-1,1': 1,
         '-1,-1': 7, '1,-1': 9
       }
       var canSee = true;
@@ -658,7 +658,7 @@ function QSight() {
       }
     };
 
-    var Alias_Game_Event_isCollidedWithPlayerCharacters = Game_Event.prototype.isCollidedWithPlayerCharacters ;
+    var Alias_Game_Event_isCollidedWithPlayerCharacters = Game_Event.prototype.isCollidedWithPlayerCharacters;
     Game_Event.prototype.isCollidedWithPlayerCharacters = function(x, y) {
       if (this._lookingFor === $gamePlayer) {
         return false;
@@ -728,4 +728,10 @@ function QSight() {
     if (this._erased) return false;
     return !this._invisible;
   };
+
+  if (Imported.QMap) {
+    Game_MapObj.prototype.castsShadow = function() {
+      return this.visible && !this.meta.invisible;
+    };
+  }
 })();

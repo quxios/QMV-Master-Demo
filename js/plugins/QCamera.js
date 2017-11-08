@@ -9,130 +9,130 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.4.0')) {
   throw new Error('Error: QCamera requires QPlus 1.4.0 or newer to work.');
 }
 
-Imported.QCamera = '1.1.4';
+Imported.QCamera = '1.1.5';
 
 //=============================================================================
- /*:
- * @plugindesc <QCamera>
- * Better Camera control
- * @author Quxios  | Version 1.1.4
- *
- * @requires QPlus
- *
- * @param Offset
- * @desc Set the max distance the camera should be from the moving target.
- * Note: Offset gets modified by the characters speed
- * @type Number
- * @decimals 2
- * @min 0
- * @default 0.5
- *
- * @param Shift Y
- * @desc Shifts the center of the camera up or down by a set pixel amount
- * Set to a negative value for up, positive value for down
- * @type Number
- * @min -100
- * @default 0
- *
- * @param Shift X
- * @desc Shifts the center of the camera left or right by a set pixel amount
- * Set to a negative value for left, positive value for right
- * @type Number
- * @min -100
- * @default 0
- *
- * @video https://www.youtube.com/watch?v=MbdXrReYwFw
- *
- * @help
- * ============================================================================
- * ## About
- * ============================================================================
- * Improved camera control for RPG Maker MV. Lets you scroll diagonally,
- * towards a character, set the time it takes to scroll in frames, change who
- * the camera is following and smooth scrolling which makes the camera 'lag'
- * behind the player or target.
- * ============================================================================
- * ## Plugin Commands
- * ============================================================================
- * **Scroll**
- * ----------------------------------------------------------------------------
- * Similar to the Event command "Scroll Map". Except you can scroll horz and
- * vert directions are same time, for diagonal scrolls.
- * ~~~
- *  qCamera scroll [List of options]
- * ~~~
- * Possible options:
- *
- * - xX: Set X to the distance, in grid tiles, to travel in x direction
- * - yY: Set Y to the distance, in grid tiles, to travel in y direction
- * - speedX: Set X to the camera speed value. Default: 4
- * - framesX: Set X to the amount of time, in frames, it takes to reach the
- *  scroll. Ignores speedX if frames is set.
- * ----------------------------------------------------------------------------
- * **Scroll to**
- * ----------------------------------------------------------------------------
- * Scroll directly to an event.
- * ~~~
- *  qCamera scrollTo [CHARAID] [List of options]
- * ~~~
- * - CHARAID - The character identifier.
- *  - For player: 0, p, or player
- *  - For events: EVENTID, eEVENTID, eventEVENTID or this for the event that called this
- *  (replace EVENTID with a number)
- *
- * Possible options:
- * - speedX: Set X to the camera speed value. Default: 4
- * - framesX: Set X to the amount of time, in frames, it takes to reach the
- *  scroll. Ignores speedX if frames is set.
- * ----------------------------------------------------------------------------
- * **Focus**
- * ----------------------------------------------------------------------------
- * Set which character the camera should follow.
- * ~~~
- *  qCamera focus [CHARAID] [List of options]
- * ~~~
- * - CHARAID - The character identifier.
- *  - For player: 0, p, or player
- *  - For events: EVENTID, eEVENTID, eventEVENTID or this for the event that called this
- *  (replace EVENTID with a number)
- *
- * Possible options:
- * - speedX: Set X to the camera speed value. (Default is 4)
- * - framesX: Set X to the amount of time, in frames, it takes to reach the
- *  scroll. Ignores speedX if frames is set. Default: 15
- * ----------------------------------------------------------------------------
- * **Bars**
- * ----------------------------------------------------------------------------
- * Draws 2 bars on top and bottom of screen to create a cinematic effect.
- * ~~~
- *  qCamera bars [List of options]
- * ~~~
- *
- * Possible options:
- * - heightX: Set X to the height of the bars in pixels. Default: 0
- * - framesX: Set X to the amount of time, in frames, it takes to reach the
- *  scroll.
- * ============================================================================
- * ## Links
- * ============================================================================
- * Formated Help:
- *
- *  https://quxios.github.io/#/plugins/QCamera
- *
- * RPGMakerWebs:
- *
- *  http://forums.rpgmakerweb.com/index.php?threads/qplugins.73023/
- *
- * Terms of use:
- *
- *  https://github.com/quxios/QMV-Master-Demo/blob/master/readme.md
- *
- * Like my plugins? Support me on Patreon!
- *
- *  https://www.patreon.com/quxios
- *
- * @tags camera
- */
+/*:
+* @plugindesc <QCamera>
+* Better Camera control
+* @author Quxios  | Version 1.1.5
+*
+* @requires QPlus
+*
+* @param Offset
+* @desc Set the max distance the camera should be from the moving target.
+* Note: Offset gets modified by the characters speed
+* @type Number
+* @decimals 2
+* @min 0
+* @default 0.5
+*
+* @param Shift Y
+* @desc Shifts the center of the camera up or down by a set pixel amount
+* Set to a negative value for up, positive value for down
+* @type Number
+* @min -100
+* @default 0
+*
+* @param Shift X
+* @desc Shifts the center of the camera left or right by a set pixel amount
+* Set to a negative value for left, positive value for right
+* @type Number
+* @min -100
+* @default 0
+*
+* @video https://www.youtube.com/watch?v=MbdXrReYwFw
+*
+* @help
+* ============================================================================
+* ## About
+* ============================================================================
+* Improved camera control for RPG Maker MV. Lets you scroll diagonally,
+* towards a character, set the time it takes to scroll in frames, change who
+* the camera is following and smooth scrolling which makes the camera 'lag'
+* behind the player or target.
+* ============================================================================
+* ## Plugin Commands
+* ============================================================================
+* **Scroll**
+* ----------------------------------------------------------------------------
+* Similar to the Event command "Scroll Map". Except you can scroll horz and
+* vert directions are same time, for diagonal scrolls.
+* ~~~
+*  qCamera scroll [List of options]
+* ~~~
+* Possible options:
+*
+* - xX: Set X to the distance, in grid tiles, to travel in x direction
+* - yY: Set Y to the distance, in grid tiles, to travel in y direction
+* - speedX: Set X to the camera speed value. Default: 4
+* - framesX: Set X to the amount of time, in frames, it takes to reach the
+*  scroll. Ignores speedX if frames is set.
+* ----------------------------------------------------------------------------
+* **Scroll to**
+* ----------------------------------------------------------------------------
+* Scroll directly to an event.
+* ~~~
+*  qCamera scrollTo [CHARAID] [List of options]
+* ~~~
+* - CHARAID - The character identifier.
+*  - For player: 0, p, or player
+*  - For events: EVENTID, eEVENTID, eventEVENTID or this for the event that called this
+*  (replace EVENTID with a number)
+*
+* Possible options:
+* - speedX: Set X to the camera speed value. Default: 4
+* - framesX: Set X to the amount of time, in frames, it takes to reach the
+*  scroll. Ignores speedX if frames is set.
+* ----------------------------------------------------------------------------
+* **Focus**
+* ----------------------------------------------------------------------------
+* Set which character the camera should follow.
+* ~~~
+*  qCamera focus [CHARAID] [List of options]
+* ~~~
+* - CHARAID - The character identifier.
+*  - For player: 0, p, or player
+*  - For events: EVENTID, eEVENTID, eventEVENTID or this for the event that called this
+*  (replace EVENTID with a number)
+*
+* Possible options:
+* - speedX: Set X to the camera speed value. (Default is 4)
+* - framesX: Set X to the amount of time, in frames, it takes to reach the
+*  scroll. Ignores speedX if frames is set. Default: 15
+* ----------------------------------------------------------------------------
+* **Bars**
+* ----------------------------------------------------------------------------
+* Draws 2 bars on top and bottom of screen to create a cinematic effect.
+* ~~~
+*  qCamera bars [List of options]
+* ~~~
+*
+* Possible options:
+* - heightX: Set X to the height of the bars in pixels. Default: 0
+* - framesX: Set X to the amount of time, in frames, it takes to reach the
+*  scroll.
+* ============================================================================
+* ## Links
+* ============================================================================
+* Formated Help:
+*
+*  https://quxios.github.io/#/plugins/QCamera
+*
+* RPGMakerWebs:
+*
+*  http://forums.rpgmakerweb.com/index.php?threads/qplugins.73023/
+*
+* Terms of use:
+*
+*  https://github.com/quxios/QMV-Master-Demo/blob/master/readme.md
+*
+* Like my plugins? Support me on Patreon!
+*
+*  https://www.patreon.com/quxios
+*
+* @tags camera
+*/
 //=============================================================================
 
 //=============================================================================
@@ -157,7 +157,7 @@ function Sprite_Bars() {
   var Alias_Game_Interpreter_pluginCommand = Game_Interpreter.prototype.pluginCommand;
   Game_Interpreter.prototype.pluginCommand = function(command, args) {
     if (command.toLowerCase() === 'qcamera') {
-      return this.qCameraCommand(args);
+      return this.qCameraCommand(QPlus.makeArgs(args));
     }
     Alias_Game_Interpreter_pluginCommand.call(this, command, args);
   };
@@ -168,7 +168,7 @@ function Sprite_Bars() {
     if (cmd === 'scroll') {
       var x = Number(QPlus.getArg(args2, /^x(-?\d+)/i)) || 0;
       var y = Number(QPlus.getArg(args2, /^y(-?\d+)/i)) || 0;
-      var speed  = Number(QPlus.getArg(args2, /^speed(\d+)/i)) || 4;
+      var speed = Number(QPlus.getArg(args2, /^speed(\d+)/i)) || 4;
       var frames = QPlus.getArg(args2, /^frames(\d+)/i) || null;
       if (!$gameMap.isScrolling()) {
         this.setWaitMode('scroll');
@@ -180,9 +180,9 @@ function Sprite_Bars() {
       if (args2[0].toLowerCase() === 'this') {
         chara = this.character(0);
       } else {
-        chara  = QPlus.getCharacter(args2[0]);
+        chara = QPlus.getCharacter(args2[0]);
       }
-      var speed  = Number(QPlus.getArg(args2, /^speed(\d+)/i)) || 4;
+      var speed = Number(QPlus.getArg(args2, /^speed(\d+)/i)) || 4;
       var frames = Number(QPlus.getArg(args2, /^frames(\d+)/i)) || null;
       if (chara) {
         if (!$gameMap.isScrolling()) {
@@ -196,9 +196,9 @@ function Sprite_Bars() {
       if (args2[0].toLowerCase() === 'this') {
         chara = this.character(0);
       } else {
-        chara  = QPlus.getCharacter(args2[0]);
+        chara = QPlus.getCharacter(args2[0]);
       }
-      var speed  = Number(QPlus.getArg(args2, /^speed(\d+)/i)) || null;
+      var speed = Number(QPlus.getArg(args2, /^speed(\d+)/i)) || null;
       var frames = Number(QPlus.getArg(args2, /^frames(\d+)/i)) || 15;
       if (chara) {
         $gameMap.focusOn(chara, speed, frames);
@@ -242,11 +242,11 @@ function Sprite_Bars() {
     var directionX = distanceX > 0 ? 6 : distanceX < 0 ? 4 : 0;
     var directionY = distanceY > 0 ? 2 : distanceY < 0 ? 8 : 0;
     this._scrollDirection = [directionX, directionY];
-    this._scrollRest      = Math.sqrt(distanceX * distanceX + distanceY * distanceY);
-    this._scrollDistance  = this._scrollRest;
-    this._scrollSpeed     = speed || null;
-    this._scrollFrames    = frames || null;
-    this._scrollRadian    = Math.atan2(distanceY, distanceX);
+    this._scrollRest = Math.sqrt(distanceX * distanceX + distanceY * distanceY);
+    this._scrollDistance = this._scrollRest;
+    this._scrollSpeed = speed || null;
+    this._scrollFrames = frames || null;
+    this._scrollRadian = Math.atan2(distanceY, distanceX);
   };
 
   Game_Map.prototype.scrollTo = function(chara, speed, frames) {
@@ -334,7 +334,7 @@ function Sprite_Bars() {
 
   Game_Map.prototype.adjustX = function(x) {
     if (this.isLoopHorizontal() && x < this.displayX() -
-    (this.width() - this.screenTileX()) / 2) {
+      (this.width() - this.screenTileX()) / 2) {
       return x - this.displayX() + $dataMap.width;
     } else {
       return x - this.displayX();
@@ -343,7 +343,7 @@ function Sprite_Bars() {
 
   Game_Map.prototype.adjustY = function(y) {
     if (this.isLoopVertical() && y < this.displayY() -
-    (this.height() - this.screenTileY()) / 2) {
+      (this.height() - this.screenTileY()) / 2) {
       return y - this.displayY() + $dataMap.height;
     } else {
       return y - this.displayY();

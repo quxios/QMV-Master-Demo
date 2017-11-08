@@ -9,13 +9,13 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.4.0')) {
   throw new Error('Error: QMovement requires QPlus 1.4.0 or newer to work.');
 }
 
-Imported.QMovement = '1.4.3';
+Imported.QMovement = '1.4.4';
 
 //=============================================================================
  /*:
  * @plugindesc <QMovement>
  * More control over character movement
- * @author Quxios  | Version 1.4.3
+ * @author Quxios  | Version 1.4.4
  *
  * @repo https://github.com/quxios/QMovement
  *
@@ -1521,8 +1521,7 @@ function ColliderManager() {
   var Alias_Game_Interpreter_pluginCommand = Game_Interpreter.prototype.pluginCommand;
   Game_Interpreter.prototype.pluginCommand = function(command, args) {
     if (command.toLowerCase() === 'qmovement') {
-      this.qMovementCommand(args);
-      return;
+      return this.qMovementCommand(QPlus.makeArgs(args));
     }
     Alias_Game_Interpreter_pluginCommand.call(this, command, args);
   };

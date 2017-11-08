@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QSprite = '2.1.7';
+Imported.QSprite = '2.1.8';
 
 if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.4.0')) {
   alert('Error: QSprite requires QPlus 1.4.0 or newer to work.');
@@ -11,247 +11,247 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.4.0')) {
 }
 
 //=============================================================================
- /*:
- * @plugindesc <QSprite>
- * Lets you configure Spritesheets
- * @author Quxios  | Version 2.1.7
- *
- * @requires QPlus
- *
- * @param File Name Identifier
- * @desc Set the file name identifier for QSprites
- * Default: %{config}-
- * @default %{config}-
- *
- * @param Random Idle Interval
- * @desc Set the time interval between random Idles (in frames)
- * @type Struct<Range>
- *
- * @param Use New Adjust
- * @desc Use new pose speed adjust?
- * @type Boolean
- * @on Yes
- * @off No
- * @default true
- *
- * @help
- * ============================================================================
- * ## About
- * ============================================================================
- * This plugin lets you use sprites that are set up with QSprite Editor
- *
- * https://github.com/quxios/QSpriteEditor
- *
- * ============================================================================
- * ## How to use
- * ============================================================================
- * First configure your sprite with the QSprite Editor. Then you can use your
- * sprites by identifying it as a QSprite. To do so, just name your sprite file
- * by using the File Name Identifier format. By default this is:
- * ~~~
- *  %{config}-
- * ~~~
- * You would replace {config} with the config you made inside the QSprite
- * Editor. For example, if I made a config named: `Hero` then I would name
- * the file something like: `%Hero-Example.png`
- * ============================================================================
- * ## Built-in Poses
- * ============================================================================
- * This plugin adds a few built in poses:
- * - moveX
- * - dashX
- * - idleX
- * - idle[A-Z]X ( more info for this below )
- * - default
- *
- * Where X is the direction:
- * - 2: down
- * - 4: left
- * - 6: right
- * - 8: up
- * - 1: lower left
- * - 3: lower right
- * - 7: upper left
- * - 9: upper right
- *
- * *(Diagonals only work if you are using this with QMovement)*
- *
- * Default pose is used when and idleX or moveX is not found. Note that default
- * does not have an X at the end, it's just default. Has no directions tied to
- * it.
- *
- * ----------------------------------------------------------------------------
- * **idle[A-Z]X**
- * ----------------------------------------------------------------------------
- * This is a random idle that will play a random `idle[A-Z]` every X frames.
- * The random wait depends on the `Random Idle Interval` parameter. To clarify
- * you won't be naming this pose `idle[A-Z]2` (for example for the down direction)
- * you would name it `idleA2` or `idleB2` or `idleC2`, ect.
- *
- * You can also add in a multipier if you want one of the idles to appear more
- * often then others by adding: `Tx` Where T is the multipler.
- *
- * For example:
- *
- * Lets say I want 4 `idle[A-Z]` poses, and I want one of them to have a 4 times
- * better chance of appearing then the rest. My idle names would be:
- *
- * - idleA2
- * - idleB2
- * - idleC2
- * - idleD4x2
- *
- * *Note: all their directions are 2(down)*
- * ============================================================================
- * ## Notetags / Comments
- * ============================================================================
- * **Set default direction**
- * ----------------------------------------------------------------------------
- * With spritesheets being large, it may be hard to pick that events starting
- * direction. To fix that, you can add a comment in that event that will set
- * it's default direction.
- * ~~~
- *  <direction:X>
- * ~~~
- * Set X to direction. 2 for down, 4 left, 6 right, 8 up.
- * ============================================================================
- * ## Plugin Commands
- * ============================================================================
- * **Playing a Pose**
- * ----------------------------------------------------------------------------
- * Play a pose.
- * ~~~
- *  qSprite [CHARAID] play [POSE] [list of options]
- * ~~~
- * - CHARAID: The character identifier.
- *  - For player: 0, p, or player
- *  - For events: EVENTID, eEVENTID, eventEVENTID or this for the event that called this
- *  (replace EVENTID with a number)
- * - POSE: The pose to play (Don’t add the direction! ex: atk, not atk2)
- *
- * Possible options:
- * - lock: Disable character movement while pose is playing
- * - pause: Pause the pose on the last frame
- * - breakable: If character moves, the pose will end
- * - wait: Next Event Command runs once pose is complete
- *
- * ----------------------------------------------------------------------------
- * **Looping a Pose**
- * ----------------------------------------------------------------------------
- * Loop a pose until it's cleared, broken out of or played over.
- * ~~~
- *  qSprite [CHARAID] loop [POSE] [list of options]
- * ~~~
- * - CHARAID: The character identifier.
- *  - For player: 0, p, or player
- *  - For events: EVENTID, eEVENTID, eventEVENTID or this for the event that called this
- *  (replace EVENTID with a number)
- * - POSE: The pose to play (Don’t add the direction! ex: atk, not atk2)
- *
- * Possible options:
- * - lock: Disable character movement while pose is playing
- * - breakable: If character moves, the loop will end
- * - wait: Next Event Command runs once first loop has is complete
- * ----------------------------------------------------------------------------
- * **Clearing**
- * ----------------------------------------------------------------------------
- * Clear current playing/looping pose.
- * ~~~
- *  qSprite [CHARAID] clear
- * ~~~
- * - CHARAID: The character identifier.
- *  - For player: 0, p, or player
- *  - For events: EVENTID, eEVENTID, eventEVENTID or this for the event that called this
- *  (replace EVENTID with a number)
- * ----------------------------------------------------------------------------
- * **Add / Remove an idle[A-Z]**
- * ----------------------------------------------------------------------------
- * Maybe you only want to play an idle[A-Z] during certain scenes. So you can
- * add and remove them whenever you want!
- * ~~~
- *  qSprite [CHARAID] addIdleAZ [POSE]
- *
- *  qSprite [CHARAID] removeIdleAZ [POSE]
- * ~~~
- * - CHARAID: The character identifier.
- *  - For player: 0, p, or player
- *  - For events: EVENTID, eEVENTID, eventEVENTID or this for the event that called this
- *  (replace EVENTID with a number)
- * - POSE: The idle[A-Z] to add (Don’t add the direction! ex: idleA not idleA2)
- * ----------------------------------------------------------------------------
- * **Change idle pose**
- * ----------------------------------------------------------------------------
- * Maybe you want to have a different idle for certain parts of the game. I
- * would recommend just using a different spritesheet, but I added a plugin
- * command to let you change your idle!
- * ~~~
- *  qSprite [CHARAID] changeIdle [POSE]
- * ~~~
- * - CHARAID: The character identifier.
- *  - For player: 0, p, or player
- *  - For events: EVENTID, eEVENTID, eventEVENTID or this for the event that called this
- * - POSE: The new pose to use when idle (Don’t add the direction! ex: idleA not idleA2)
- * ----------------------------------------------------------------------------
- * **Examples**
- * ----------------------------------------------------------------------------
- * ~~~
- *  qSprite 0 play confused pause breakable
- *  qSprite p play confused pause breakable
- *  qSprite player play confused pause breakable
- * ~~~
- * *Note: All 3 are the same, just using a different character id method*
- *
- * The player will run the `confused` pose. The pose will stop on the last frame.
- * Once the player moves, the pose will end. The player can move during this pose
- * and the next event command will run immediatly after this command with no
- * wait.
- *
- * ~~~
- *  qSprite 1 play hug wait
- *  qSprite e1 play hug wait
- *  qSprite event1 play hug wait
- * ~~~
- * Event 1 will run the hug pose. The event can't move until the pose is
- * complete, and the next event command will run once the pose is complete.
- * ============================================================================
- * ## Links
- * ============================================================================
- * Formated Help:
- *
- *  https://quxios.github.io/#/plugins/QSprite
- *
- * RPGMakerWebs:
- *
- *  http://forums.rpgmakerweb.com/index.php?threads/qplugins.73023/
- *
- * Terms of use:
- *
- *  https://github.com/quxios/QMV-Master-Demo/blob/master/readme.md
- *
- * Like my plugins? Support me on Patreon!
- *
- *  https://www.patreon.com/quxios
- *
- * @tags character, sprite, animation
- */
- /*~struct~Range:
- * @param Min
- * @desc Set to the min value
- * @type Number
- * @default 60
- *
- * @param Max
- * @desc Set to max value
- * @type Number
- * @default 300
- */
+/*:
+* @plugindesc <QSprite>
+* Lets you configure Spritesheets
+* @author Quxios  | Version 2.1.8
+*
+* @requires QPlus
+*
+* @param File Name Identifier
+* @desc Set the file name identifier for QSprites
+* Default: %{config}-
+* @default %{config}-
+*
+* @param Random Idle Interval
+* @desc Set the time interval between random Idles (in frames)
+* @type Struct<Range>
+*
+* @param Use New Adjust
+* @desc Use new pose speed adjust?
+* @type Boolean
+* @on Yes
+* @off No
+* @default true
+*
+* @help
+* ============================================================================
+* ## About
+* ============================================================================
+* This plugin lets you use sprites that are set up with QSprite Editor
+*
+* https://github.com/quxios/QSpriteEditor
+*
+* ============================================================================
+* ## How to use
+* ============================================================================
+* First configure your sprite with the QSprite Editor. Then you can use your
+* sprites by identifying it as a QSprite. To do so, just name your sprite file
+* by using the File Name Identifier format. By default this is:
+* ~~~
+*  %{config}-
+* ~~~
+* You would replace {config} with the config you made inside the QSprite
+* Editor. For example, if I made a config named: `Hero` then I would name
+* the file something like: `%Hero-Example.png`
+* ============================================================================
+* ## Built-in Poses
+* ============================================================================
+* This plugin adds a few built in poses:
+* - moveX
+* - dashX
+* - idleX
+* - idle[A-Z]X ( more info for this below )
+* - default
+*
+* Where X is the direction:
+* - 2: down
+* - 4: left
+* - 6: right
+* - 8: up
+* - 1: lower left
+* - 3: lower right
+* - 7: upper left
+* - 9: upper right
+*
+* *(Diagonals only work if you are using this with QMovement)*
+*
+* Default pose is used when and idleX or moveX is not found. Note that default
+* does not have an X at the end, it's just default. Has no directions tied to
+* it.
+*
+* ----------------------------------------------------------------------------
+* **idle[A-Z]X**
+* ----------------------------------------------------------------------------
+* This is a random idle that will play a random `idle[A-Z]` every X frames.
+* The random wait depends on the `Random Idle Interval` parameter. To clarify
+* you won't be naming this pose `idle[A-Z]2` (for example for the down direction)
+* you would name it `idleA2` or `idleB2` or `idleC2`, ect.
+*
+* You can also add in a multipier if you want one of the idles to appear more
+* often then others by adding: `Tx` Where T is the multipler.
+*
+* For example:
+*
+* Lets say I want 4 `idle[A-Z]` poses, and I want one of them to have a 4 times
+* better chance of appearing then the rest. My idle names would be:
+*
+* - idleA2
+* - idleB2
+* - idleC2
+* - idleD4x2
+*
+* *Note: all their directions are 2(down)*
+* ============================================================================
+* ## Notetags / Comments
+* ============================================================================
+* **Set default direction**
+* ----------------------------------------------------------------------------
+* With spritesheets being large, it may be hard to pick that events starting
+* direction. To fix that, you can add a comment in that event that will set
+* it's default direction.
+* ~~~
+*  <direction:X>
+* ~~~
+* Set X to direction. 2 for down, 4 left, 6 right, 8 up.
+* ============================================================================
+* ## Plugin Commands
+* ============================================================================
+* **Playing a Pose**
+* ----------------------------------------------------------------------------
+* Play a pose.
+* ~~~
+*  qSprite [CHARAID] play [POSE] [list of options]
+* ~~~
+* - CHARAID: The character identifier.
+*  - For player: 0, p, or player
+*  - For events: EVENTID, eEVENTID, eventEVENTID or this for the event that called this
+*  (replace EVENTID with a number)
+* - POSE: The pose to play (Don’t add the direction! ex: atk, not atk2)
+*
+* Possible options:
+* - lock: Disable character movement while pose is playing
+* - pause: Pause the pose on the last frame
+* - breakable: If character moves, the pose will end
+* - wait: Next Event Command runs once pose is complete
+*
+* ----------------------------------------------------------------------------
+* **Looping a Pose**
+* ----------------------------------------------------------------------------
+* Loop a pose until it's cleared, broken out of or played over.
+* ~~~
+*  qSprite [CHARAID] loop [POSE] [list of options]
+* ~~~
+* - CHARAID: The character identifier.
+*  - For player: 0, p, or player
+*  - For events: EVENTID, eEVENTID, eventEVENTID or this for the event that called this
+*  (replace EVENTID with a number)
+* - POSE: The pose to play (Don’t add the direction! ex: atk, not atk2)
+*
+* Possible options:
+* - lock: Disable character movement while pose is playing
+* - breakable: If character moves, the loop will end
+* - wait: Next Event Command runs once first loop has is complete
+* ----------------------------------------------------------------------------
+* **Clearing**
+* ----------------------------------------------------------------------------
+* Clear current playing/looping pose.
+* ~~~
+*  qSprite [CHARAID] clear
+* ~~~
+* - CHARAID: The character identifier.
+*  - For player: 0, p, or player
+*  - For events: EVENTID, eEVENTID, eventEVENTID or this for the event that called this
+*  (replace EVENTID with a number)
+* ----------------------------------------------------------------------------
+* **Add / Remove an idle[A-Z]**
+* ----------------------------------------------------------------------------
+* Maybe you only want to play an idle[A-Z] during certain scenes. So you can
+* add and remove them whenever you want!
+* ~~~
+*  qSprite [CHARAID] addIdleAZ [POSE]
+*
+*  qSprite [CHARAID] removeIdleAZ [POSE]
+* ~~~
+* - CHARAID: The character identifier.
+*  - For player: 0, p, or player
+*  - For events: EVENTID, eEVENTID, eventEVENTID or this for the event that called this
+*  (replace EVENTID with a number)
+* - POSE: The idle[A-Z] to add (Don’t add the direction! ex: idleA not idleA2)
+* ----------------------------------------------------------------------------
+* **Change idle pose**
+* ----------------------------------------------------------------------------
+* Maybe you want to have a different idle for certain parts of the game. I
+* would recommend just using a different spritesheet, but I added a plugin
+* command to let you change your idle!
+* ~~~
+*  qSprite [CHARAID] changeIdle [POSE]
+* ~~~
+* - CHARAID: The character identifier.
+*  - For player: 0, p, or player
+*  - For events: EVENTID, eEVENTID, eventEVENTID or this for the event that called this
+* - POSE: The new pose to use when idle (Don’t add the direction! ex: idleA not idleA2)
+* ----------------------------------------------------------------------------
+* **Examples**
+* ----------------------------------------------------------------------------
+* ~~~
+*  qSprite 0 play confused pause breakable
+*  qSprite p play confused pause breakable
+*  qSprite player play confused pause breakable
+* ~~~
+* *Note: All 3 are the same, just using a different character id method*
+*
+* The player will run the `confused` pose. The pose will stop on the last frame.
+* Once the player moves, the pose will end. The player can move during this pose
+* and the next event command will run immediatly after this command with no
+* wait.
+*
+* ~~~
+*  qSprite 1 play hug wait
+*  qSprite e1 play hug wait
+*  qSprite event1 play hug wait
+* ~~~
+* Event 1 will run the hug pose. The event can't move until the pose is
+* complete, and the next event command will run once the pose is complete.
+* ============================================================================
+* ## Links
+* ============================================================================
+* Formated Help:
+*
+*  https://quxios.github.io/#/plugins/QSprite
+*
+* RPGMakerWebs:
+*
+*  http://forums.rpgmakerweb.com/index.php?threads/qplugins.73023/
+*
+* Terms of use:
+*
+*  https://github.com/quxios/QMV-Master-Demo/blob/master/readme.md
+*
+* Like my plugins? Support me on Patreon!
+*
+*  https://www.patreon.com/quxios
+*
+* @tags character, sprite, animation
+*/
+/*~struct~Range:
+* @param Min
+* @desc Set to the min value
+* @type Number
+* @default 60
+*
+* @param Max
+* @desc Set to max value
+* @type Number
+* @default 300
+*/
 //=============================================================================
 
 //=============================================================================
 // QSprite Static Class
 
 function QSprite() {
- throw new Error('This is a static class');
+  throw new Error('This is a static class');
 }
 
 QSprite.json = null;
@@ -297,8 +297,7 @@ QSprite.json = null;
       this.qSpriteCommandOld(args);
     }
     if (command.toLowerCase() === 'qsprite') {
-      this.qSpriteCommand(args);
-      return;
+      return this.qSpriteCommand(QPlus.makeArgs(args));
     }
     Alias_Game_Interpreter_pluginCommand.call(this, command, args);
   };
@@ -315,10 +314,10 @@ QSprite.json = null;
     var args2 = args.slice(2);
     if (cmd === 'play') {
       var pose = args2.shift();
-      var locked   = !!QPlus.getArg(args2, /^lock$/i);
-      var pause    = !!QPlus.getArg(args2, /^pause$/i);
+      var locked = !!QPlus.getArg(args2, /^lock$/i);
+      var pause = !!QPlus.getArg(args2, /^pause$/i);
       var canBreak = !!QPlus.getArg(args2, /^breakable$/i);
-      var wait     = !!QPlus.getArg(args2, /^wait$/i);
+      var wait = !!QPlus.getArg(args2, /^wait$/i);
       chara.playPose(pose, locked, pause, false, canBreak);
       if (wait) {
         this.wait(chara.calcPoseWait());
@@ -326,9 +325,9 @@ QSprite.json = null;
     }
     if (cmd === 'loop') {
       var pose = args2.shift();
-      var locked   = !!QPlus.getArg(args2, /^lock$/i);
+      var locked = !!QPlus.getArg(args2, /^lock$/i);
       var canBreak = !!QPlus.getArg(args2, /^breakable$/i);
-      var wait     = !!QPlus.getArg(args2, /^wait$/i);
+      var wait = !!QPlus.getArg(args2, /^wait$/i);
       chara.loopPose(pose, locked, canBreak);
       if (wait) {
         this.wait(chara.calcPoseWait());
@@ -764,15 +763,15 @@ QSprite.json = null;
     var upper = this._upperBody;
     var lower = this._lowerBody;
     Alias_Sprite_Character_createHalfBodySprites.call(this);
-      if (!upper) {
-        this._upperBody.anchor.x = this.anchor.x;
-        this._upperBody.anchor.y = 0;
-      }
-      if (!lower) {
-        this._lowerBody.anchor.x = this.anchor.x;
-        this._lowerBody.anchor.y = 0;
-        this._lowerBody.opacity = 128;
-      }
+    if (!upper) {
+      this._upperBody.anchor.x = this.anchor.x;
+      this._upperBody.anchor.y = 0;
+    }
+    if (!lower) {
+      this._lowerBody.anchor.x = this.anchor.x;
+      this._lowerBody.anchor.y = 0;
+      this._lowerBody.opacity = 128;
+    }
   };
   var Alias_Sprite_Character_characterBlockX = Sprite_Character.prototype.characterBlockX;
 

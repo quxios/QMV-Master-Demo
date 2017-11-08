@@ -3,146 +3,194 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QPlus = '1.4.5';
+Imported.QPlus = '1.5.0';
 
 //=============================================================================
- /*:
- * @plugindesc <QPlus> (Should go above all Q Plugins)
- * Some small changes to MV for easier plugin development.
- * @author Quxios  | Version 1.4.5
- *
- * @param Quick Test
- * @desc Enable quick testing.
- * Set to true or false
- * @type Boolean
- * @default true
- *
- * @param Default Enabled Switches
- * @desc Turns on a list of switches on new game
- * @type switch[]
- * @default []
- *
- * @help
- * ============================================================================
- * ## About
- * ============================================================================
- * This plugin is the core for most of the QPlugins. It also adds a few new
- * functionality to RPG Maker MV to improve it.
- *
- * ============================================================================
- * ## Notetags / Comments
- * ============================================================================
- * **Event retain direction**
- * ----------------------------------------------------------------------------
- * Adding the following to the notes or in a comment will make that event retain
- * its direction when changing pages.
- * ~~~
- *  <retainDir>
- * ~~~
- * This will be ignored if the next page has direction fix enabled
- *
- * ----------------------------------------------------------------------------
- * **No tilemap**
- * ----------------------------------------------------------------------------
- * You can disable the tile map by adding this note to a map
- * ~~~
- *  <noTilemap>
- * ~~~
- * This will replace the tilemap with a simple light weight sprite container.
- * Using this may increase performance. So if you have a map that doesn't use
- * any tiles and is all parallax, then you should considering using this.
- *
- * *Note, there's a chance this may break some plugins if they call functions in
- * the original tilemap class.*
- *
- * ============================================================================
- * ## Plugin Commands
- * ============================================================================
- * **Random wait between X Y**
- * ----------------------------------------------------------------------------
- * This plugin command will insert a random wait between x and y frames.
- * ~~~
- *  wait X Y
- * ~~~
- * If Y is left empty, it will make a random wait between 0 - X
- *
- * ----------------------------------------------------------------------------
- * **Global Lock**
- * ----------------------------------------------------------------------------
- * This plugin command will 'lock' all characters or certain characters. By
- * locking I mean you can lock their movement, or movement and character
- * animation.
- * ~~~
- *  globalLock LEVEL [CHARACTERS] [options]
- * ~~~
- * - LEVEL: The level of global lock
- *  - 0: clears the global lock
- *  - 1: locks the characters movement
- *  - 2: locks the characters movement and animation
- * - [CHARACTERS] - optional, list of `Character Ids` to apply to or ignore.
- * Seperated by a space.
- *  * CHARAID: The character identifier.
- *   - For player: 0, p, or player
- *   - For events: EVENTID, eEVENTID, eventEVENTID or this for the event that called this
- *   (replace EVENTID with a number)
- *
- * Possible options:
- *  - only: Will only apply to the characters listed
- *
- * ----------------------------------------------------------------------------
- * **Global lock Examples**
- * ----------------------------------------------------------------------------
- * ~~~
- *  globalLock 2
- * ~~~
- * Will lock all characters movement and animations.
- *
- * ~~~
- *  globalLock 1 0 1 4
- *  globalLock 1 p e1 e4
- *  globalLock 1 player event1 event4
- * ~~~
- * (Note: All 3 are the same, just using a different character id method)
- *
- * Will Lock the movements for all characters except:
- * Player, event 1 and event 4
- *
- * ~~~
- *  globalLock 1 0 1 4 only
- *  globalLock 1 p e1 e4 only
- *  globalLock 1 player event1 event4 only
- * ~~~
- * Will Lock the movements for only these characters:
- * Player, event 1 and event 4
- *
- * ============================================================================
- * ## Links
- * ============================================================================
- * Formated Help:
- *
- *  https://quxios.github.io/#/plugins/QPlus
- *
- * RPGMakerWebs:
- *
- *  http://forums.rpgmakerweb.com/index.php?threads/qplugins.73023/
- *
- * Terms of use:
- *
- *  https://github.com/quxios/QMV-Master-Demo/blob/master/readme.md
- *
- * Like my plugins? Support me on Patreon!
- *
- *  https://www.patreon.com/quxios
- *
- * @tags core, character
- */
+/*:
+* @plugindesc <QPlus> (Should go above all Q Plugins)
+* Some small changes to MV for easier plugin development.
+* @author Quxios  | Version 1.5.0
+*
+* @param Quick Test
+* @desc Enable quick testing.
+* Set to true or false
+* @type Boolean
+* @default true
+*
+* @param Default Enabled Switches
+* @desc Turns on a list of switches on new game
+* @type switch[]
+* @default []
+*
+* @help
+* ============================================================================
+* ## About
+* ============================================================================
+* This plugin is the core for most of the QPlugins. It also adds a few new
+* functionality to RPG Maker MV to improve it.
+*
+* ============================================================================
+* ## Notetags / Comments
+* ============================================================================
+* **Event retain direction**
+* ----------------------------------------------------------------------------
+* Adding the following to the notes or in a comment will make that event retain
+* its direction when changing pages.
+* ~~~
+*  <retainDir>
+* ~~~
+* This will be ignored if the next page has direction fix enabled
+*
+* ----------------------------------------------------------------------------
+* **No tilemap**
+* ----------------------------------------------------------------------------
+* You can disable the tile map by adding this note to a map
+* ~~~
+*  <noTilemap>
+* ~~~
+* This will replace the tilemap with a simple light weight sprite container.
+* Using this may increase performance. So if you have a map that doesn't use
+* any tiles and is all parallax, then you should considering using this.
+*
+* *Note, there's a chance this may break some plugins if they call functions in
+* the original tilemap class.*
+*
+* ============================================================================
+* ## Format Plugin Commands
+* ============================================================================
+* These formating options are only applied to QPlugins!
+* ----------------------------------------------------------------------------
+* **Spaces in arg**
+* ----------------------------------------------------------------------------
+* Each arg is separated with a space. But sometimes you may need a space, for
+* example when passing a file name. To do this you just need to wrap it in quotes
+* and it'll be passed as a single arg, ex:
+* ~~~
+*  qPlugin cmd arg1 "arg2 with a space" arg3
+* ~~~
+*
+* ----------------------------------------------------------------------------
+* **Variables**
+* ----------------------------------------------------------------------------
+* If you want to use a value of a variable in a plugin command you can do so 
+* with the following format:
+* ~~~
+* {vID}
+* ~~~
+* - ID: The id of the variable to use
+* 
+* Example:
+* ~~~
+*  qPlugin cmd arg1 chara{v1}
+* ~~~
+* When the plugin command runs the {v1} will get replaced with the value of
+* variable 1. If the value of variable 1 is 10, , then your plugin command will
+* format to: `qPlugin cmd arg1 chara10`
+* ----------------------------------------------------------------------------
+* **Switches**
+* ----------------------------------------------------------------------------
+* If you want to use a value of a switch in a plugin command you can do so
+* with the following format:
+* ~~~
+* {sID}
+* ~~~
+* - ID: The id of the switch to use
+*
+* Example:
+* ~~~
+*  qPlugin cmd arg1 {s1}
+* ~~~
+* When the plugin command runs the {s1} will get replaced with the value of
+* switch 1. If the value of switch 1 is true, then your plugin command will
+* format to: `qPlugin cmd arg1 true`
+*
+* ============================================================================
+* ## Plugin Commands
+* ============================================================================
+* **Random wait between X Y**
+* ----------------------------------------------------------------------------
+* This plugin command will insert a random wait between x and y frames.
+* ~~~
+*  wait X Y
+* ~~~
+* If Y is left empty, it will make a random wait between 0 - X
+*
+* ----------------------------------------------------------------------------
+* **Global Lock**
+* ----------------------------------------------------------------------------
+* This plugin command will 'lock' all characters or certain characters. By
+* locking I mean you can lock their movement, or movement and character
+* animation.
+* ~~~
+*  globalLock LEVEL [CHARACTERS] [options]
+* ~~~
+* - LEVEL: The level of global lock
+*  * 0: clears the global lock
+*  * 1: locks the characters movement
+*  * 2: locks the characters movement and animation
+* - [CHARACTERS] - optional, list of `Character Ids` to apply to or ignore. Seperated by a space.
+*  * CHARAID: The character identifier.
+*   - For player: 0, p, or player
+*   - For events: EVENTID, eEVENTID, eventEVENTID or this for the event that called this
+*   (replace EVENTID with a number)
+*
+* Possible options:
+*  - only: Will only apply to the characters listed
+*
+* ----------------------------------------------------------------------------
+* **Global lock Examples**
+* ----------------------------------------------------------------------------
+* ~~~
+*  globalLock 2
+* ~~~
+* Will lock all characters movement and animations.
+*
+* ~~~
+*  globalLock 1 0 1 4
+*  globalLock 1 p e1 e4
+*  globalLock 1 player event1 event4
+* ~~~
+* (Note: All 3 are the same, just using a different character id method)
+*
+* Will Lock the movements for all characters except:
+* Player, event 1 and event 4
+*
+* ~~~
+*  globalLock 1 0 1 4 only
+*  globalLock 1 p e1 e4 only
+*  globalLock 1 player event1 event4 only
+* ~~~
+* Will Lock the movements for only these characters:
+* Player, event 1 and event 4
+*
+* ============================================================================
+* ## Links
+* ============================================================================
+* Formated Help:
+*
+*  https://quxios.github.io/#/plugins/QPlus
+*
+* RPGMakerWebs:
+*
+*  http://forums.rpgmakerweb.com/index.php?threads/qplugins.73023/
+*
+* Terms of use:
+*
+*  https://github.com/quxios/QMV-Master-Demo/blob/master/readme.md
+*
+* Like my plugins? Support me on Patreon!
+*
+*  https://www.patreon.com/quxios
+*
+* @tags core, character
+*/
 //=============================================================================
 
 //=============================================================================
 // QPlus Static Class
 
 function QPlus() {
- throw new Error('This is a static class');
+  throw new Error('This is a static class');
 }
 
 (function() {
@@ -200,6 +248,9 @@ function QPlus() {
    * @return {Array}
    */
   QPlus.makeArgs = function(string) {
+    if (string.constructor === Array) {
+      string = string.join(' ');
+    }
     var args = [];
     var regex = /("?|'?)(.+?)\1(?:\s|$)/g;
     while (true) {
@@ -208,6 +259,32 @@ function QPlus() {
         args.push(match[2]);
       } else {
         break;
+      }
+    }
+    console.log(this.formatArgs(args));
+    return this.formatArgs(args);
+  };
+
+  QPlus.formatArgs = function(args) {
+    for (var i = 0; i < args.length; i++) {
+      var arg = args[i].trim();
+      var match = /\{(.*?)\}/.exec(arg);
+      if (match) {
+        var val = match[1];
+        var cmd = match[1][0].toLowerCase();
+        switch (cmd) {
+          case 'v': {
+            var id = Number(match[1].slice(1));
+            val = $gameVariables.value(id);
+            break;
+          }
+          case 's': {
+            var id = Number(match[1].slice(1));
+            val = $gameSwitches.value(id);
+            break;
+          }
+        }
+        args[i] = args[i].replace(/\{(.*?)\}/, val);
       }
     }
     return args;
@@ -233,7 +310,7 @@ function QPlus() {
     var meta = {};
     var inlineRegex = /<([^<>:\/]+)(?::?)([^>]*)>/g;
     var blockRegex = /<([^<>:\/]+)>([\s\S]*?)<\/\1>/g;
-    for (;;) {
+    for (; ;) {
       var match = inlineRegex.exec(string);
       if (match) {
         if (match[2] === '') {
@@ -245,7 +322,7 @@ function QPlus() {
         break;
       }
     }
-    for (;;) {
+    for (; ;) {
       var match = blockRegex.exec(string);
       if (match) {
         meta[match[1]] = match[2];
@@ -309,7 +386,7 @@ function QPlus() {
       this._onSuccess = func;
       return this;
     }
-    xhr._onSuccess = callback || function() {};
+    xhr._onSuccess = callback || function() { };
     xhr.onerror = err || function() {
       console.error('Error:' + this.url + ' not found');
     }
@@ -402,7 +479,7 @@ function QPlus() {
         }
         var arr = QPlus.stringToAry(match[2].trim());
         if (arr.length === 1) arr = arr[0];
-        obj[newKey] =  arr || '';
+        obj[newKey] = arr || '';
       }
     })
     return obj;
@@ -658,8 +735,8 @@ function SimpleTilemap() {
   var Alias_DataManager_setupNewGame = DataManager.setupNewGame;
   DataManager.setupNewGame = function() {
     Alias_DataManager_setupNewGame.call(this);
-    for (var i = 0; i <  _PARAMS['Default Enabled Switches'].length; i++) {
-      $gameSwitches.setValue( _PARAMS['Default Enabled Switches'][i], true);
+    for (var i = 0; i < _PARAMS['Default Enabled Switches'].length; i++) {
+      $gameSwitches.setValue(_PARAMS['Default Enabled Switches'][i], true);
     }
   };
 
@@ -755,28 +832,35 @@ function SimpleTilemap() {
 
   var Alias_Game_Interpreter_pluginCommand = Game_Interpreter.prototype.pluginCommand;
   Game_Interpreter.prototype.pluginCommand = function(command, args) {
+    if (this.qPlusCommand(command, QPlus.makeArgs(args))) {
+      return;
+    }
+    Alias_Game_Interpreter_pluginCommand.call(this, command, args);
+  };
+
+  Game_Interpreter.prototype.qPlusCommand = function(command, args) {
     if (command.toLowerCase() === 'wait') {
-      var min  = Number(args[0]);
-      var max  = Number(args[1]);
+      var min = Number(args[0]);
+      var max = Number(args[1]);
       if (!max) {
         max = min;
         min = 0;
       }
       var wait = Math.randomIntBetween(min, max);
       this.wait(wait);
-      return;
+      return true;
     }
     if (command.toLowerCase() === 'globallock') {
-      var level  = Number(args[0]);
-      var args2  = args.slice(1);
+      var level = Number(args[0]);
+      var args2 = args.slice(1);
       var only = args2.indexOf('only');
       if (only !== -1) args2.splice(only, 1);
       var charas = args2.map(QPlus.getCharacter);
       var mode = only !== -1 ? 1 : 0;
       $gameMap.globalLock(charas, mode, level);
-      return;
+      return true;
     }
-    Alias_Game_Interpreter_pluginCommand.call(this, command, args);
+    return false;
   };
 
   //-----------------------------------------------------------------------------
@@ -795,8 +879,8 @@ function SimpleTilemap() {
    */
   Game_Map.prototype.globalLock = function(charas, mode, level) {
     charas = charas || [];
-    mode   = mode  === undefined ? 0 : mode;
-    level  = level === undefined ? 1 : level;
+    mode = mode === undefined ? 0 : mode;
+    level = level === undefined ? 1 : level;
     if (mode === 0) {
       $gamePlayer._globalLocked = !charas.contains($gamePlayer) ? level : 0;
       var events = this.events();
@@ -868,7 +952,7 @@ function SimpleTilemap() {
       // use degrees for diagonals
       // since I don't know clean PI numbers for these degrees
       var deg = radian * 180 / Math.PI;
-      if (deg >= 22.5  && deg <= 67.5) {
+      if (deg >= 22.5 && deg <= 67.5) {
         return 3;
       } else if (deg >= 112.5 && deg <= 157.5) {
         return 1;
@@ -952,7 +1036,7 @@ function SimpleTilemap() {
   Game_Event.prototype.initMembers = function() {
     Alias_Game_Event_initMembers.call(this);
     this._comments = null;
-    this._prevDir  = null;
+    this._prevDir = null;
   };
 
   Game_Event.prototype.charaId = function() {

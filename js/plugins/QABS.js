@@ -9,13 +9,13 @@ if (!Imported.QMovement || !QPlus.versionCheck(Imported.QMovement, '1.4.0')) {
   throw new Error('Error: QABS requires QMovement 1.4.0 or newer to work.');
 }
 
-Imported.QABS = '1.4.2';
+Imported.QABS = '1.4.3';
 
 //=============================================================================
  /*:
  * @plugindesc <QABS>
  * Action Battle System for QMovement
- * @author Quxios  | Version 1.4.2
+ * @author Quxios  | Version 1.4.3
  *
  * @repo https://github.com/quxios/QABS
  *
@@ -2221,7 +2221,7 @@ function Skill_Sequencer() {
   var Alias_Game_Interpreter_pluginCommand = Game_Interpreter.prototype.pluginCommand;
   Game_Interpreter.prototype.pluginCommand = function(command, args) {
     if (command.toLowerCase() === 'qabs') {
-      return this.qABSCommand(args);
+      return this.qABSCommand(QPlus.makeArgs(args));
     }
     Alias_Game_Interpreter_pluginCommand.call(this, command, args);
   };
