@@ -3,7 +3,7 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QTouch = '1.1.3';
+Imported.QTouch = '1.1.4';
 
 if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.4.0')) {
   alert('Error: QTouch requires QPlus 1.4.0 or newer to work.');
@@ -14,7 +14,7 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.4.0')) {
 /*:
 * @plugindesc <QTouch>
 * Better mouse handling for MV
-* @author Quxios  | Version 1.1.3
+* @author Quxios  | Version 1.1.4
 *
 * @video https://youtu.be/2UrazG-XRxw
 *
@@ -183,7 +183,7 @@ function Sprite_QButton() {
   var Alias_Game_Interpreter_pluginCommand = Game_Interpreter.prototype.pluginCommand;
   Game_Interpreter.prototype.pluginCommand = function(command, args) {
     if (command.toLowerCase() === 'qtouch') {
-      return this.qPluginCommand(QPlus.makeArgs(args));
+      return this.qTouchCommand(QPlus.makeArgs(args));
     }
     Alias_Game_Interpreter_pluginCommand.call(this, command, args);
   };
