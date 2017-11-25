@@ -12,10 +12,13 @@ if (!Imported.QInput || !QPlus.versionCheck(Imported.QInput, '2.1.1')) {
 Imported.QInputRemap = '2.1.3';
 
 //=============================================================================
- /*:
+/*:
  * @plugindesc <QInputRemap>
  * QInput Addon: Adds Key remapping to Options menu
+ * @version 2.1.3
  * @author Quxios  | Version 2.1.3
+ * @site https://quxios.github.io/
+ * @updateurl https://quxios.github.io/data/pluginsMin.json
  *
  * @requires QInput
  *
@@ -151,7 +154,7 @@ Imported.QInputRemap = '2.1.3';
 // New Classes
 
 function Window_InputRemap() {
-    this.initialize.apply(this, arguments);
+  this.initialize.apply(this, arguments);
 }
 
 //=============================================================================
@@ -197,8 +200,8 @@ function Window_InputRemap() {
     this._inputWindow.select(0);
     this._inputWindow.show();
     this._inputWindow.activate();
-    this._inputWindow.setHandler('cancel',  this.hideInputs.bind(this));
-    this._inputWindow.setHandler('set',     this.startInputSet.bind(this));
+    this._inputWindow.setHandler('cancel', this.hideInputs.bind(this));
+    this._inputWindow.setHandler('set', this.startInputSet.bind(this));
     this._inputWindow.setHandler('default', this.setDefaultInput.bind(this));
   };
 

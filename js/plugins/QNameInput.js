@@ -12,10 +12,13 @@ if (!Imported.QInput) {
 Imported.QNameInput = '2.0.3';
 
 //=============================================================================
- /*:
+/*:
  * @plugindesc <QNameInput>
  * QInput addon: Adds Keyboard Input to Name Input Scene
+ * @version 2.0.3
  * @author Quxios  | Version 2.0.3
+ * @site https://quxios.github.io/
+ * @updateurl https://quxios.github.io/data/pluginsMin.json
  *
  * @requires QInput
  *
@@ -69,7 +72,7 @@ Imported.QNameInput = '2.0.3';
 
 (function() {
   var _PARAMS = QPlus.getParams('<QNameInput>', true);
-  var _SHOW  = _PARAMS["Show Window with Keys"];
+  var _SHOW = _PARAMS["Show Window with Keys"];
   var _WIDTH = _PARAMS["Window Width"];
 
   //-----------------------------------------------------------------------------
@@ -82,7 +85,7 @@ Imported.QNameInput = '2.0.3';
 
   var Alias_Scene_Name_createInputWindow = Scene_Name.prototype.createInputWindow;
   Scene_Name.prototype.createInputWindow = function() {
-    Alias_Scene_Name_createInputWindow .call(this);
+    Alias_Scene_Name_createInputWindow.call(this);
     if (!_SHOW) {
       this._inputWindow.hide();
       this._inputWindow.deactivate();

@@ -12,10 +12,13 @@ if (!Imported.QMovement || !QPlus.versionCheck(Imported.QMovement, '1.4.0')) {
 Imported.QABS = '1.4.3';
 
 //=============================================================================
- /*:
+/*:
  * @plugindesc <QABS>
  * Action Battle System for QMovement
+ * @version 1.4.3
  * @author Quxios  | Version 1.4.3
+ * @site https://quxios.github.io/
+ * @updateurl https://quxios.github.io/data/pluginsMin.json
  *
  * @repo https://github.com/quxios/QABS
  *

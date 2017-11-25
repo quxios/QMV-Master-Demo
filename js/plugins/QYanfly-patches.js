@@ -6,10 +6,13 @@ var Imported = Imported || {};
 Imported.QYanflyPatches = '1.0.2';
 
 //=============================================================================
- /*:
+/*:
  * @plugindesc <QYanfly-patches>
  * Patches for Yanfly plugins and QPlugins
+ * @version 1.0.2
  * @author Quxios  | Version 1.0.2
+ * @site https://quxios.github.io/
+ * @updateurl https://quxios.github.io/data/pluginsMin.json
  *
  * @help
  * This plugin should be below Yanfly and QPlugins
@@ -35,8 +38,8 @@ Imported.QYanflyPatches = '1.0.2';
       var Alias_Game_CharacterBase_collidesWithAnyTile = Game_CharacterBase.prototype.collidesWithAnyTile;
       Game_CharacterBase.prototype.collidesWithAnyTile = function(type) {
         var collider = this.collider(type);
-        var x = Math.floor(collider.center.x  / QMovement.tileSize);
-        var y = Math.floor(collider.center.y  / QMovement.tileSize);
+        var x = Math.floor(collider.center.x / QMovement.tileSize);
+        var y = Math.floor(collider.center.y / QMovement.tileSize);
         if (this.isEventRegionForbid(x, y)) return true;
         if (this.isPlayerRegionForbid(x, y)) return true;
         if (this.isEventRegionAllow(x, y)) return false;
@@ -66,11 +69,11 @@ Imported.QYanflyPatches = '1.0.2';
       };
 
       Game_Player.prototype.updateSlippery = function() {
-          if ($gameMap.isEventRunning()) return;
-          if (this.onSlipperyFloor() && !this.startedMoving()) {
-            $gameTemp.clearDestination();
-      			this.moveRadian(this._radian);
-          }
+        if ($gameMap.isEventRunning()) return;
+        if (this.onSlipperyFloor() && !this.startedMoving()) {
+          $gameTemp.clearDestination();
+          this.moveRadian(this._radian);
+        }
       };
     }
   }

@@ -12,10 +12,13 @@ if (!Imported.QMovement || !QPlus.versionCheck(Imported.QMovement, '1.2.0')) {
 Imported.QMColliderMap = '1.0.0';
 
 //=============================================================================
- /*:
+/*:
  * @plugindesc <QMColliderMap>
  * QMovement Addon: Allows you to load colliders to a map from json
+ * @version 1.0.0
  * @author Quxios  | Version 1.0.0
+ * @site https://quxios.github.io/
+ * @updateurl https://quxios.github.io/data/pluginsMin.json
  *
  * @requires QMovement
  *

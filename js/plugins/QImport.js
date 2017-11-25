@@ -12,10 +12,13 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.5')) {
 Imported.QImport = '1.0.2';
 
 //=============================================================================
- /*:
+/*:
  * @plugindesc <QImport>
  * Lets you import text from other game objects or txt files
+ * @version 1.0.2
  * @author Quxios  | Version 1.0.2
+ * @site https://quxios.github.io/
+ * @updateurl https://quxios.github.io/data/pluginsMin.json
  *
  * @requires QPlus
  *
@@ -255,7 +258,7 @@ function QImport() {
         this.importNote(data, prop, match[0], args);
         break;
       }
-      case 'text':{
+      case 'text': {
         this.importText(data, prop, match[0], args);
         break;
       }
@@ -341,7 +344,7 @@ function QImport() {
   QImport.importEvent = function(data, prop, match, args) {
     var mapId = Number(args[0]);
     var eventId = Number(args[1]);
-    var key = 'map' + mapId ;
+    var key = 'map' + mapId;
     if (this._cache[key]) {
       for (var props in data) {
         if (props === 'x' || props === 'y') {

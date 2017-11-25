@@ -15,10 +15,13 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.5')) {
 Imported.QMap = '1.5.1';
 
 //=============================================================================
- /*:
+/*:
  * @plugindesc <QMap>
  * Creates maps made with QMap Editor
+ * @version 1.5.1
  * @author Quxios  | Version 1.5.1
+ * @site https://quxios.github.io/
+ * @updateurl https://quxios.github.io/data/pluginsMin.json
  *
  * @requires QPlus
  *

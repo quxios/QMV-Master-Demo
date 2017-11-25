@@ -12,10 +12,13 @@ if (!Imported.QMovement || !QPlus.versionCheck(Imported.QMovement, '1.0.2')) {
 Imported.QM_CollisionMap = '1.0.1';
 
 //=============================================================================
- /*:
+/*:
  * @plugindesc <QMCollisionMap>
  * QMovement Addon: Adds image collision map feature
+ * @version 1.0.1
  * @author Quxios  | Version 1.0.1
+ * @site https://quxios.github.io/
+ * @updateurl https://quxios.github.io/data/pluginsMin.json
  *
  * @requires QMovement
  *
@@ -155,7 +158,7 @@ Imported.QM_CollisionMap = '1.0.1';
 
   Game_Map.prototype.insidePassableOnly = function(collider, passableColors) {
     return this.collisionMapBoxPass(collider, 'top', passableColors) &&
-           this.collisionMapBoxPass(collider, 'bottom', passableColors);
+      this.collisionMapBoxPass(collider, 'bottom', passableColors);
   };
 
   Game_Map.prototype.collisionMapBoxPass = function(collider, dir, passableColors) {
@@ -244,15 +247,15 @@ Imported.QM_CollisionMap = '1.0.1';
     var midPoints = [];
     if (dir === 'top' || dir === 'bottom') {
       var startPoint = this.collisionMapPoints(collider, dir, collider._xMin, 0);
-      var endPoint   = this.collisionMapPoints(collider, dir, collider._xMax, 0);
+      var endPoint = this.collisionMapPoints(collider, dir, collider._xMax, 0);
     } else { // left or right
       var startPoint = this.collisionMapPoints(collider, dir, collider._yMin, 1);
-      var endPoint   = this.collisionMapPoints(collider, dir, collider._yMax, 1);
+      var endPoint = this.collisionMapPoints(collider, dir, collider._yMax, 1);
       var horz = true;
     }
-    var minIndex  = collider._baseVertices.indexOf(startPoint);
-    var maxIndex  = collider._baseVertices.indexOf(endPoint);
-    var endPoint  = collider.vertices()[maxIndex];
+    var minIndex = collider._baseVertices.indexOf(startPoint);
+    var maxIndex = collider._baseVertices.indexOf(endPoint);
+    var endPoint = collider.vertices()[maxIndex];
     var firstHalf = points.splice(0, minIndex);
     points = points.concat(firstHalf);
     if (dir === 'bottom' || dir === 'left') {
@@ -267,11 +270,11 @@ Imported.QM_CollisionMap = '1.0.1';
       var rad = Math.atan2(y1 - y2, x2 - x1);
       if (horz) {
         var steps = Math.abs(y2 - y1) / _SCANSIZE;
-        var slope  = (x2 - x1) / steps;
+        var slope = (x2 - x1) / steps;
         var inc = y1 > y2 ? -1 : 1;
       } else {
         var steps = Math.abs(x2 - x1) / _SCANSIZE;
-        var slope  = (y2 - y1) / steps;
+        var slope = (y2 - y1) / steps;
         var inc = x1 > x2 ? -1 : 1;
       }
       var a1 = a2 = horz ? y1 : x1;
@@ -341,9 +344,9 @@ Imported.QM_CollisionMap = '1.0.1';
     var passableColors = this.passableColors();
     if (dir === 5) {
       if (!$gameMap.collisionMapPass(collider, 'top', passableColors) ||
-          !$gameMap.collisionMapPass(collider, 'bottom', passableColors) ||
-          !$gameMap.collisionMapPass(collider, 'left', passableColors) ||
-          !$gameMap.collisionMapPass(collider, 'right', passableColors) ) {
+        !$gameMap.collisionMapPass(collider, 'bottom', passableColors) ||
+        !$gameMap.collisionMapPass(collider, 'left', passableColors) ||
+        !$gameMap.collisionMapPass(collider, 'right', passableColors)) {
         return true;
       }
     } else {
@@ -361,7 +364,7 @@ Imported.QM_CollisionMap = '1.0.1';
     this._pixelData = [];
   };
 
-  Bitmap.prototype._setPixelData = function () {
+  Bitmap.prototype._setPixelData = function() {
     this._pixelData = this._context.getImageData(0, 0, this.width, this.height).data;
   };
 

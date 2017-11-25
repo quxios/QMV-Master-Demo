@@ -12,10 +12,13 @@ if (!Imported.QMovement || !QPlus.versionCheck(Imported.QMovement, '1.2.2')) {
 Imported.QMFollowers = '1.0.2';
 
 //=============================================================================
- /*:
+/*:
  * @plugindesc <QMFollowers>
  * QMovement Addon: Adds follower support
+ * @version 1.0.2
  * @author Quxios  | Version 1.0.2
+ * @site https://quxios.github.io/
+ * @updateurl https://quxios.github.io/data/pluginsMin.json
  *
  * @requires QMovement
  *

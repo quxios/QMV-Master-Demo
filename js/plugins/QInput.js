@@ -12,10 +12,13 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.2.1')) {
 Imported.QInput = '2.2.1';
 
 //=============================================================================
- /*:
+/*:
  * @plugindesc <QInput>
  * Adds additional keys to Input class, and allows remapping keys.
+ * @version 2.2.1
  * @author Quxios  | Version 2.2.1
+ * @site https://quxios.github.io/
+ * @updateurl https://quxios.github.io/data/pluginsMin.json
  *
  * @param Threshold
  * @desc The threshold for gamepad analog sticks to send input
@@ -302,7 +305,7 @@ function Window_TextInput() {
 // QInput Static Class
 
 function QInput() {
- throw new Error('This is a static class');
+  throw new Error('This is a static class');
 }
 
 //=============================================================================
@@ -314,7 +317,7 @@ function QInput() {
     'Escape / Cancel': ["#esc", "#insert", "#x", "#num0", "$B"],
     'Menu': ["#esc", "$Y"],
     'Shift': ["#shift", "#cancel", "$X"],
-    'Control':  ["#ctrl", "#alt"],
+    'Control': ["#ctrl", "#alt"],
     'Tab': ["#tab"],
     'Pageup': ["#pageup", "#q", "$L1"],
     'Pagedown': ["#pagedown", "#w", "$R1"],
@@ -353,18 +356,18 @@ function QInput() {
     14: '0E',
     8: 'backspace', 9: 'tab', 13: 'enter', 16: 'shift', 17: 'ctrl', 18: 'alt',
     27: 'esc', 32: 'space', 33: 'pageup', 34: 'pagedown', 37: 'left',
-    38: 'up',  39: 'right', 40: 'down', 45: 'escape',
-    48: '0',  49: '1',  50: '2',  51: '3',  52: '4',  53: '5',  54: '6',
-    55: '7',  56: '8',  57: '9',
-    96: 'num0',   97: 'num1',   98: 'num2',   99: 'num3',  100: 'num4',
-    101: 'num5', 102: 'num6',  103: 'num7',  104: 'num8',  105: 'num9',
-    65: 'a',  66: 'b',  67: 'c',  68: 'd',  69: 'e',  70: 'f',  71: 'g',
-    72: 'h',  73: 'i',  74: 'j',  75: 'k',  76: 'l',  77: 'm',  78: 'n',
-    79: 'o',  80: 'p',  81: 'q',  82: 'r',  83: 's',  84: 't',  85: 'u',
-    86: 'v',  87: 'w',  88: 'x',  89: 'y',  90: 'z',
+    38: 'up', 39: 'right', 40: 'down', 45: 'escape',
+    48: '0', 49: '1', 50: '2', 51: '3', 52: '4', 53: '5', 54: '6',
+    55: '7', 56: '8', 57: '9',
+    96: 'num0', 97: 'num1', 98: 'num2', 99: 'num3', 100: 'num4',
+    101: 'num5', 102: 'num6', 103: 'num7', 104: 'num8', 105: 'num9',
+    65: 'a', 66: 'b', 67: 'c', 68: 'd', 69: 'e', 70: 'f', 71: 'g',
+    72: 'h', 73: 'i', 74: 'j', 75: 'k', 76: 'l', 77: 'm', 78: 'n',
+    79: 'o', 80: 'p', 81: 'q', 82: 'r', 83: 's', 84: 't', 85: 'u',
+    86: 'v', 87: 'w', 88: 'x', 89: 'y', 90: 'z',
     112: 'f1', 113: 'f2', 114: 'f3', 115: 'f4', 116: 'f5', 117: 'f6',
     118: 'f7', 119: 'f8', 120: 'f9', 121: 'f10', 122: 'f11', 123: 'f12',
-    186: 'semicolon',  187: 'equal', 188: 'comma', 189: 'minus', 190: 'period',
+    186: 'semicolon', 187: 'equal', 188: 'comma', 189: 'minus', 190: 'period',
     191: 'slash', 192: 'grave', 219: 'openbracket', 220: 'backslash',
     221: 'closedbracket', 222: 'singlequote'
   };
@@ -387,7 +390,7 @@ function QInput() {
   // values, which is needed if you are using an in game key remapper so it knows
   // what value to set it when setting all the keys back to default.
   QInput.remap = function(key) {
-    switch(key) {
+    switch (key) {
       case 'tab':
         return ConfigManager.keys['tab'];
         break;
@@ -435,7 +438,7 @@ function QInput() {
         return Number(this.keyAt(ConfigManager.keys['streched'])) || 114;
         break;
       case 'fullscreen':
-        return Number(this.keyAt(ConfigManager.keys['fullscreen']))  || 115;
+        return Number(this.keyAt(ConfigManager.keys['fullscreen'])) || 115;
         break;
       case 'restart':
         return Number(this.keyAt(ConfigManager.keys['restart'])) || 116;
@@ -524,7 +527,7 @@ function QInput() {
     if (any.length === 0) {
       any = keys.split(',');
       any = any.map(function(s) {
-        s =  s.replace(/\s+|#/g, '');
+        s = s.replace(/\s+|#/g, '');
         return s;
       });
     }
@@ -561,7 +564,7 @@ function QInput() {
           break;
         }
       }
-      return pressed;
+      return !!pressed;
     }
     return alias.call(this, newKey);
   };
@@ -767,18 +770,18 @@ function QInput() {
   Graphics._onKeyDown = function(event) {
     if (!event.ctrlKey && !event.altKey) {
       switch (event.keyCode) {
-      case QInput.remap('fps'):
-        event.preventDefault();
-        this._switchFPSMeter();
-        break;
-      case QInput.remap('stretch'):
-        event.preventDefault();
-        this._switchStretchMode();
-        break;
-      case QInput.remap('fullscreen'):
-        event.preventDefault();
-        this._switchFullScreen();
-        break;
+        case QInput.remap('fps'):
+          event.preventDefault();
+          this._switchFPSMeter();
+          break;
+        case QInput.remap('stretch'):
+          event.preventDefault();
+          this._switchStretchMode();
+          break;
+        case QInput.remap('fullscreen'):
+          event.preventDefault();
+          this._switchFullScreen();
+          break;
       }
     }
   };
@@ -830,7 +833,7 @@ function QInput() {
     this._maxLength = 1;
     this._mode = 'a-z0-9'; // mode currently does nothing
     this._handlers = {};
-    this._default = {name: '', mode: 'a-z0-9'};
+    this._default = { name: '', mode: 'a-z0-9' };
     Input.clear();
     this.deactivate();
     this.refresh();

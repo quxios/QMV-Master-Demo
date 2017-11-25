@@ -13,152 +13,155 @@ Imported.QAudio = '2.3.4';
 
 //=============================================================================
 /*:
-* @plugindesc <QAudio>
-* Few new audio features
-* @author Quxios  | Version 2.3.4
-*
-* @requires QPlus
-*
-* @param Default Radius
-* @desc Default radius in tiles
-* @type Number
-* @min 0
-* @default 5
-*
-* @param Default Max Volume
-* @desc Default max volume
-* @type Number
-* @min 0
-* @default 100
-*
-* @help
-* ============================================================================
-* ## About
-* ============================================================================
-* This plugin allows you to play an audio (bgm, bgs, me or se) at a fixed
-* position. The volume and panning will be dynamically updated based off of
-* the players distance from that audios location.
-* ============================================================================
-* ## Plugin Commands
-* ============================================================================
-* **Playing / Looping**
-* ----------------------------------------------------------------------------
-* ~~~
-*  qAudio start [AUDIONAME] [list of options]
-* ~~~
-* AUDIONAME - The name of the audio you want to play. If file has spaces in it
-* wrap the name with "". Ex. If audio name was: Some File, then use "Some File"
-*
-* Possible options:
-*
-* - idX: where X the ID for the audio (needed for stopping)
-* - type: bgm, bgs, me, or se (Default: bgm)
-* - loop: this audio will loop
-* - noPan: this audio will not update its pan
-* - pitchX: where X is the pitch %, default is 100
-* - maxV: where V is the max volume for this audio, between 0-100
-* - fadeinT: where T is the time to fade in, in seconds
-* - xX: where X is the x position for the audio
-* - yY: where Y is the y position for the audio
-* - radiusR: where R is the max radius for the audio
-* - bindToCHARAID: where CHARAID is the character to bind to.
-*   * CHARAID - The character identifier.
-*    - For player: 0, p, or player
-*    - For events: EVENTID, eEVENTID, eventEVENTID or this for the event that
-*     called this (replace EVENTID with a number)
-*
-* *Note: If no x, y or bindTo are set, it will play at players position*
-* ----------------------------------------------------------------------------
-* **Examples 1**
-* ----------------------------------------------------------------------------
-* ~~~
-*  qAudio start Battle1
-* ~~~
-* Will play bgm Battle1 at the players location. Recommended not to do it this
-* way, best to set options.
-*
-* ~~~
-*  qAudio start City bgs idCITY max80 radius10 x5 y5
-* ~~~
-* Will play bgs City at position (5, 5) with a radius of 10, max volume of 80
-* and it's id is CITY
-*
-* ~~~
-*  qAudio start City bgs idCITY radius5 bindTo1 loop
-*  qAudio start City bgs idCITY radius5 bindToE1 loop
-*  qAudio start City bgs idCITY radius5 bindToEvent1 loop
-* ~~~
-* *Note: All 3 are the same, just using a different character id method*
-*
-* Will play bgs City at event 1s position and move with that event. It also has
-* a radius of 5 and it will keep looping. It's id is CITY
-* ----------------------------------------------------------------------------
-* **Stoping a QAudio**
-* ----------------------------------------------------------------------------
-* ~~~
-*  qAudio stop ID [list of options]
-* ~~~
-* - ID: The ID you set for the audio, set this to ALL to stop all QAudios
-*
-* Possible options:
-*
-* - fadeoutT: where T is the time to fade out, in seconds
-*
-* To clear/stop all qAudios
-* ~~~
-*  qAudio clear
-* ~~~
-* ----------------------------------------------------------------------------
-* **Examples 2**
-* ----------------------------------------------------------------------------
-* First make a qAudio with an Id like:
-* ~~~
-*  qAudio start Battle1 bgm idAb1
-* ~~~
-*
-* Then when you want to clear it:
-* ~~~
-*  qAudio stop Ab1
-* ~~~
-*
-* Or clear it with a fadeout
-* ~~~
-*  qAudio stop Ab1 fadeOut2
-* ~~~
-* ----------------------------------------------------------------------------
-* **Saving/Restoring QAudios**
-* ----------------------------------------------------------------------------
-* To save all the current QAudios that are playing use:
-* ~~~
-*  qAudio save
-* ~~~
-*
-* To play all the QAudios that were saved use:
-* ~~~
-*  qAudio restore
-* ~~~
-* *Note: Saving does not remember the position the audio left off at*
-* ============================================================================
-* ## Links
-* ============================================================================
-* Formated Help:
-*
-*  https://quxios.github.io/#/plugins/QAudio
-*
-* RPGMakerWebs:
-*
-*  http://forums.rpgmakerweb.com/index.php?threads/qplugins.73023/
-*
-* Terms of use:
-*
-*  https://github.com/quxios/QMV-Master-Demo/blob/master/readme.md
-*
-* Like my plugins? Support me on Patreon!
-*
-*  https://www.patreon.com/quxios
-*
-* @tags audio, character, proximity
-*/
+ * @plugindesc <QAudio>
+ * Few new audio features
+ * @version 2.3.4
+ * @author Quxios  | Version 2.3.4
+ * @site https://quxios.github.io/
+ * @updateurl https://quxios.github.io/data/pluginsMin.json
+ *
+ * @requires QPlus
+ *
+ * @param Default Radius
+ * @desc Default radius in tiles
+ * @type Number
+ * @min 0
+ * @default 5
+ *
+ * @param Default Max Volume
+ * @desc Default max volume
+ * @type Number
+ * @min 0
+ * @default 100
+ *
+ * @help
+ * ============================================================================
+ * ## About
+ * ============================================================================
+ * This plugin allows you to play an audio (bgm, bgs, me or se) at a fixed
+ * position. The volume and panning will be dynamically updated based off of
+ * the players distance from that audios location.
+ * ============================================================================
+ * ## Plugin Commands
+ * ============================================================================
+ * **Playing / Looping**
+ * ----------------------------------------------------------------------------
+ * ~~~
+ *  qAudio start [AUDIONAME] [list of options]
+ * ~~~
+ * AUDIONAME - The name of the audio you want to play. If file has spaces in it
+ * wrap the name with "". Ex. If audio name was: Some File, then use "Some File"
+ *
+ * Possible options:
+ *
+ * - idX: where X the ID for the audio (needed for stopping)
+ * - type: bgm, bgs, me, or se (Default: bgm)
+ * - loop: this audio will loop
+ * - noPan: this audio will not update its pan
+ * - pitchX: where X is the pitch %, default is 100
+ * - maxV: where V is the max volume for this audio, between 0-100
+ * - fadeinT: where T is the time to fade in, in seconds
+ * - xX: where X is the x position for the audio
+ * - yY: where Y is the y position for the audio
+ * - radiusR: where R is the max radius for the audio
+ * - bindToCHARAID: where CHARAID is the character to bind to.
+ *   * CHARAID - The character identifier.
+ *    - For player: 0, p, or player
+ *    - For events: EVENTID, eEVENTID, eventEVENTID or this for the event that
+ *     called this (replace EVENTID with a number)
+ *
+ * *Note: If no x, y or bindTo are set, it will play at players position*
+ * ----------------------------------------------------------------------------
+ * **Examples 1**
+ * ----------------------------------------------------------------------------
+ * ~~~
+ *  qAudio start Battle1
+ * ~~~
+ * Will play bgm Battle1 at the players location. Recommended not to do it this
+ * way, best to set options.
+ *
+ * ~~~
+ *  qAudio start City bgs idCITY max80 radius10 x5 y5
+ * ~~~
+ * Will play bgs City at position (5, 5) with a radius of 10, max volume of 80
+ * and it's id is CITY
+ *
+ * ~~~
+ *  qAudio start City bgs idCITY radius5 bindTo1 loop
+ *  qAudio start City bgs idCITY radius5 bindToE1 loop
+ *  qAudio start City bgs idCITY radius5 bindToEvent1 loop
+ * ~~~
+ * *Note: All 3 are the same, just using a different character id method*
+ *
+ * Will play bgs City at event 1s position and move with that event. It also has
+ * a radius of 5 and it will keep looping. It's id is CITY
+ * ----------------------------------------------------------------------------
+ * **Stoping a QAudio**
+ * ----------------------------------------------------------------------------
+ * ~~~
+ *  qAudio stop ID [list of options]
+ * ~~~
+ * - ID: The ID you set for the audio, set this to ALL to stop all QAudios
+ *
+ * Possible options:
+ *
+ * - fadeoutT: where T is the time to fade out, in seconds
+ *
+ * To clear/stop all qAudios
+ * ~~~
+ *  qAudio clear
+ * ~~~
+ * ----------------------------------------------------------------------------
+ * **Examples 2**
+ * ----------------------------------------------------------------------------
+ * First make a qAudio with an Id like:
+ * ~~~
+ *  qAudio start Battle1 bgm idAb1
+ * ~~~
+ *
+ * Then when you want to clear it:
+ * ~~~
+ *  qAudio stop Ab1
+ * ~~~
+ *
+ * Or clear it with a fadeout
+ * ~~~
+ *  qAudio stop Ab1 fadeOut2
+ * ~~~
+ * ----------------------------------------------------------------------------
+ * **Saving/Restoring QAudios**
+ * ----------------------------------------------------------------------------
+ * To save all the current QAudios that are playing use:
+ * ~~~
+ *  qAudio save
+ * ~~~
+ *
+ * To play all the QAudios that were saved use:
+ * ~~~
+ *  qAudio restore
+ * ~~~
+ * *Note: Saving does not remember the position the audio left off at*
+ * ============================================================================
+ * ## Links
+ * ============================================================================
+ * Formated Help:
+ *
+ *  https://quxios.github.io/#/plugins/QAudio
+ *
+ * RPGMakerWebs:
+ *
+ *  http://forums.rpgmakerweb.com/index.php?threads/qplugins.73023/
+ *
+ * Terms of use:
+ *
+ *  https://github.com/quxios/QMV-Master-Demo/blob/master/readme.md
+ *
+ * Like my plugins? Support me on Patreon!
+ *
+ *  https://www.patreon.com/quxios
+ *
+ * @tags audio, character, proximity
+ */
 //=============================================================================
 
 //=============================================================================

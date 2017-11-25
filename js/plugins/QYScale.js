@@ -11,10 +11,13 @@ if (!Imported.QPlus) {
 }
 
 //=============================================================================
- /*:
+/*:
  * @plugindesc <QYScale>
  * Change characters scale based off their Y value
+ * @version 1.1.0
  * @author Quxios  | Version 1.1.0
+ * @site https://quxios.github.io/
+ * @updateurl https://quxios.github.io/data/pluginsMin.json
  *
  * @requires QPlus
  *

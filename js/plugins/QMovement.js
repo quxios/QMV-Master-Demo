@@ -12,10 +12,13 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.4.0')) {
 Imported.QMovement = '1.4.4';
 
 //=============================================================================
- /*:
+/*:
  * @plugindesc <QMovement>
  * More control over character movement
+ * @version 1.4.4
  * @author Quxios  | Version 1.4.4
+ * @site https://quxios.github.io/
+ * @updateurl https://quxios.github.io/data/pluginsMin.json
  *
  * @repo https://github.com/quxios/QMovement
  *

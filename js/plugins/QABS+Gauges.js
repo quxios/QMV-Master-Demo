@@ -12,11 +12,14 @@ if (!Imported.QABS || !QPlus.versionCheck(Imported.QABS, '1.0.0')) {
 Imported.QABS_Gauges = '1.0.1';
 
 //=============================================================================
- /*:
- * @plugindesc <QABSGauges>
+/*:
  * QABS Addon: Adds hp gauges to enemies
+ * @plugindesc <QABSGauges>
+ * @version 1.0.1
  * @author Quxios  | Version 1.0.1
- *
+ * @site https://quxios.github.io/
+ * @updateurl https://quxios.github.io/data/pluginsMin.json
+ * 
  * @requires QABS
  *
  * @param Gauge Configs
@@ -413,10 +416,10 @@ function Sprite_BossGauge() {
 
   Sprite_Gauge.prototype.updateInbetween = function() {
     if (this._currentW < this._targetW) {
-      this._currentW  = Math.min(this._currentW + this._speed, this._targetW);
+      this._currentW = Math.min(this._currentW + this._speed, this._targetW);
     }
     if (this._currentW > this._targetW) {
-      this._currentW  = Math.max(this._currentW - this._speed, this._targetW);
+      this._currentW = Math.max(this._currentW - this._speed, this._targetW);
     }
     this._between.width = this._currentW;
   };

@@ -12,10 +12,13 @@ if (!Imported.QMovement || !QPlus.versionCheck(Imported.QMovement, '1.1.0')) {
 Imported.QMRegionColliders = '1.0.0';
 
 //=============================================================================
- /*:
+/*:
  * @plugindesc <QMRegionColliders>
  * QMovement Addon: Allows you to add colliders on regions
+ * @version 1.0.0
  * @author Quxios  | Version 1.0.0
+ * @site https://quxios.github.io/
+ * @updateurl https://quxios.github.io/data/pluginsMin.json
  *
  * @requires QMovement
  *

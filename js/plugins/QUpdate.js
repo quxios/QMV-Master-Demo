@@ -1,8 +1,11 @@
 //=============================================================================
- /*:
+/*:
  * @plugindesc <QUpdate>
  * Checks QPlugins for updates
+ * @version 1.2.0
  * @author Quxios  | Version 1.2.0
+ * @site https://quxios.github.io/
+ * @updateurl https://quxios.github.io/data/pluginsMin.json
  *
  * @help
  * ============================================================================
@@ -42,7 +45,7 @@ if (!Utils.isNwjs() && !Utils.isOptionValid('test')) {
 }
 
 function QUpdate() {
- throw new Error('This is a static class');
+  throw new Error('This is a static class');
 }
 
 function Scene_QUpdate() {
@@ -99,7 +102,7 @@ function Window_QUpdate() {
 
   QUpdate.getRepoPlugins = function(cb) {
     var xhr = new XMLHttpRequest();
-    var url = `https://quxios.github.io/data/plugins.json`;
+    var url = `https://quxios.github.io/data/pluginsMin.json`;
     xhr.open('GET', url);
     xhr.overrideMimeType('application/json');
     xhr.onload = function() {
@@ -146,7 +149,7 @@ function Window_QUpdate() {
   Scene_QUpdate.prototype.createWindow = function() {
     this.createWindowLayer();
     this._updateWindow = new Window_QUpdate();
-    this._updateWindow.setHandler('ok',     this.onUpdateOk.bind(this));
+    this._updateWindow.setHandler('ok', this.onUpdateOk.bind(this));
     this._updateWindow.setHandler('cancel', this.popScene.bind(this));
     this.addWindow(this._updateWindow);
   };
@@ -216,7 +219,7 @@ function Window_QUpdate() {
     var w = rect.width / 3;
     var name = this.commandName(index)
     var current = this._plugins[name].current;
-    var latest  = this._plugins[name].latest || '0.0.0';
+    var latest = this._plugins[name].latest || '0.0.0';
     if (!versionCheck(current, latest)) {
       this.changeTextColor('#FF0000');
     }
