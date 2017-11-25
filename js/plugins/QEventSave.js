@@ -9,57 +9,74 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.4.4')) {
   throw new Error('Error: QEventSave requires QPlus 1.4.4 or newer to work.');
 }
 
-Imported.QEventSave = '1.0.1';
+Imported.QEventSave = '1.1.0';
 
 //=============================================================================
 /*:
-* @plugindesc <QEventSave>
-* Save Events position on Map change
-* @author Quxios  | Version 1.0.1
-* 
-* @requires QPlus
-*
-* @help
-* ============================================================================
-* ## About
-* ============================================================================
-* This plugin allows you to save events position and move route when switching
-* maps.
-* ============================================================================
-* ## How to use
-* ============================================================================
-* **Plugin Commands**
-* ----------------------------------------------------------------------------
-* To enable for all events on the map, add the following notetag to the map:
-* ~~~
-*  <saveEvents>
-* ~~~
-*
-* To enable this for a specific event, add the following notetag to the event:
-* ~~~
-*  <save>
-* ~~~
-* ============================================================================
-* ## Links
-* ============================================================================
-* Formated Help:
-*
-*  https://quxios.github.io/#/plugins/QEventSave
-*
-* RPGMakerWebs:
-*
-*  http://forums.rpgmakerweb.com/index.php?threads/qplugins.73023/
-*
-* Terms of use:
-*
-*  https://github.com/quxios/QMV-Master-Demo/blob/master/readme.md
-*
-* Like my plugins? Support me on Patreon!
-*
-*  https://www.patreon.com/quxios
-*
-* @tags events, save
-*/
+ * @plugindesc <QEventSave>
+ * Save Events position on Map change
+ * @version 1.1.0
+ * @author Quxios  | Version 1.1.0
+ * @site https://quxios.github.io/
+ * @updateurl https://quxios.github.io/data/pluginsMin.json
+ * 
+ * @requires QPlus
+ *
+ * @help
+ * ============================================================================
+ * ## About
+ * ============================================================================
+ * This plugin allows you to save events position and move route when switching
+ * maps.
+ * ============================================================================
+ * ## How to use
+ * ============================================================================
+ * **Notetags**
+ * ----------------------------------------------------------------------------
+ * To enable for all events on the map, add the following notetag to the map:
+ * ~~~
+ *  <saveEvents>
+ * ~~~
+ *
+ * To enable this for a specific event, add the following notetag to the event:
+ * ~~~
+ *  <save>
+ * ~~~
+ * ----------------------------------------------------------------------------
+ * **Plugin Commands**
+ * ----------------------------------------------------------------------------
+ * You can mark an event as savable or not with a plugin command
+ * ~~~
+ *  qEventSave save CHARAID
+ * ~~~
+ * or to unsave
+ * ~~~
+ *  qEventSave save CHARAID
+ * ~~~
+ * - CHARAID: The character identifier. Can only be an event!
+ *  * For events: EVENTID, eEVENTID, eventEVENTID or this for the event that called this
+ *  (replace EVENTID with a number)
+ * ============================================================================
+ * ## Links
+ * ============================================================================
+ * Formated Help:
+ *
+ *  https://quxios.github.io/#/plugins/QEventSave
+ *
+ * RPGMakerWebs:
+ *
+ *  http://forums.rpgmakerweb.com/index.php?threads/qplugins.73023/
+ *
+ * Terms of use:
+ *
+ *  https://github.com/quxios/QMV-Master-Demo/blob/master/readme.md
+ *
+ * Like my plugins? Support me on Patreon!
+ *
+ *  https://www.patreon.com/quxios
+ *
+ * @tags events, save
+ */
 //=============================================================================
 
 //=============================================================================
@@ -72,12 +89,6 @@ function QEventSave() {
 (function() {
   //-----------------------------------------------------------------------------
   // QEventSave
-
-  QEventSave.getKey = function(event) {
-    var mapId = event._mapId;
-    var eventId = event._eventId;
-    return 'M' + mapId + ':E' + eventId;
-  };
 
   QEventSave.getInfo = function(event) {
     var info = {
@@ -110,6 +121,33 @@ function QEventSave() {
   };
 
   //-----------------------------------------------------------------------------
+  // Game_Interpreter
+
+  var Alias_Game_Interpreter_pluginCommand = Game_Interpreter.prototype.pluginCommand;
+  Game_Interpreter.prototype.pluginCommand = function(command, args) {
+    if (command.toLowerCase() === 'qeventsave') {
+      return this.qEventSaveCommand(QPlus.makeArgs(args));
+    }
+    Alias_Game_Interpreter_pluginCommand.call(this, command, args);
+  };
+
+  Game_Interpreter.prototype.qEventSaveCommand = function(args) {
+    //var args2 = args.slice(2);
+    //QPlus.getCharacter(args[0]);
+    //QPlus.getArg(args2, /lock/i)
+    var cmd = args[0].toLowerCase();
+    var chara = QPlus.getCharacter(args[1]);
+    if (chara.charaId() <= 0) return;
+    if (cmd === 'save') {
+      chara._saveable = true;
+      $gameSystem.saveEvent(chara);
+    } else if (cmd === 'unsave') {
+      chara._saveable = false;
+      $gameSystem.unsaveEvent(chara);
+    }
+  };
+
+  //-----------------------------------------------------------------------------
   // Game_System
 
   var Alias_Game_System_initialize = Game_System.prototype.initialize;
@@ -119,38 +157,69 @@ function QEventSave() {
   };
 
   Game_System.prototype.saveEvent = function(event) {
-    var key = QEventSave.getKey(event);
-    this._savedEvents[key] = QEventSave.getInfo(event);
+    var mapId = event._mapId;
+    var eventId = event._eventId;
+    if (!this._savedEvents[mapId]) {
+      this._savedEvents[mapId] = {};
+    }
+    this._savedEvents[mapId][eventId] = QEventSave.getInfo(event);
+  };
+
+  Game_System.prototype.unsaveEvent = function(event) {
+    var mapId = event._mapId;
+    var eventId = event._eventId;
+    if (!this._savedEvents[mapId]) {
+      this._savedEvents[mapId] = {};
+    }
+    delete this._savedEvents[mapId][eventId];
   };
 
   Game_System.prototype.loadEvent = function(event) {
-    var key = QEventSave.getKey(event);
-    if (!this._savedEvents[key]) {
+    var mapId = event._mapId;
+    var eventId = event._eventId;
+    if (!this._savedEvents[mapId]) {
+      this._savedEvents[mapId] = {};
+    }
+    if (!this._savedEvents[mapId][eventId]) {
       return;
     }
-    QEventSave.setInfo(event, this._savedEvents[key]);
+    QEventSave.setInfo(event, this._savedEvents[mapId][eventId]);
   };
 
   //-----------------------------------------------------------------------------
   // Game_Map
 
-  var Alias_Game_Map_setup = Game_Map.prototype.setup;
-  Game_Map.prototype.setup = function(mapId) {
-    Alias_Game_Map_setup.call(this, mapId);
-    this.forEachSaveEvent($gameSystem.loadEvent.bind($gameSystem));
-  };
-
   Game_Map.prototype.forEachSaveEvent = function(callback) {
     if (!$dataMap) return;
-    var saveAll = !!$dataMap.meta.saveEvents;
-    for (var i = 0; i < this._events.length; i++) {
-      var event = this._events[i];
-      if (!event) continue;
-      var notes = event.notes();
-      if (saveAll || /<save>/i.test(notes)) {
+    var saveableEvents = $gameSystem._savedEvents[this._mapId];
+    if (!saveableEvents) return;
+    for (var eventId in saveableEvents) {
+      var event = this._events[eventId];
+      if (event) {
         callback(event);
       }
     }
+  };
+
+  //-----------------------------------------------------------------------------
+  // Game_Event
+
+  var Alias_Game_Event_initialize = Game_Event.prototype.initialize;
+  Game_Event.prototype.initialize = function(mapId, eventId) {
+    Alias_Game_Event_initialize.call(this, mapId, eventId);
+    this.initSaveable();
+  };
+
+  Game_Event.prototype.initSaveable = function() {
+    $gameSystem.loadEvent(this);
+    this._saveable = /<save>/i.test(this.notes()) || $dataMap.meta.saveEvents;
+    if (this._saveable) {
+      $gameSystem.saveEvent(this);
+    }
+  };
+
+  Game_Event.prototype.saveable = function() {
+    return this._saveable;
   };
 
   //-----------------------------------------------------------------------------
