@@ -7,19 +7,19 @@ var Imported = Imported || {};
 if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.4.0')) {
   alert('Error: QPathfind requires QPlus 1.4.0 or newer to work.');
   throw new Error('Error: QPathfind requires QPlus 1.4.0 or newer to work.');
-} else if (Imported.QMovement && !QPlus.versionCheck(Imported.QMovement, '1.1.9')) {
-  alert('Error: QPathfind requires QMovement 1.1.9 or newer to work.');
-  throw new Error('Error: QPathfind requires QMovement 1.1.9 or newer to work.');
+} else if (Imported.QMovement && !QPlus.versionCheck(Imported.QMovement, '1.5.0')) {
+  alert('Error: QPathfind requires QMovement 1.5.0 or newer to work.');
+  throw new Error('Error: QPathfind requires QMovement 1.5.0 or newer to work.');
 }
 
-Imported.QPathfind = '1.4.10';
+Imported.QPathfind = '1.4.11';
 
 //=============================================================================
 /*:
  * @plugindesc <QPathfind>
  * A* Pathfinding algorithm
- * @version 1.4.10
- * @author Quxios  | Version 1.4.10
+ * @version 1.4.11
+ * @author Quxios  | Version 1.4.11
  * @site https://quxios.github.io/
  * @updateurl https://quxios.github.io/data/pluginsMin.json
  *
@@ -646,7 +646,7 @@ function QPathfind() {
     var path = [node];
     while (node.parent) {
       var next = node.parent;
-      if (_ANYANGLE) {
+      if (_ANYANGLE && $gameMap.offGrid()) {
         while (next.parent && this.character().canPassToFrom(node.x, node.y, next.parent.x, next.parent.y, '_pathfind')) {
           next = next.parent;
         }
@@ -720,7 +720,7 @@ function QPathfind() {
       }
       var command = {};
       if (Imported.QMovement) {
-        if (_ANYANGLE) {
+        if (_ANYANGLE && $gameMap.offGrid()) {
           var radian = Math.atan2(-sy, -sx);
           if (radian < 0) radian += Math.PI * 2;
           dist = Math.sqrt(sx * sx + sy * sy);
@@ -930,7 +930,7 @@ function QPathfind() {
     };
 
     Game_CharacterBase.prototype.optTiles = function() {
-      if (!QMovement.offGrid) {
+      if (!$gameMap.offGrid()) {
         return this.moveTiles();
       }
       if (!this._optTiles) {
@@ -1099,15 +1099,26 @@ function QPathfind() {
 
     var Alias_Game_Player_moveByMouse = Game_Player.prototype.moveByMouse;
     Game_Player.prototype.moveByMouse = function(x, y) {
+      if (!Alias_Game_Player_moveByMouse.call(this, x, y)) {
+        return false;
+      }
       var half = QMovement.tileSize / 2;
-      this.initPathfind(x - half, y - half, {
+      var x2 = x - half;
+      var y2 = y - half;
+      var dx = Math.abs(this._px - x2);
+      var dy = Math.abs(this._py - y2);
+      if (dx + dy < this.optTiles()) {
+        this.clearMouseMove();
+        return false;
+      }
+      this.initPathfind(x2, y2, {
         smart: 2,
         earlyEnd: true,
         breakable: true,
         adjustEnd: true
       })
       $gameTemp.setPixelDestination(x, y);
-      Alias_Game_Player_moveByMouse.call(this, x, y);
+      return true;
     };
 
     var Alias_Game_Player_clearMouseMove = Game_Player.prototype.clearMouseMove;
@@ -1121,15 +1132,6 @@ function QPathfind() {
       if (this._movingWithMouse) {
         this.clearMouseMove();
       }
-    };
-
-    var Alias_Game_Player_triggerTouchAction = Game_Player.prototype.triggerTouchAction;
-    Game_Player.prototype.triggerTouchAction = function() {
-      var triggered = Alias_Game_Player_triggerTouchAction.call(this);
-      if (triggered && this._movingWithMouse) {
-        this.clearMouseMove();
-      }
-      return triggered;
     };
   }
 
