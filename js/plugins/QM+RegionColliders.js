@@ -9,18 +9,32 @@ if (!Imported.QMovement || !QPlus.versionCheck(Imported.QMovement, '1.1.0')) {
   throw new Error('Error: QM+RegionColliders requires QMovement 1.1.0 or newer to work.');
 }
 
-Imported.QMRegionColliders = '1.0.0';
+Imported.QMRegionColliders = '1.1.0';
 
 //=============================================================================
 /*:
  * @plugindesc <QMRegionColliders>
  * QMovement Addon: Allows you to add colliders on regions
- * @version 1.0.0
- * @author Quxios  | Version 1.0.0
+ * @version 1.1.0
+ * @author Quxios  | Version 1.1.0
  * @site https://quxios.github.io/
  * @updateurl https://quxios.github.io/data/pluginsMin.json
  *
  * @requires QMovement
+ * 
+ * @param json
+ * @text Use Json
+ * @desc (Legacy) Set this to true to use a Json file for
+ * creating region colliders
+ * @default false
+ * @type boolean
+ * 
+ * @param regionColliders
+ * @text Region Colliders
+ * @desc Apply a collider to a region
+ * These region colliders will override tile colliders
+ * @default []
+ * @type Struct<RegionCollider>[]
  *
  * @help
  * ============================================================================
@@ -33,10 +47,14 @@ Imported.QMRegionColliders = '1.0.0';
  * Region Colliders take priority over tiles. So if there's a region over a
  * tile, it will use the region collider instead of that tiles collider. With
  * this you can make certain impassable tiles passable by adding a passable
- * region collider ontop of it.
+ * region collider (width 0 and height 0) ontop of it.
  * ============================================================================
- * ## How to use
+ * ## How to use JSON
  * ============================================================================
+ * If you still prefer the old way by using a json file you still can as long
+ * as you enable the "Use Json" plugin parameter. You can use both a json
+ * and the "Region Colliders" parameter, they will be merged together.
+ * 
  * Create a json file called `RegionColliders.json` inside the data folder.
  * Once that file is made you'll need to set up the file
  * ----------------------------------------------------------------------------
@@ -111,19 +129,84 @@ Imported.QMRegionColliders = '1.0.0';
  *
  * @tags QM-Addon, collision
  */
+/*~struct~RegionCollider:
+ * @param id
+ * @text Region Id
+ * @desc Set to the region ID to apply this collider to
+ * @type Number
+ * @default 0
+ * 
+ * @param type
+ * @text Type
+ * @desc Set to box or circle
+ * @type select
+ * @option Box
+ * @value box
+ * @option Circle
+ * @value circle
+ * @default box
+ *
+ * @param width
+ * @text Width
+ * @desc Set to the width of the collider.
+ * @type Number
+ * @default 0
+ *
+ * @param height
+ * @text Height
+ * @desc Set to the height of the collider.
+ * @type Number
+ * @default 0
+ *
+ * @param ox
+ * @text Offset X
+ * @desc Set to the x offset of the collider.
+ * @type Number
+ * @default 0
+ *
+ * @param oy
+ * @text Offset Y
+ * @desc Set to the y offset of the collider.
+ * @type Number
+ * @default 0
+ * 
+ * @param note
+ * @text Note
+ * @desc Add notetags for this collider
+ * @type note
+ * @default 
+ */
 //=============================================================================
 
 //=============================================================================
 // QM RegionColliders
 
 (function() {
+  var _PARAMS = QPlus.getParams('<QMRegionColliders>', {
+    json: false,
+    regionColliders: []
+  })
 
-  QPlus.request('data/RegionColliders.json')
-    .onSuccess(function(json) {
-      QMovement.regionColliders = json;
-    })
-    .onError(function() {
-      QMovement.regionColliders = {};
-      alert('Failed to load ' + this.url);
-    })
+  _PARAMS.regionColliders.forEach(function(collider) {
+    var id = collider.id;
+    if (!QMovement.regionColliders[id]) {
+      QMovement.regionColliders[id] = [];
+    }
+    QMovement.regionColliders[id].push(collider);
+  })
+
+  if (_PARAMS.json) {
+    QPlus.request('data/RegionColliders.json')
+      .onSuccess(function(json) {
+        for (var id in json) {
+          if (!QMovement.regionColliders[id]) {
+            QMovement.regionColliders[id] = [];
+          }
+          QMovement.regionColliders[id] = QMovement.regionColliders[id].concat(json[id]);
+        }
+      })
+      .onError(function() {
+        alert('Failed to load ' + this.url);
+      })
+  }
 })()
