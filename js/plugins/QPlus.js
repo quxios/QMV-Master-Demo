@@ -3,14 +3,14 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QPlus = '1.5.0';
+Imported.QPlus = '1.6.0';
 
 //=============================================================================
 /*:
  * @plugindesc <QPlus> (Should go above all Q Plugins)
  * Some small changes to MV for easier plugin development.
- * @version 1.5.0
- * @author Quxios  | Version 1.5.0
+ * @version 1.6.0
+ * @author Quxios  | Version 1.6.0
  * @site https://quxios.github.io/
  * @updateurl https://quxios.github.io/data/pluginsMin.json
  *
@@ -350,6 +350,26 @@ function QPlus() {
       }
       return null;
     }
+  };
+
+  QPlus.charaIdToId = function(string) {
+    string = String(string).toLowerCase();
+    if (/^[0-9]+$/.test(string)) {
+      return Number(string);
+    } else if (/^(player|p)$/.test(string)) {
+      return 0;
+    } else {
+      var isEvent = /^(event|e)([0-9]+)$/.exec(string);
+      if (isEvent) {
+        return Number(isEvent[2]);
+      }
+      return null;
+    }
+  };
+
+  QPlus.compareCharaId = function(a, b) {
+    if (a === b) return true;
+    return this.charaIdToId(a) === this.charaIdToId(b);
   };
 
   /**
@@ -742,6 +762,14 @@ function SimpleTilemap() {
     }
   };
 
+  var reading = null;
+  var Alias_DataManager_onLoad = DataManager.onLoad;
+  DataManager.onLoad = function(object) {
+    reading = object;
+    Alias_DataManager_onLoad.call(this, object);
+    reading = null;
+  };
+
   var Alias_DataManager_extractMetadata = DataManager.extractMetadata;
   DataManager.extractMetadata = function(data) {
     Alias_DataManager_extractMetadata.call(this, data);
@@ -755,10 +783,10 @@ function SimpleTilemap() {
         break;
       }
     }
-    this.extractQData(data);
+    this.extractQData(data, reading);
   };
 
-  DataManager.extractQData = function(data) {
+  DataManager.extractQData = function(data, object) {
     // to be aliased by plugins
   };
 
