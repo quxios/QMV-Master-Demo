@@ -3,19 +3,22 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QYScale = '1.1.0';
+Imported.QYScale = '1.1.1';
 
-if (!Imported.QPlus) {
-  alert('Error: QYScale requires QPlus to work.');
-  throw new Error('Error: QYScale requires QPlus to work.');
+if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.6.0')) {
+  alert('Error: QYScale requires QPlus 1.6.0 or newer to work.');
+  throw new Error('Error: QYScale requires QPlus 1.6.0 or newer to work.');
+} else if (Imported.QMovement && !QPlus.versionCheck(Imported.QMovement, '1.6.0')) {
+  alert('Error: QYScale requires QMovement 1.6.0 or newer to work.');
+  throw new Error('Error: QYScale requires QMovement 1.6.0 or newer to work.');
 }
 
 //=============================================================================
 /*:
  * @plugindesc <QYScale>
  * Change characters scale based off their Y value
- * @version 1.1.0
- * @author Quxios  | Version 1.1.0
+ * @version 1.1.1
+ * @author Quxios  | Version 1.1.1
  * @site https://quxios.github.io/
  * @updateurl https://quxios.github.io/data/pluginsMin.json
  *
@@ -133,10 +136,14 @@ function QYScale() {
     Polygon_Collider.prototype.moveTo = function(x, y) {
       var oldY = this.y;
       Alias_Polygon_Collider_moveTo.call(this, x, y);
-      if (QYScale.enabled() && !this.isTile && oldY !== y) {
+      if (this.shouldYScale() && oldY !== y) {
         var scale = QYScale.at(y / QMovement.tileSize);
         this.setScale(scale, scale);
       }
+    };
+
+    Polygon_Collider.prototype.shouldYScale = function() {
+      return QYScale.enabled() && !this.isTile && !this.meta.noYScale;
     };
   }
 
