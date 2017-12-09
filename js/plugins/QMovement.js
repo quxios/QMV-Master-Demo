@@ -9,14 +9,14 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.6.0')) {
   throw new Error('Error: QMovement requires QPlus 1.6.0 or newer to work.');
 }
 
-Imported.QMovement = '1.5.0';
+Imported.QMovement = '1.6.0';
 
 //=============================================================================
 /*:
  * @plugindesc <QMovement>
  * More control over character movement
- * @version 1.5.0
- * @author Quxios  | Version 1.5.0
+ * @version 1.6.0
+ * @author Quxios  | Version 1.6.0
  * @site https://quxios.github.io/
  * @updateurl https://quxios.github.io/data/pluginsMin.json
  *
@@ -551,14 +551,16 @@ Imported.QMovement = '1.5.0';
  * Region Colliders is an addon for this plugin that lets you add colliders
  * to regions by creating a json file.
  * ============================================================================
- * ## Videos
+ * ## Showcase
  * ============================================================================
+ * This section is for user created stuff. If you created a video, game, tutorial,
+ * or an addon for QMovement feel free to send me a link and I'll showcase it here!
+ * ----------------------------------------------------------------------------
+ * **Videos**
+ * ----------------------------------------------------------------------------
  * Great example of using the collision map addon:
  *
  * https://www.youtube.com/watch?v=-BN4Pyr5IBo
- *
- * If you have a video you'd like to have listed here, feel free to send me a
- * link in the RPGMakerWebs thread! (link below)
  *
  * ============================================================================
  * ## Links
@@ -755,15 +757,37 @@ function Polygon_Collider() {
 (function() {
   Polygon_Collider._counter = 0;
 
-  Polygon_Collider.prototype.initialize = function(points, x, y) {
-    this._position = new Point(x || 0, y || 0);
+  Polygon_Collider.prototype.initialize = function(points) {
+    var args = [];
+    for (var i = 1; i < arguments.length; i++) {
+      args.push(arguments[i]);
+    }
+    this.initMembers.apply(this, args);
+    this.makeVertices(points);
+  };
+
+  Polygon_Collider.prototype.initMembers = function(x, y) {
+    x = x !== undefined ? x : 0;
+    y = y !== undefined ? y : 0;
+    this._position = new Point(x, y);
     this._scale = new Point(1, 1);
     this._offset = new Point(0, 0);
     this._pivot = new Point(0, 0);
     this._radian = 0;
+    this._note = '';
+    this.meta = {};
     this.id = Polygon_Collider._counter++;
-    this.makeVertices(points);
   };
+
+  Object.defineProperty(Polygon_Collider.prototype, 'note', {
+    get() {
+      return this._note;
+    },
+    set(note) {
+      this._note = note;
+      this.meta = QPlus.getMeta(note);
+    }
+  });
 
   Object.defineProperty(Polygon_Collider.prototype, 'x', {
     get() {
@@ -818,23 +842,36 @@ function Polygon_Collider() {
   Polygon_Collider.prototype.makeVertices = function(points) {
     this._vertices = [];
     this._baseVertices = [];
+    this._edges = [];
     this._vectors = [];
     this._xMin = null;
     this._xMax = null;
     this._yMin = null;
     this._yMax = null;
     for (var i = 0; i < points.length; i++) {
-      var x = points[i].x;
-      var y = points[i].y;
+      var x = points[i].x - this._pivot.x;
+      var y = points[i].y - this._pivot.y;
       var x2 = x + this.x + this.ox;
       var y2 = y + this.y + this.oy;
       this._vertices.push(new Point(x2, y2));
       this._baseVertices.push(new Point(x, y));
-      var dx = x - this._pivot.x;
-      var dy = y - this._pivot.y;
-      var radian = Math.atan2(dy, dx);
+      if (i !== 0) {
+        var prev = this._vertices[i - 1];
+        this._edges.push({
+          x1: prev.x, x2: x2,
+          y1: prev.y, y2: y2
+        })
+      }
+      if (i === points.length - 1) {
+        var first = this._vertices[0];
+        this._edges.push({
+          x1: x2, x2: first.x,
+          y1: y2, y2: first.y
+        })
+      }
+      var radian = Math.atan2(y, x);
       radian += radian < 0 ? Math.PI * 2 : 0;
-      var dist = Math.sqrt(dx * dx + dy * dy);
+      var dist = Math.sqrt(x * x + y * y);
       this._vectors.push({ radian, dist });
       if (this._xMin === null || this._xMin > x) {
         this._xMin = x;
@@ -857,7 +894,7 @@ function Polygon_Collider() {
   };
 
   Polygon_Collider.prototype.makeVectors = function() {
-    this._vectors = this._baseVertices.map((function (vertex) {
+    this._vectors = this._baseVertices.map((function(vertex) {
       var dx = vertex.x - this._pivot.x;
       var dy = vertex.y - this._pivot.y;
       var radian = Math.atan2(dy, dx);
@@ -901,6 +938,20 @@ function Polygon_Collider() {
       var vertex = this._vertices[i];
       vertex.x = this.x + this._baseVertices[i].x + this.ox;
       vertex.y = this.y + this._baseVertices[i].y + this.oy;
+      if (i !== 0) {
+        var prev = this._vertices[i - 1];
+        this._edges.push({
+          x1: prev.x, x2: vertex.x,
+          y1: prev.y, y2: vertex.y
+        })
+      }
+      if (i === j - 1) {
+        var first = this._vertices[0];
+        this._edges.push({
+          x1: vertex.x, x2: first.x,
+          y1: vertex.y, y2: first.y
+        })
+      }
     }
     this.setBounds();
   };
@@ -1026,6 +1077,13 @@ function Polygon_Collider() {
       y = this._vertices[i].y;
       if (other.containsPoint(x, y)) return true;
     }
+    // TODO add edge checking
+    /*
+    for (i = 0; i < this._edges.length; i++) {
+      for (j = 0; j < other._edges.length; j++) {
+
+      }
+    }*/
     return false;
   };
 
@@ -1057,6 +1115,25 @@ function Polygon_Collider() {
       j = i;
     }
     return odd;
+  };
+
+  Polygon_Collider.prototype.lineIntersection = function(lineA, lineB) {
+    var a1 = lineA.y1 - lineA.y2;
+    var b1 = lineA.x2 - lineA.x1;
+    var a2 = lineB.y1 - lineB.y2;
+    var b2 = lineB.x2 - lineB.x1;
+    var det = a1 * b2 - a2 * b1;
+    if (det == 0) {
+      return false;
+    }
+    var c1 = a1 * lineA.x1 + b1 * lineA.y1;
+    var c2 = a2 * lineB.x1 + b2 * lineB.y1;
+    var x = (b2 * c1 - b1 * c2) / det;
+    var y = (a1 * c2 - a2 * c1) / det;
+    // incomplete
+    // returns false if lines don't intersect
+    // x/y will return where or when they will intersect
+    return new Point(x, y);
   };
 
   // TODO Optimize this
@@ -1112,8 +1189,7 @@ function Polygon_Collider() {
     points.push(pointsB[bestPair[0]]);
     points.push(pointsB[bestPair[1]]);
     points.push(pointsA[bestPair[1]]);
-    var polygon = new Polygon_Collider(points, this.x, this.y);
-    return polygon;
+    return new Polygon_Collider(points, this.x, this.y);
   };
 })();
 
@@ -1128,23 +1204,26 @@ function Box_Collider() {
   Box_Collider.prototype = Object.create(Polygon_Collider.prototype);
   Box_Collider.prototype.constructor = Box_Collider;
 
-  Box_Collider.prototype.initialize = function(width, height, ox, oy) {
-    ox = ox !== undefined ? ox : 0;
-    oy = oy !== undefined ? oy : 0;
+  Box_Collider.prototype.initialize = function(width, height, ox, oy, options) {
     var points = [
       new Point(0, 0),
       new Point(width, 0),
       new Point(width, height),
       new Point(0, height)
     ];
-    this._position = new Point(0, 0);
-    this._scale = new Point(1, 1);
+    Polygon_Collider.prototype.initialize.call(this, points, width, height, ox, oy, options);
+  };
+
+  Box_Collider.prototype.initMembers = function(width, height, ox, oy, options) {
+    Polygon_Collider.prototype.initMembers.call(this, 0, 0);
+    ox = ox === undefined ? 0 : ox;
+    oy = oy === undefined ? 0 : oy;
+    options = options === undefined ? {} : options;
     this._offset = new Point(ox, oy);
-    this._pivot = new Point(width / 2, height / 2);
-    this._radian = 0;
-    this.id = Polygon_Collider._counter++;
-    this.makeVertices(points);
-    this.rotate(0); // readjusts the pivot
+    this._pivot = options.pivot || new Point(width / 2, height / 2);
+    this._scale = options.scale || this._scale;
+    this._radian = options.radian || this._radian;
+    this._position = options.position || this._position;
   };
 
   Box_Collider.prototype.isPolygon = function() {
@@ -1181,9 +1260,7 @@ function Circle_Collider() {
   Circle_Collider.prototype = Object.create(Polygon_Collider.prototype);
   Circle_Collider.prototype.constructor = Circle_Collider;
 
-  Circle_Collider.prototype.initialize = function(width, height, ox, oy) {
-    ox = ox !== undefined ? ox : 0;
-    oy = oy !== undefined ? oy : 0;
+  Circle_Collider.prototype.initialize = function(width, height, ox, oy, options) {
     this._radius = new Point(width / 2, height / 2);
     var points = [];
     for (var i = 7; i >= 0; i--) {
@@ -1192,15 +1269,10 @@ function Circle_Collider() {
       var y = this._radius.y + this._radius.y * -Math.sin(rad);
       points.push(new Point(x, y));
     }
-    this._position = new Point(0, 0);
-    this._scale  = new Point(1, 1);
-    this._offset = new Point(ox, oy);
-    this._pivot  = new Point(width / 2, height / 2);
-    this._radian = 0;
-    this.id = Polygon_Collider._counter++;
-    this.makeVertices(points);
-    this.rotate(0); // readjusts the pivot
+    Polygon_Collider.prototype.initialize.call(this, points, width, height, ox, oy, options);
   };
+
+  Circle_Collider.prototype.initMembers = Box_Collider.prototype.initMembers;
 
   Object.defineProperty(Circle_Collider.prototype, 'radiusX', {
     get() {
@@ -1368,7 +1440,7 @@ function ColliderManager() {
     var x, y;
     if (prevGrid) {
       if (currGrid.x1 == prevGrid.x1 && currGrid.y1 === prevGrid.y1 &&
-          currGrid.x2 == prevGrid.x2 && currGrid.y2 === prevGrid.y2) {
+        currGrid.x2 == prevGrid.x2 && currGrid.y2 === prevGrid.y2) {
         return;
       }
       for (x = prevGrid.x1; x <= prevGrid.x2; x++) {
@@ -1410,13 +1482,10 @@ function ColliderManager() {
     }
   };
 
-  // TODO create a similar function that gets
-  // characters that intersect with the collider passed in
   ColliderManager.getCharactersNear = function(collider, only) {
     var grid = collider.sectorEdge();
     var near = [];
-    var checked = [];
-    var isBreaking = false;
+    var checked = {};
     var x, y, i;
     for (x = grid.x1; x <= grid.x2; x++) {
       for (y = grid.y1; y <= grid.y2; y++) {
@@ -1424,34 +1493,31 @@ function ColliderManager() {
         if (y < 0 || y >= this.sectorRows()) continue;
         var charas = this._characterGrid[x][y];
         for (i = 0; i < charas.length; i++) {
-          if (checked.contains(charas[i])) {
+          if (checked[charas[i].charaId()]) {
             continue;
           }
-          checked.push(charas[i]);
+          checked[charas[i].charaId()] = true;
           if (only) {
-            var value = only(charas[i])
+            var value = only(charas[i]);
             if (value === 'break') {
               near.push(charas[i]);
               isBreaking = true;
-              break;
+              return near;
             } else if (value === false) {
               continue;
             }
           }
           near.push(charas[i]);
         }
-        if (isBreaking) break;
       }
-      if (isBreaking) break;
     }
-    only = null;
     return near;
   };
 
-  ColliderManager.getCollidersNear = function(collider, only) {
+  ColliderManager.getCollidersNear = function(collider, only, debug) {
     var grid = collider.sectorEdge();
-    var checked = [];
     var near = [];
+    var checked = {};
     var isBreaking = false;
     var x, y, i;
     for (x = grid.x1; x <= grid.x2; x++) {
@@ -1460,10 +1526,10 @@ function ColliderManager() {
         if (y < 0 || y >= this.sectorRows()) continue;
         var colliders = this._colliderGrid[x][y];
         for (i = 0; i < colliders.length; i++) {
-          if (checked.contains(colliders[i])) {
+          if (checked[colliders[i].id]) {
             continue;
           }
-          checked.push(colliders[i]);
+          checked[colliders[i].id] = true;
           if (only) {
             var value = only(colliders[i]);
             if (value === 'break') {
@@ -1481,6 +1547,49 @@ function ColliderManager() {
       if (isBreaking) break;
     }
     only = null;
+    return near;
+  };
+
+  ColliderManager.getAllNear = function(collider, only) {
+    var grid = collider.sectorEdge();
+    var near = [];
+    var checked = {};
+    var x, y, i;
+    for (x = grid.x1; x <= grid.x2; x++) {
+      for (y = grid.y1; y <= grid.y2; y++) {
+        if (x < 0 || x >= this.sectorCols()) continue;
+        if (y < 0 || y >= this.sectorRows()) continue;
+        var charas = this._characterGrid[x][y];
+        var colliders = this._colliderGrid[x][y];
+        for (i = 0; i < charas.length + colliders.length; i++) {
+          var type = i >= charas.length ? 'collider' : 'chara';
+          var obj;
+          if (type === 'chara') {
+            obj = charas[i];
+            if (checked[obj.charaId()]) {
+              continue;
+            }
+            checked[obj.charaId()] = true;
+          } else {
+            obj = colliders[i - charas.length];
+            if (checked[obj.id]) {
+              continue;
+            }
+            checked[obj.id] = true;
+          }
+          if (only) {
+            var value = only(type, obj);
+            if (value === 'break') {
+              near.push(obj);
+              return near;
+            } else if (value === false) {
+              continue;
+            }
+          }
+          near.push(obj);
+        }
+      }
+    }
     return near;
   };
 
@@ -1555,6 +1664,17 @@ function ColliderManager() {
       return null;
     }
     return collider;
+  };
+
+  ColliderManager.rayCast = function(origin, angle, dist, filter) {
+    // Incomplete
+    // need to finish the Polygon_Collider.prototype.lineIntersection function
+    var ray = new Box_Collider(dist, 1, 0, 0, {
+      pivot: new Point(0, 0.5),
+      position: origin
+    });
+    //this.draw(ray, 600);
+    return this.getAllNear(ray, filter);
   };
 })();
 
@@ -1861,7 +1981,6 @@ function ColliderManager() {
       return;
     }
     newBox.isTile = true;
-    newBox.moveTo(x1, y1);
     newBox.note = boxData[4] || '';
     newBox.flag = flag;
     newBox.terrain = flag >> 12;
@@ -1872,6 +1991,7 @@ function ColliderManager() {
     newBox.isBush = (flag & 0x40) || /<bush>/i.test(newBox.note);
     newBox.isCounter = (flag & 0x80) || /<counter>/i.test(newBox.note);
     newBox.isDamage = (flag & 0x100) || /<damage>/i.test(newBox.note);
+    newBox.moveTo(x1, y1);
     var vx = x * this.height() * this.width();
     var vy = y * this.height();
     var vz = index;
@@ -1976,18 +2096,6 @@ function ColliderManager() {
 
 (function() {
   Object.defineProperties(Game_CharacterBase.prototype, {
-    x: {
-      get: function() {
-        return Math.floor(this.cx() / QMovement.tileSize);
-      },
-      configurable: true
-    },
-    y: {
-      get: function() {
-        return Math.floor(this.cy() / QMovement.tileSize);
-      },
-      configurable: true
-    },
     px: {
       get: function() { return this._px; },
       configurable: true
