@@ -143,7 +143,7 @@ function QYScale() {
     };
 
     Polygon_Collider.prototype.shouldYScale = function() {
-      return QYScale.enabled() && !this.isTile && !this.meta.noYScale;
+      return QYScale.enabled() && !this.isTile && !this.isMapObj && !this.meta.noYScale;
     };
   }
 
