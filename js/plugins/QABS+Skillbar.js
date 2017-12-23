@@ -9,14 +9,14 @@ if (!Imported.QABS || !QPlus.versionCheck(Imported.QABS, '1.4.0')) {
   throw new Error('Error: QABS+Skillbar requires QABS 1.4.0 or newer to work.');
 }
 
-Imported.QABS_Skillbar = '1.0.2';
+Imported.QABS_Skillbar = '2.0.0';
 
 //=============================================================================
 /*:
  * @plugindesc <QABSSkillbar>
  * QABS Addon: Adds a skillbar
- * @version 1.0.2
- * @author Quxios  | Version 1.0.2
+ * @version 2.0.0
+ * @author Quxios  | Version 2.0.0
  * @site https://quxios.github.io/
  * @updateurl https://quxios.github.io/data/pluginsMin.json
  * 
@@ -50,11 +50,12 @@ Imported.QABS_Skillbar = '1.0.2';
  * ============================================================================
  * To turn on the skillbar use the plugin command:
  * ~~~
- *  QABS skillbar show
+ * QABS skillbar show
  * ~~~
+ * 
  * To hide the skillbar, use:
  * ~~~
- *  QABS skillbar hide
+ * QABS skillbar hide
  * ~~~
  * ============================================================================
  * ## Links
@@ -84,6 +85,10 @@ function QABSSkillbar() {
 }
 
 function Sprite_Skillbar() {
+  this.initialize.apply(this, arguments);
+}
+
+function Sprite_SkillButton() {
   this.initialize.apply(this, arguments);
 }
 
@@ -138,21 +143,9 @@ function Sprite_SkillInfo() {
     this._showSkillbar = false;
   };
 
-  var Alias_Game_System_loadClassABSKeys = Game_System.prototype.loadClassABSKeys;
-  Game_System.prototype.loadClassABSKeys = function() {
-    Alias_Game_System_loadClassABSKeys.call(this);
-    QABSSkillbar.requestRefresh = true;
-  };
-
   var Alias_Game_System_resetABSKeys = Game_System.prototype.resetABSKeys;
   Game_System.prototype.resetABSKeys = function() {
     Alias_Game_System_resetABSKeys.call(this);
-    QABSSkillbar.requestRefresh = true;
-  };
-
-  var Alias_Game_System_changeABSSkillInput = Game_System.prototype.changeABSSkillInput;
-  Game_System.prototype.changeABSSkillInput = function(skillNumber, input) {
-    Alias_Game_System_changeABSSkillInput.call(this, skillNumber, input);
     QABSSkillbar.requestRefresh = true;
   };
 
@@ -195,188 +188,274 @@ function Sprite_SkillInfo() {
   Sprite_Skillbar.prototype.initialize = function() {
     Sprite_Base.prototype.initialize.call(this);
     this.y = Graphics.height - 36;
-    this._buttons = [];
     this._over = 0;
-    this._absKeys = $gameSystem.absKeys();
     this._actorId = $gameParty.leader()._actorId;
+    this.requestPositionUpdate = true;
     this.createKeys();
   };
 
   Sprite_Skillbar.prototype.createKeys = function() {
-    if (this._buttons.length > 0) this.removeKeys();
-    for (var key in this._absKeys) {
-      if (!this._absKeys[key] && !_SHOW_UNASSIGNED) continue;
-      var skillId = this._absKeys[key] ? this._absKeys[key].skillId : null;
-      var inputs = this._absKeys[key] ? this._absKeys[key].input : null;
-      var input = inputs[0];
-      if (Imported.QInput) {
-        for (var i = 0; i < inputs.length; i++) {
-          var isGamepad = /^\$/.test(inputs[i]);
-          if (Input.preferGamepad() && isGamepad) {
-            input = inputs[i];
-            break;
-          } else if (!Input.preferGamepad() && !isGamepad) {
-            input = inputs[i];
-            break;
-          }
-        }
+    this._buttons = [];
+    for (var key in $gameSystem.absKeys()) {
+      var button = new Sprite_SkillButton(key);
+      if (this._buttons.length !== 0) {
+        button.prev = this._buttons[this._buttons.length - 1]
       }
-      this.createSkill(skillId, input);
+      this._buttons.push(button);
+      this.addChild(button);
     }
-    var w1 = Graphics.width / 2;
-    var w2 = (this._buttons.length * 36) / 2;
-    this.x = w1 - w2;
-  };
-
-  Sprite_Skillbar.prototype.removeKeys = function() {
-    for (var i = this._buttons.length - 1; i >= 0; i--) {
-      this.removeChild(this._buttons[i]);
-      this._buttons.splice(i, 1);
-    }
-  };
-
-  Sprite_Skillbar.prototype.createSkill = function(skillId, input) {
-    var button = new Sprite_Button();
-    // Black box under icon
-    button._frame = this.createButtonFrame();
-    button.addChild(button._frame);
-    // Skill Icon
-    button._icon = this.createButtonIcon(skillId);
-    button.addChild(button._icon);
-    // Black box over icon, size changes based off cooldown
-    button._cooldown = this.createButtonFrame();
-    button._cooldown.alpha = 0.5;
-    button._cooldown.height = 0;
-    button.addChild(button._cooldown);
-    // Hover frame
-    button._hover = this.createButtonHover();
-    button._hover.alpha = 0;
-    button.addChild(button._hover);
-    // Skill Key text
-    button._input = this.createButtonInput(input);
-    button.addChild(button._input);
-    // Skill info
-    if (skillId) {
-      button._info = new Sprite_SkillInfo(skillId);
-      button.addChild(button._info);
-    }
-    var x = 36 * this._buttons.length;
-    button.x = x;
-    button._skillId = skillId;
-    button.setClickHandler(this.onButtonDown.bind(this, skillId));
-    this._buttons.push(button);
-    this.addChild(button);
-  };
-
-  Sprite_Skillbar.prototype.createButtonFrame = function() {
-    var frame = new Sprite();
-    frame.bitmap = new Bitmap(34, 34);
-    frame.bitmap.fillAll('#000000');
-    frame.alpha = 0.3;
-    return frame;
-  };
-
-  Sprite_Skillbar.prototype.createButtonIcon = function(skillId) {
-    var skill = $dataSkills[skillId];
-    var icon = new Sprite_Icon(skill ? skill.iconIndex : 0);
-    if (!skill || (!$gameParty.leader().isLearnedSkill(skillId) &&
-      !$gameParty.leader().addedSkills().contains(skillId))) {
-      icon.alpha = 0.5;
-    }
-    return icon;
-  };
-
-  Sprite_Skillbar.prototype.createButtonHover = function() {
-    var frame = new Sprite();
-    frame.bitmap = new Bitmap(34, 34);
-    var color1 = 'rgba(255, 255, 255, 0.9)';
-    var color2 = 'rgba(255, 255, 255, 0)';
-    frame.bitmap.gradientFillRect(0, 0, 8, 34, color1, color2);
-    frame.bitmap.gradientFillRect(26, 0, 8, 34, color2, color1);
-    frame.bitmap.gradientFillRect(0, 0, 34, 8, color1, color2, true);
-    frame.bitmap.gradientFillRect(0, 26, 34, 8, color2, color1, true);
-    return frame;
-  };
-
-  Sprite_Skillbar.prototype.createButtonInput = function(input) {
-    var sprite = new Sprite();
-    if (!input) return sprite;
-    sprite.bitmap = new Bitmap(34, 34);
-    input = input.replace('#', '');
-    input = input.replace('$', '');
-    input = input.replace('mouse', 'M');
-    sprite.bitmap.fontSize = 14;
-    sprite.bitmap.drawText(input, 2, 8, 34, 34, 'enter');
-    return sprite;
-  };
-
-  Sprite_Skillbar.prototype.onButtonDown = function(skillId) {
-    if (!skillId) return;
-    $gamePlayer.useSkill(skillId);
-  };
-
-  Sprite_Skillbar.prototype.onButtonHover = function(button) {
-    var twoAmp = 1;
-    var count = button._count * 0.02;
-    var newAlpha = 0.9 - Math.abs(count % twoAmp - (twoAmp / 2));
-    button._hover.alpha = newAlpha;
-    if (button._info) button._info.alpha = 1;
   };
 
   Sprite_Skillbar.prototype.update = function() {
-    Sprite_Base.prototype.update.call(this);
     if (!$gameSystem._showSkillbar) {
       QABSSkillbar.over = false;
       this.visible = false;
       return;
     }
-    if (this.needsRefresh()) {
-      this.createKeys();
-    }
-    this._over = 0;
-    for (var i = 0; i < this._buttons.length; i++) {
-      this.updateButton(this._buttons[i]);
-    }
-    QABSSkillbar.over = this._over > 0;
-  };
-
-  Sprite_Skillbar.prototype.updateButton = function(button) {
-    if (button.isButtonTouched()) {
-      this.onButtonHover(button);
-      button._count++;
-      this._over++;
-    } else {
-      button._count = 0;
-      button._hover.alpha = 0;
-      if (button._info) button._info.alpha = 0;
-    }
-    var skillId = button._skillId;
-    if (!skillId) return;
-    var cd = $gamePlayer._skillCooldowns[skillId];
-    if (cd) {
-      var settings = QABS.getSkillSettings($dataSkills[skillId]);
-      var newH = cd / settings.cooldown;
-      button._cooldown.height = 34 * newH;
-    } else {
-      button._cooldown.height = 0;
-    }
-  };
-
-  Sprite_Skillbar.prototype.needsRefresh = function() {
+    this.visible = true;
+    QABSSkillbar.over = false;
     if (this._actorId !== $gameParty.leader()._actorId) {
       this._actorId = $gameParty.leader()._actorId;
-      this._absKeys = $gameSystem.absKeys();
-      return true;
+      QABSSkillbar.requestRefresh = true;
     }
-    if (QABSSkillbar.requestRefresh) {
-      QABSSkillbar.requestRefresh = false;
-      this._absKeys = $gameSystem.absKeys();
-      return true;
+    Sprite_Base.prototype.update.call(this);
+    QABSSkillbar.requestRefresh = false;
+    if (this.requestPositionUpdate) {
+      var width = 0;
+      this.requestPositionUpdate = false;
+      for (var i = 0; i < this._buttons.length; i++) {
+        this._buttons[i].updatePosition();
+        if (this._buttons[i].visible) width += 36;
+      }
+      this.x = (Graphics.width - width) / 2;
+    }
+  };
+
+  //-----------------------------------------------------------------------------
+  // Sprite_SkillButton
+
+  Sprite_SkillButton.prototype = Object.create(Sprite_Button.prototype);
+  Sprite_SkillButton.prototype.constructor = Sprite_SkillButton;
+
+  Sprite_SkillButton.prototype.initialize = function(key) {
+    Sprite_Button.prototype.initialize.call(this);
+    this._key = key;
+    this._skillId = 0;
+    this._skill = null;
+    this._skillSettings = null;
+    this._preferGamePad = false;
+    this._count = 0;
+    this.width = 34;
+    this.height = 34;
+    this.setup();
+  };
+
+  Sprite_SkillButton.prototype.setSkillId = function(id) {
+    this._skillId = id;
+    this._skill = $dataSkills[id] || null;
+    this._skillSettings = this._skill ? QABS.getSkillSettings(this._skill) : null;
+  };
+
+  Sprite_SkillButton.prototype.setup = function() {
+    this.createFrame();
+    this.createIcon();
+    this.createOverlayFrame();
+    this.createHover();
+    this.createInput();
+    this.createInfo();
+  };
+
+  Sprite_SkillButton.prototype.createFrame = function() {
+    // Black bg for the button
+    this._spriteFrame = new Sprite();
+    this._spriteFrame.bitmap = new Bitmap(34, 34);
+    this._spriteFrame.bitmap.fillAll('#000000');
+    this._spriteFrame.alpha = 0.3;
+    this.addChild(this._spriteFrame);
+  };
+
+  Sprite_SkillButton.prototype.createIcon = function() {
+    this._spriteIcon = new Sprite_Icon(0);
+    this.addChild(this._spriteIcon);
+  };
+
+  Sprite_SkillButton.prototype.createOverlayFrame = function() {
+    // Black bg used for cooldown
+    this._spriteCooldown = new Sprite();
+    this._spriteCooldown.bitmap = new Bitmap(34, 34);
+    this._spriteCooldown.bitmap.fillAll('#000000');
+    this._spriteCooldown.alpha = 0.5;
+    this._spriteCooldown.height = 0;
+    this._spriteCooldown.visible = false;
+    this.addChild(this._spriteCooldown);
+  };
+
+  Sprite_SkillButton.prototype.createHover = function() {
+    // sprite when hovering over button
+    this._spriteHoverFrame = new Sprite();
+    this._spriteHoverFrame.bitmap = new Bitmap(34, 34);
+    var color1 = 'rgba(255, 255, 255, 0.9)';
+    var color2 = 'rgba(255, 255, 255, 0)';
+    this._spriteHoverFrame.bitmap.gradientFillRect(0, 0, 8, 34, color1, color2);
+    this._spriteHoverFrame.bitmap.gradientFillRect(26, 0, 8, 34, color2, color1);
+    this._spriteHoverFrame.bitmap.gradientFillRect(0, 0, 34, 8, color1, color2, true);
+    this._spriteHoverFrame.bitmap.gradientFillRect(0, 26, 34, 8, color2, color1, true);
+    this._spriteHoverFrame.visible = false;
+    this.addChild(this._spriteHoverFrame);
+  };
+
+  Sprite_SkillButton.prototype.createInput = function() {
+    this._spriteInput = new Sprite();
+    this._spriteInput.bitmap = new Bitmap(34, 34);
+    this._spriteInput.bitmap.fontSize = 14;
+    this.addChild(this._spriteInput);
+  };
+
+  Sprite_SkillButton.prototype.createInfo = function() {
+    this._spriteInfo = new Sprite_SkillInfo();
+    this._spriteInfo.visible = false;
+    this.addChild(this._spriteInfo);
+  };
+
+  Sprite_SkillButton.prototype.callClickHandler = function() {
+    if (!this._skillId) {
+      return;
+    }
+    $gamePlayer.useSkill(this._skillId);
+  };
+
+  Sprite_SkillButton.prototype.update = function() {
+    Sprite_Button.prototype.update.call(this);
+    if (!_SHOW_UNASSIGNED) {
+      this.updateVisiblity();
+    }
+    if (!this.visible) {
+      return;
+    }
+    if (this.needsRefresh()) {
+      this.refresh();
     }
     if (Imported.QInput && this._preferGamePad !== Input.preferGamepad()) {
       this._preferGamePad = Input.preferGamepad();
-      return true;
+      this.refreshInput();
     }
+    if (this.isButtonTouched()) {
+      this.updateHover();
+    } else {
+      this.updateOff();
+    }
+    this.updateCooldown();
+  };
+
+  Sprite_SkillButton.prototype.updateVisiblity = function() {
+    var id = $gameSystem.absKeys()[this._key].skillId;
+    var oldVisible = this.visible;
+    this.visible = !!id;
+    if (oldVisible !== this.visible) {
+      this.parent.requestPositionUpdate = true;
+    }
+  };
+
+  Sprite_SkillButton.prototype.updatePosition = function() {
+    var key = Number(this._key) - 1;
+    var prev = this.prev;
+    while (prev) {
+      if (!prev.visible) key--;
+      prev = prev.prev;
+    }
+    this.x = key * 36;
+  };
+
+  Sprite_SkillButton.prototype.updateHover = function() {
+    QABSSkillbar.over = true;
+    this._count++;
+    var twoAmp = 1;
+    var count = this._count * 0.02;
+    var newAlpha = 0.9 - Math.abs(count % twoAmp - (twoAmp / 2));
+    this._spriteHoverFrame.alpha = newAlpha;
+    this._spriteHoverFrame.visible = true;
+    this._spriteInfo.visible = true;
+  };
+
+  Sprite_SkillButton.prototype.updateOff = function() {
+    this._count = 0;
+    this._spriteHoverFrame.visible = false;
+    this._spriteInfo.visible = false;
+  };
+
+  Sprite_SkillButton.prototype.updateCooldown = function() {
+    if (!this._skillId) {
+      return;
+    }
+    var cd = $gamePlayer._skillCooldowns[this._skillId];
+    if (cd) {
+      var newH = cd / this._skillSettings.cooldown;
+      this._spriteCooldown.visible = true;
+      this._spriteCooldown.height = 34 * newH;
+    } else {
+      this._spriteCooldown.visible = false;
+      this._spriteCooldown.height = 0;
+    }
+  };
+
+  Sprite_SkillButton.prototype.needsRefresh = function() {
+    if (QABSSkillbar.requestRefresh) {
+      return this._skillId !== $gameSystem.absKeys()[this._key];
+    }
+    return false;
+  };
+
+  Sprite_SkillButton.prototype.needsPosRefresh = function() {
+    if (QABSSkillbar.requestRefresh) {
+
+    }
+    return false;
+  };
+
+  Sprite_SkillButton.prototype.refresh = function() {
+    var absKey = $gameSystem.absKeys()[this._key];
+    this.setSkillId(absKey.skillId);
+    this.refreshIcon();
+    this.refreshInput();
+    this.refreshInfo();
+  };
+
+  Sprite_SkillButton.prototype.refreshIcon = function() {
+    this._spriteIcon._iconIndex = this._skill ? this._skill.iconIndex : 0;
+    this._spriteIcon.setBitmap();
+    if (!this._skill || (!$gameParty.leader().isLearnedSkill(this._skill.id) &&
+      !$gameParty.leader().addedSkills().contains(this._skill.id))) {
+      this._spriteIcon.alpha = 0.5;
+    } else {
+      this._spriteIcon.alpha = 1;
+    }
+  };
+
+  Sprite_SkillButton.prototype.refreshInput = function() {
+    var absKey = $gameSystem.absKeys()[this._key];
+    var input = absKey.input[0] || '';
+    if (Imported.QInput) {
+      var inputs = absKey.input;
+      for (var i = 0; i < inputs.length; i++) {
+        var isGamepad = /^\$/.test(inputs[i]);
+        if (Input.preferGamepad() && isGamepad) {
+          input = inputs[i];
+          break;
+        } else if (!Input.preferGamepad() && !isGamepad) {
+          input = inputs[i];
+          break;
+        }
+      }
+    }
+    input = input.replace('#', '');
+    input = input.replace('$', '');
+    input = input.replace('mouse', 'M');
+    this._spriteInput.bitmap.clear();
+    this._spriteInput.bitmap.drawText(input, 0, 8, 34, 34, 'center');
+  };
+
+  Sprite_SkillButton.prototype.refreshInfo = function() {
+    this._spriteInfo.set(this._skillId);
   };
 
   //-----------------------------------------------------------------------------
@@ -392,8 +471,13 @@ function Sprite_SkillInfo() {
     this.y = -this.height;
     this._skillId = skillId;
     this._skill = $dataSkills[skillId];
-    if (!this._skill) return;
-    this.createBackground();
+    this.drawInfo();
+  };
+
+  Sprite_SkillInfo.prototype.set = function(skillId) {
+    if (this._skillId === skillId) return;
+    this._skillId = skillId;
+    this._skill = $dataSkills[skillId];
     this.drawInfo();
   };
 
@@ -403,6 +487,8 @@ function Sprite_SkillInfo() {
   };
 
   Sprite_SkillInfo.prototype.drawInfo = function() {
+    this.createBackground();
+    if (!this._skill) return;
     this._realHeight = 4;
     // Draw the details
     this.drawName(0, 0);
