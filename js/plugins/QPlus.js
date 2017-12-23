@@ -3,20 +3,19 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QPlus = '1.6.0';
+Imported.QPlus = '1.7.0';
 
 //=============================================================================
 /*:
  * @plugindesc <QPlus> (Should go above all Q Plugins)
  * Some small changes to MV for easier plugin development.
- * @version 1.6.0
- * @author Quxios  | Version 1.6.0
+ * @version 1.7.0
+ * @author Quxios  | Version 1.7.0
  * @site https://quxios.github.io/
  * @updateurl https://quxios.github.io/data/pluginsMin.json
  *
  * @param Quick Test
- * @desc Enable quick testing.
- * Set to true or false
+ * @desc When true, game will skip title screen and start a new game
  * @type Boolean
  * @default true
  *
@@ -24,6 +23,12 @@ Imported.QPlus = '1.6.0';
  * @desc Turns on a list of switches on new game
  * @type switch[]
  * @default []
+ * 
+ * @param Ignore Mouse when inactive
+ * @desc When true, the game window will ignore mouse input when the game
+ * isn't focused / active
+ * @type Boolean
+ * @default false
  *
  * @help
  * ============================================================================
@@ -40,7 +45,7 @@ Imported.QPlus = '1.6.0';
  * Adding the following to the notes or in a comment will make that event retain
  * its direction when changing pages.
  * ~~~
- *  <retainDir>
+ * <retainDir>
  * ~~~
  * This will be ignored if the next page has direction fix enabled
  *
@@ -49,7 +54,7 @@ Imported.QPlus = '1.6.0';
  * ----------------------------------------------------------------------------
  * You can disable the tile map by adding this note to a map
  * ~~~
- *  <noTilemap>
+ * <noTilemap>
  * ~~~
  * This will replace the tilemap with a simple light weight sprite container.
  * Using this may increase performance. So if you have a map that doesn't use
@@ -62,6 +67,7 @@ Imported.QPlus = '1.6.0';
  * ## Format Plugin Commands
  * ============================================================================
  * These formating options are only applied to QPlugins!
+ * 
  * ----------------------------------------------------------------------------
  * **Spaces in arg**
  * ----------------------------------------------------------------------------
@@ -69,7 +75,7 @@ Imported.QPlus = '1.6.0';
  * example when passing a file name. To do this you just need to wrap it in quotes
  * and it'll be passed as a single arg, ex:
  * ~~~
- *  qPlugin cmd arg1 "arg2 with a space" arg3
+ * qPlugin cmd arg1 "arg2 with a space" arg3
  * ~~~
  *
  * ----------------------------------------------------------------------------
@@ -84,7 +90,7 @@ Imported.QPlus = '1.6.0';
  * 
  * Example:
  * ~~~
- *  qPlugin cmd arg1 chara{v1}
+ * qPlugin cmd arg1 chara{v1}
  * ~~~
  * When the plugin command runs the {v1} will get replaced with the value of
  * variable 1. If the value of variable 1 is 10, , then your plugin command will
@@ -101,7 +107,7 @@ Imported.QPlus = '1.6.0';
  *
  * Example:
  * ~~~
- *  qPlugin cmd arg1 {s1}
+ * qPlugin cmd arg1 {s1}
  * ~~~
  * When the plugin command runs the {s1} will get replaced with the value of
  * switch 1. If the value of switch 1 is true, then your plugin command will
@@ -114,7 +120,7 @@ Imported.QPlus = '1.6.0';
  * ----------------------------------------------------------------------------
  * This plugin command will insert a random wait between x and y frames.
  * ~~~
- *  wait X Y
+ * wait X Y
  * ~~~
  * If Y is left empty, it will make a random wait between 0 - X
  *
@@ -125,7 +131,7 @@ Imported.QPlus = '1.6.0';
  * locking I mean you can lock their movement, or movement and character
  * animation.
  * ~~~
- *  globalLock LEVEL [CHARACTERS] [options]
+ * globalLock LEVEL [CHARACTERS] [options]
  * ~~~
  * - LEVEL: The level of global lock
  *  * 0: clears the global lock
@@ -144,24 +150,24 @@ Imported.QPlus = '1.6.0';
  * **Global lock Examples**
  * ----------------------------------------------------------------------------
  * ~~~
- *  globalLock 2
+ * globalLock 2
  * ~~~
  * Will lock all characters movement and animations.
  *
  * ~~~
- *  globalLock 1 0 1 4
- *  globalLock 1 p e1 e4
- *  globalLock 1 player event1 event4
+ * globalLock 1 0 1 4
+ * globalLock 1 p e1 e4
+ * globalLock 1 player event1 event4
  * ~~~
  * (Note: All 3 are the same, just using a different character id method)
  *
  * Will Lock the movements for all characters except:
  * Player, event 1 and event 4
- *
+ * 
  * ~~~
- *  globalLock 1 0 1 4 only
- *  globalLock 1 p e1 e4 only
- *  globalLock 1 player event1 event4 only
+ * globalLock 1 0 1 4 only
+ * globalLock 1 p e1 e4 only
+ * globalLock 1 player event1 event4 only
  * ~~~
  * Will Lock the movements for only these characters:
  * Player, event 1 and event 4
@@ -212,11 +218,16 @@ function QPlus() {
       return p.description.contains(id) && p.status
     });
     var hasDefaults = typeof convert === 'object';
-    if (!plugin[0]) return hasDefaults ? convert : {};
-    var params = Object.assign({}, hasDefaults ? convert : {}, plugin[0].parameters);
+    if (!plugin[0]) {
+      return hasDefaults ? convert : {};
+    }
+    var params = Object.assign(
+      hasDefaults ? convert : {},
+      plugin[0].parameters
+    );
     if (convert) {
       for (var param in params) {
-        params[param] = this.stringToType(params[param]);
+        params[param] = this.stringToType(String(params[param]));
         if (hasDefaults && convert[param] !== undefined) {
           if (convert[param].constructor !== params[param].constructor) {
             var err = 'Plugin Parameter value error. ' + id + ', Parameter: ' + param;
@@ -655,8 +666,46 @@ function SimpleTilemap() {
 
   var _PARAMS = QPlus.getParams('<QPlus>', {
     'Quick Test': false,
-    'Default Enabled Switches': []
+    'Default Enabled Switches': [],
+    'Ignore Mouse when inactive': false
   });
+
+  //-----------------------------------------------------------------------------
+  // Window
+
+  if (_PARAMS['Ignore Mouse when inactive']) {
+    var isFocused = true;
+    var focusWaiter;
+
+    window.addEventListener('focus', function(e) {
+      if (focusWaiter) {
+        QPlus.removeWaitListener(focusWaiter);
+      }
+      focusWaiter = QPlus.wait(1)
+        .then(function() {
+          TouchInput.stopPropagation();
+          isFocused = true;
+          focusWaiter = null;
+        })
+    })
+
+    window.addEventListener('blur', function(e) {
+      if (focusWaiter) {
+        QPlus.removeWaitListener(focusWaiter);
+        focusWaiter = null;
+      }
+      isFocused = false;
+    })
+
+    var Alias_TouchInput_update = TouchInput.update;
+    TouchInput.update = function() {
+      if (!isFocused) {
+        this.clear();
+        return;
+      }
+      Alias_TouchInput_update.call(this);
+    }
+  }
 
   //-----------------------------------------------------------------------------
   // Document body
