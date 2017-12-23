@@ -9,14 +9,14 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.6.0')) {
   throw new Error('Error: QMovement requires QPlus 1.6.0 or newer to work.');
 }
 
-Imported.QMovement = '1.6.0';
+Imported.QMovement = '1.6.1';
 
 //=============================================================================
 /*:
  * @plugindesc <QMovement>
  * More control over character movement
- * @version 1.6.0
- * @author Quxios  | Version 1.6.0
+ * @version 1.6.1
+ * @author Quxios  | Version 1.6.1
  * @site https://quxios.github.io/
  * @updateurl https://quxios.github.io/data/pluginsMin.json
  *
@@ -933,6 +933,7 @@ function Polygon_Collider() {
   };
 
   Polygon_Collider.prototype.refreshVertices = function() {
+    this._edges = [];
     var i, j;
     for (i = 0, j = this._vertices.length; i < j; i++) {
       var vertex = this._vertices[i];
