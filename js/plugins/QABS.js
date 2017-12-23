@@ -9,14 +9,14 @@ if (!Imported.QMovement || !QPlus.versionCheck(Imported.QMovement, '1.4.0')) {
   throw new Error('Error: QABS requires QMovement 1.4.0 or newer to work.');
 }
 
-Imported.QABS = '1.6.0';
+Imported.QABS = '1.6.1';
 
 //=============================================================================
 /*:
  * @plugindesc <QABS>
  * Action Battle System for QMovement
- * @version 1.6.0
- * @author Quxios  | Version 1.6.0
+ * @version 1.6.1
+ * @author Quxios  | Version 1.6.1
  * @site https://quxios.github.io/
  * @updateurl https://quxios.github.io/data/pluginsMin.json
  *
@@ -3507,10 +3507,12 @@ function Skill_Sequencer() {
   };
 
   Game_Event.prototype.canSeeThroughChara = function(chara) {
-    if (typeof chara.team === 'function' && chara.team() === this.team()) {
-      return true;
-    } else if (this._isDead || (typeof chara.battler === 'function' && chara.battler() && chara.battler().isDead())) {
-      return true;
+    if (this._battler) {
+      if (chara.team() === this.team()) {
+        return true;
+      } else if (this._isDead || (chara.battler() && chara.battler().isDead())) {
+        return true;
+      }
     }
     return Game_CharacterBase.prototype.canSeeThroughChara.call(this, chara);
   };
