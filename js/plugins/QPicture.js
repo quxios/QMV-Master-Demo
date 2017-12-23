@@ -9,14 +9,14 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.4.4')) {
   throw new Error('Error: QPicture requires QPlus 1.4.4 or newer to work.');
 }
 
-Imported.QPicture = '1.1.2';
+Imported.QPicture = '1.1.3';
 
 //=============================================================================
 /*:
  * @plugindesc <QPicture>
  * Adds additional features to Pictures
- * @version 1.1.2
- * @author Quxios  | Version 1.1.2
+ * @version 1.1.3
+ * @author Quxios  | Version 1.1.3
  * @site https://quxios.github.io/
  * @updateurl https://quxios.github.io/data/pluginsMin.json
  *
@@ -26,8 +26,8 @@ Imported.QPicture = '1.1.2';
  * ============================================================================
  * ## About
  * ============================================================================
- * Adds additional features to Pictures. You can easily apply mouse events (
- * onClick, onRightClick, onMouseEnter, onMouseExit, onMouseOver, onMouseOut)
+ * Adds additional features to Pictures. You can easily apply mouse events 
+ * (onClick, onRightClick, onMouseEnter, onMouseExit, onMouseOver, onMouseOut)
  * to pictures and have a common event run or change a value of a switch. You
  * can also apply easing effects to a pictures movement, scaling or opacity
  * change.
@@ -268,8 +268,11 @@ var QEase;
   QButton.isActive = Sprite_Button.prototype.isActive;
 
   QButton.isTouched = function() {
+    if (!this.isButton()) {
+      return false;
+    }
     var w = this.width * this.scale.x;
-    var h = this.width * this.scale.y;
+    var h = this.height * this.scale.y;
     var x1 = TouchInput.x;
     var y1 = TouchInput.y;
     var x2 = this.x - w * this.anchor.x;
@@ -471,6 +474,13 @@ var QEase;
     this.setMouseExit(picture._mouseExitHandler);
     this.setMouseOver(picture._mouseOverHandler);
     this.setMouseOut(picture._mouseOutHandler);
+  };
+
+  Sprite_Picture.prototype.isButton = function() {
+    var picture = this.picture();
+    return picture && (picture._clickHandler || picture._rightClickHandler ||
+      picture._mouseEnterHandler || picture._mouseExitHandler ||
+      picture._mouseOverHandler || picture._mouseOutHandler);
   };
 
   //-----------------------------------------------------------------------------
