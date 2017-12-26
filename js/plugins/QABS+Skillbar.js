@@ -9,14 +9,14 @@ if (!Imported.QABS || !QPlus.versionCheck(Imported.QABS, '1.4.0')) {
   throw new Error('Error: QABS+Skillbar requires QABS 1.4.0 or newer to work.');
 }
 
-Imported.QABS_Skillbar = '2.0.0';
+Imported.QABS_Skillbar = '2.0.1';
 
 //=============================================================================
 /*:
  * @plugindesc <QABSSkillbar>
- * QABS Addon: Adds a skillbar
- * @version 2.0.0
- * @author Quxios  | Version 2.0.0
+ * QABS Addon: Adds a mmo like skillbar
+ * @version 2.0.1
+ * @author Quxios  | Version 2.0.1
  * @site https://quxios.github.io/
  * @updateurl https://quxios.github.io/data/pluginsMin.json
  * 
@@ -40,11 +40,13 @@ Imported.QABS_Skillbar = '2.0.0';
  * ============================================================================
  * ## About
  * ============================================================================
- * This is an addon to QABS plugin. This plugin adds a skill bar to QABS.
+ * This is an addon to QABS plugin. This plugin adds a mmo like skillbar to QABS.
+ * 
  * ============================================================================
  * ## How to use
  * ============================================================================
  * Install this plugin somewhere below QABS.
+ * 
  * ============================================================================
  * ## Toggling hud
  * ============================================================================
@@ -101,7 +103,7 @@ function Sprite_SkillInfo() {
 
 (function() {
   QABSSkillbar.over = false;
-  QABSSkillbar.requestRefresh = true;
+  QABSSkillbar.requestRefresh = false;
 
   var _PARAMS = QPlus.getParams('<QABSSkillbar>', true);
 
@@ -263,6 +265,7 @@ function Sprite_SkillInfo() {
     this.createHover();
     this.createInput();
     this.createInfo();
+    this.refresh();
   };
 
   Sprite_SkillButton.prototype.createFrame = function() {
@@ -401,13 +404,6 @@ function Sprite_SkillInfo() {
   Sprite_SkillButton.prototype.needsRefresh = function() {
     if (QABSSkillbar.requestRefresh) {
       return this._skillId !== $gameSystem.absKeys()[this._key];
-    }
-    return false;
-  };
-
-  Sprite_SkillButton.prototype.needsPosRefresh = function() {
-    if (QABSSkillbar.requestRefresh) {
-
     }
     return false;
   };
