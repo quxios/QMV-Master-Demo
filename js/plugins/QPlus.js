@@ -3,14 +3,14 @@
 //=============================================================================
 
 var Imported = Imported || {};
-Imported.QPlus = '1.7.0';
+Imported.QPlus = '1.7.1';
 
 //=============================================================================
 /*:
  * @plugindesc <QPlus> (Should go above all Q Plugins)
  * Some small changes to MV for easier plugin development.
- * @version 1.7.0
- * @author Quxios  | Version 1.7.0
+ * @version 1.7.1
+ * @author Quxios  | Version 1.7.1
  * @site https://quxios.github.io/
  * @updateurl https://quxios.github.io/data/pluginsMin.json
  *
@@ -794,9 +794,9 @@ function SimpleTilemap() {
   //-----------------------------------------------------------------------------
   // SceneManager
 
-  var Alias_SceneManager_updateScene = SceneManager.updateScene;
-  SceneManager.updateScene = function() {
-    Alias_SceneManager_updateScene.call(this);
+  var Alias_SceneManager_updateManagers = SceneManager.updateManagers;
+  SceneManager.updateManagers = function() {
+    Alias_SceneManager_updateManagers.call(this);
     QPlus.update();
   };
 
