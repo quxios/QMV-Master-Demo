@@ -180,58 +180,59 @@ Imported.QInput = '2.2.1';
  *
  * Set the parameter for pagedown to: (page down uses w, so we'll change to e)
  *
- *  `#pagedown, #e`
+ * `#pagedown, #e`
  *
- * Optional: Use f key instead of z in enter input
+ * *Optional*: Use f key instead of z in enter input
  *
- *  `#enter, #space, #f`
+ * `#enter, #space, #f`
  *
  * For FPS, Streched, FullScreen, Restart, Console you can only put 1 key!
  * Do not use the # idetifier.
  *
- * If you want to disable one of those, set it to 0E, if you put in an
+ * If you want to disable one of those, set it to 0E. If you put in an
  * incorrect key, it will use default MV key
  * ============================================================================
  * ## QKeys List
  * ============================================================================
- * ** Modifier keys**
- * ----------------------------------------------------------------------------
- *   #backspace    #tab      #enter      #shift      #ctrl
- *   #alt          #esc      #space      #pageup     #pagedown
- *   #left         #up       #right      #down       #escape
- * ----------------------------------------------------------------------------
- * **Numbers (Above letters**
- * ----------------------------------------------------------------------------
- *   #0   #1   #2   #3   #4   #5   #6   #7   #8   #9
- * ----------------------------------------------------------------------------
+ * All QKeys start with # and are lowercase
+ * 
+ * ** Modifier keys**                                        
+ * - #space, #backspace, #tab, #enter, #pageup, #pagedown, #escape
+ * - #shift, #ctrl, #alt, #esc, #left, #up, #right, #down
+ * 
+ * **Numbers (Above letters)**
+ * - #0, #1, #2, #3, #4, #5, #6, #7, #8, #9
+ * 
  * **Numpad**
- * ----------------------------------------------------------------------------
- *   #num0    #num1      #num2     #num3      #num4
- *   #num5    #num6      #num7     #num8      #num9
- * ----------------------------------------------------------------------------
+ * - #num0, #num1, #num2, #num3, #num4
+ * - #num5, #num6, #num7, #num8, #num9
+ * 
  * **Letters**
- * ----------------------------------------------------------------------------
- *   #a #b #c ... #z
- *
- * (All letters between a-z US keyboard, just add a # infront)
- * ----------------------------------------------------------------------------
- * **F Keys**
- * ----------------------------------------------------------------------------
- *   #f1  #f2  #f3  #f4  #f5  #f6  #f7  #f8  #f9  #f10  #f11  #f12
- * ----------------------------------------------------------------------------
+ * - #a, #b, #c, ..., #z
+ *  (All letters between a-z US keyboard, just add a # infront)
+ * 
+ * **Function Keys**
+ * - #f1, #f2, #f3, #f4, #f5, #f6, #f7, #f8, #f9, #f10, #f11, #f12
+ * 
  * **Special Characters**
- * ----------------------------------------------------------------------------
- *   #semicolon     #equal      #comma         #minus        #period
- *   #slash         #grave      #openbracket   #backslash    #closedbracket
- *   #singlequote
+ * - #semicolon, #equal, #comma, #minus, #period, #singlequote
+ * - #slash, #grave, #openbracket, #backslash, #closedbracket
+ * 
  * ============================================================================
  * ## Gamepad Keys
  * ============================================================================
- * Gamepad keys begin with $ and are in all caps. Here's the list of gamepad keys:
+ * Gamepad keys begin with $ and are in all caps. 
  *
- * - Buttons: $A, $B, $X, $Y, $SELECT, $START
- * - Triggers: $L1, $L2, $L3, $R1, $R2, $R3
- * - DPad: $UP, $DOWN, $LEFT, $RIGHT
+ * **Buttons**: 
+ * - $A, $B, $X, $Y, $SELECT, $START
+ * 
+ * **Triggers**: 
+ * - $L1, $L2, $L3, $R1, $R2, $R3
+ * 
+ * **DPad**
+ * - $UP, $DOWN, $LEFT, $RIGHT
+ * 
+ * **_Gamepad key names are in xbox config_**
  * ============================================================================
  * ## Using QKeys
  * ============================================================================
@@ -240,6 +241,7 @@ Imported.QInput = '2.2.1';
  * ~~~
  *  Input.isTriggered("#left");
  * ~~~
+ * 
  * If you didn't use the # and put
  * ~~~
  *  Input.isTriggered("left");
@@ -251,9 +253,9 @@ Imported.QInput = '2.2.1';
  * ~~~
  *  Input.anyTriggered(keylist);
  * ~~~
- * Keylist is a string with keys seperated by commas.
- * You can also set it to a-z, a-z0-9 or sym.
- * If keylist is left empty it will return true when any key is pressed
+ * - Keylist is a string with keys seperated by commas.
+ * - You can also set it to a-z, a-z0-9 or sym.
+ * - If keylist is left empty it will return true when any key is pressed
  * =============================================================================
  * ## Advanced Users: Using Window_TextInput
  * =============================================================================
@@ -263,12 +265,12 @@ Imported.QInput = '2.2.1';
  *
  * There are also 2 new functions in game input which might be useful:
  * ~~~
- * Input.preferKeyboard()
+ * Input.preferKeyboard();
  * ~~~
  * Will return true if the last input was sent with the keyboard.
  *
  * ~~~
- * Input.preferGamepad()
+ * Input.preferGamepad();
  * ~~~
  * Will return true if the last input was sent with the gamepad.
  * ============================================================================
