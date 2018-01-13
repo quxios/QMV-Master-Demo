@@ -49,9 +49,10 @@ Imported.QEventSave = '1.1.0';
  * ~~~
  *  qEventSave save CHARAID
  * ~~~
+ * 
  * or to unsave
  * ~~~
- *  qEventSave save CHARAID
+ *  qEventSave unsave CHARAID
  * ~~~
  * - CHARAID: The character identifier. Can only be an event!
  *  * For events: EVENTID, eEVENTID, eventEVENTID or this for the event that called this
@@ -132,9 +133,6 @@ function QEventSave() {
   };
 
   Game_Interpreter.prototype.qEventSaveCommand = function(args) {
-    //var args2 = args.slice(2);
-    //QPlus.getCharacter(args[0]);
-    //QPlus.getArg(args2, /lock/i)
     var cmd = args[0].toLowerCase();
     var chara = QPlus.getCharacter(args[1]);
     if (chara.charaId() <= 0) return;
