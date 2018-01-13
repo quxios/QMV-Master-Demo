@@ -9,14 +9,14 @@ if (!Imported.QMovement || !QPlus.versionCheck(Imported.QMovement, '1.4.0')) {
   throw new Error('Error: QABS requires QMovement 1.4.0 or newer to work.');
 }
 
-Imported.QABS = '1.6.2';
+Imported.QABS = '1.6.3';
 
 //=============================================================================
 /*:
  * @plugindesc <QABS>
  * Action Battle System for QMovement
- * @version 1.6.2
- * @author Quxios  | Version 1.6.2
+ * @version 1.6.3
+ * @author Quxios  | Version 1.6.3
  * @site https://quxios.github.io/
  * @updateurl https://quxios.github.io/data/pluginsMin.json
  *
@@ -2755,12 +2755,6 @@ function Skill_Sequencer() {
   Game_Actor.prototype.changeClass = function(classId, keepExp) {
     Alias_Game_Actor_changeClass.call(this, classId, keepExp);
     if (this === $gameParty.leader()) $gameSystem.loadClassABSKeys();
-  };
-
-  var Alias_Game_Actor_initEquips = Game_Actor.prototype.initEquips;
-  Game_Actor.prototype.initEquips = function(equips) {
-    Alias_Game_Actor_initEquips.call(this, equips);
-    if (this === $gameParty.leader()) this.initWeaponSkills();
   };
 
   Game_Actor.prototype.initWeaponSkills = function() {
