@@ -9,14 +9,14 @@ if (!Imported.QMovement || !QPlus.versionCheck(Imported.QMovement, '1.4.0')) {
   throw new Error('Error: QABS requires QMovement 1.4.0 or newer to work.');
 }
 
-Imported.QABS = '1.6.3';
+Imported.QABS = '1.6.4';
 
 //=============================================================================
 /*:
  * @plugindesc <QABS>
  * Action Battle System for QMovement
- * @version 1.6.3
- * @author Quxios  | Version 1.6.3
+ * @version 1.6.4
+ * @author Quxios  | Version 1.6.4
  * @site https://quxios.github.io/
  * @updateurl https://quxios.github.io/data/pluginsMin.json
  *
@@ -1154,17 +1154,18 @@ function QABSManager() {
     if (!item.animationTarget || targets.length === 0) {
       this.startAnimation(item.data.animationId, item.collider.center.x, item.collider.center.y);
     }
+    var action = new Game_ABSAction(self.battler(), true);
+    action.setSkill(item.data.id);
     for (var i = 0; i < targets.length; i++) {
       if (item.animationTarget === 1) {
         var x = targets[i].cx();
         var y = targets[i].cy();
         this.startAnimation(item.data.animationId, x, y);
       }
-      var action = new Game_Action(self.battler(), true);
-      action.setSkill(item.data.id);
       action.absApply(targets[i].battler());
       targets[i].addAgro(self.charaId(), item.data);
     }
+    action.applyGlobal();
   };
 
   QABSManager.startPopup = function(type, options) {
@@ -2200,6 +2201,7 @@ function Skill_Sequencer() {
   };
 
   Skill_Sequencer.prototype.onEnd = function() {
+
     this._skill.collider.kill = true;
     QABSManager.removePicture(this._skill.picture);
     QABSManager.removePicture(this._skill.trail);
@@ -2597,21 +2599,24 @@ function Skill_Sequencer() {
 //-----------------------------------------------------------------------------
 // Game_Action
 
+function Game_ABSAction() {
+  this.initialize.apply(this, arguments);
+}
+
 (function() {
-  var Alias_Game_Action_setSubject = Game_Action.prototype.setSubject;
-  Game_Action.prototype.setSubject = function(subject) {
-    Alias_Game_Action_setSubject.call(this, subject);
+  Game_ABSAction.prototype = Object.create(Game_Action.prototype);
+  Game_ABSAction.prototype.constructor = Game_ABSAction;
+
+  Game_ABSAction.prototype.setSubject = function(subject) {
+    Game_Action.prototype.setSubject.call(this, subject);
     this._realSubject = subject;
   };
 
-  var Alias_Game_Action_subject = Game_Action.prototype.subject;
-  Game_Action.prototype.subject = function() {
-    if (this._isAbs) return this._realSubject;
-    return Alias_Game_Action_subject.call(this);
+  Game_ABSAction.prototype.subject = function() {
+    return this._realSubject;
   };
 
-  Game_Action.prototype.absApply = function(target) {
-    this._isAbs = true;
+  Game_ABSAction.prototype.absApply = function(target) {
     var result = target.result();
     this._realSubject.clearResult();
     result.clear();
@@ -2627,8 +2632,6 @@ function Skill_Sequencer() {
       this.applyItemEffect(target, effect);
     }, this);
     this.applyItemUserEffect(target);
-    this.applyGlobal();
-    this._isAbs = false;
   };
 
   var Alias_Game_ActionResult_clear = Game_ActionResult.prototype.clear;
