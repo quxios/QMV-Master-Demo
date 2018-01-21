@@ -9,14 +9,14 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.5.0')) {
   throw new Error('Error: QEvent requires QPlus 1.5.0 or newer to work.');
 }
 
-Imported.QEvent = '1.0.0';
+Imported.QEvent = '1.0.1';
 
 //=============================================================================
 /*:
  * @plugindesc <QEvent>
  * Extends Common Event functionality
- * @version 1.0.0
- * @author Quxios  | Version 1.0.0
+ * @version 1.0.1
+ * @author Quxios  | Version 1.0.1
  * @site https://quxios.github.io/
  * @updateurl https://quxios.github.io/data/pluginsMin.json
  * 
@@ -274,7 +274,7 @@ function Game_QEvent() {
 
   var Alias_Game_Temp_reserveCommonEvent = Game_Temp.prototype.reserveCommonEvent;
   Game_Temp.prototype.reserveCommonEvent = function(commonEventId) {
-    if (QEventManager.contains(commonEventId)) {
+    if (QEventManager.isQ(commonEventId)) {
       return QEventManager.run(commonEventId, QEventManager.payload('TEMP'));
     }
     Alias_Game_Temp_reserveCommonEvent.call(this, commonEventId);
