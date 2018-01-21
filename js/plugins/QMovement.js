@@ -9,14 +9,14 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.6.0')) {
   throw new Error('Error: QMovement requires QPlus 1.6.0 or newer to work.');
 }
 
-Imported.QMovement = '1.6.1';
+Imported.QMovement = '1.6.2';
 
 //=============================================================================
 /*:
  * @plugindesc <QMovement>
  * More control over character movement
- * @version 1.6.1
- * @author Quxios  | Version 1.6.1
+ * @version 1.6.2
+ * @author Quxios  | Version 1.6.2
  * @site https://quxios.github.io/
  * @updateurl https://quxios.github.io/data/pluginsMin.json
  *
@@ -1065,8 +1065,12 @@ function Polygon_Collider() {
   Polygon_Collider.prototype.intersects = function(other) {
     if (this.height === 0 || this.width === 0) return false;
     if (other.height === 0 || other.width === 0) return false;
-    if (this.containsPoint(other.center.x, other.center.y)) return true;
-    if (other.containsPoint(this.center.x, this.center.y)) return true;
+    if (!other.isPolygon()) {
+      if (this.containsPoint(other.center.x, other.center.y)) return true;
+    }
+    if (!this.isPolygon()) {
+      if (other.containsPoint(this.center.x, this.center.y)) return true;
+    }
     var i, j, x, y;
     for (i = 0, j = other._vertices.length; i < j; i++) {
       x = other._vertices[i].x;
@@ -1248,6 +1252,7 @@ function Box_Collider() {
       return Polygon_Collider.prototype.containsPoint.call(this, x, y);
     }
   };
+
 })();
 
 //-----------------------------------------------------------------------------
@@ -1360,6 +1365,7 @@ function ColliderManager() {
   ColliderManager._needsRefresh = true;
   ColliderManager.container = new Sprite();
   ColliderManager.container.alpha = 0.3;
+  ColliderManager.containerDict = {};
   ColliderManager.visible = QMovement.showColliders;
 
   ColliderManager.clear = function() {
@@ -1367,6 +1373,7 @@ function ColliderManager() {
     this._colliderGrid = [];
     this._characterGrid = [];
     this.container.removeChildren();
+    this.containerDict = {};
   };
 
   ColliderManager.refresh = function() {
@@ -1424,6 +1431,7 @@ function ColliderManager() {
 
   ColliderManager.removeSprite = function(sprite) {
     this.container.removeChild(sprite);
+    delete this.containerDict[sprite._collider.id];
   };
 
   ColliderManager.updateGrid = function(collider, prevGrid) {
@@ -1604,17 +1612,17 @@ function ColliderManager() {
 
   ColliderManager.draw = function(collider, duration) {
     if ($gameTemp.isPlaytest()) {
-      var sprites = this.container.children;
-      for (var i = 0; i < sprites.length; i++) {
-        if (sprites[i]._collider && sprites[i]._collider.id === collider.id) {
-          sprites[i]._collider.kill = false;
-          sprites[i]._duration = duration;
-          return;
-        }
+      if (this.containerDict[collider.id]) {
+        this.containerDict[collider.id]._collider = collider;
+        this.containerDict[collider.id]._collider.kill = false;
+        this.containerDict[collider.id]._duration = duration;
+        this.containerDict[collider.id].checkChanges();
+        return;
       }
       collider.kill = false;
       var sprite = new Sprite_Collider(collider, duration || -1);
       this.container.addChild(sprite);
+      this.containerDict[collider.id] = sprite;
     }
   };
 
@@ -3631,7 +3639,7 @@ function ColliderManager() {
   Game_Event.prototype.updateSelfMovement = function() {
     if (this.isNearTheScreen() && this.canMove()) {
       if (this.checkStop(this.stopCountThreshold())) {
-        this._stopCount = this._freqCount = 0;
+        this._stopCount = 0;
       }
       if (this._freqCount < this.freqThreshold()) {
         switch (this._moveType) {
@@ -3645,6 +3653,8 @@ function ColliderManager() {
             this.moveTypeCustom();
             break;
         }
+      } else {
+        this._freqCount = -this.frameSpeed();
       }
     }
   };
