@@ -12,14 +12,14 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.4.0')) {
   throw new Error('Error: QSight requires QMovement 1.1.4 or newer to work.');
 }
 
-Imported.QSight = '1.1.13';
+Imported.QSight = '1.1.14';
 
 //=============================================================================
 /*:
  * @plugindesc <QSight>
  * Real time line of sight
- * @version 1.1.13
- * @author Quxios  | Version 1.1.13
+ * @version 1.1.14
+ * @author Quxios  | Version 1.1.14
  * @site https://quxios.github.io/
  * @updateurl https://quxios.github.io/data/pluginsMin.json
  *
@@ -547,6 +547,9 @@ function QSight() {
         collider.setRadian(rad);
       }
       collider.id = 'sight' + this.charaId();
+      if (this._pageIndex) {
+        collider.id += this._pageIndex;
+      }
       collider.moveTo(this.cx(), this.cy());
       return collider;
     };
