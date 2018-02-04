@@ -9,14 +9,14 @@ if (!Imported.QMovement || !QPlus.versionCheck(Imported.QMovement, '1.4.0')) {
   throw new Error('Error: QABS requires QMovement 1.4.0 or newer to work.');
 }
 
-Imported.QABS = '1.6.4';
+Imported.QABS = '1.7.0';
 
 //=============================================================================
 /*:
  * @plugindesc <QABS>
  * Action Battle System for QMovement
- * @version 1.6.4
- * @author Quxios  | Version 1.6.4
+ * @version 1.7.0
+ * @author Quxios  | Version 1.7.0
  * @site https://quxios.github.io/
  * @updateurl https://quxios.github.io/data/pluginsMin.json
  *
@@ -808,7 +808,7 @@ Imported.QABS = '1.6.4';
  * ============================================================================
  * Formated Help:
  *
- *  https://quxios.github.io/#/plugins/QABS
+ *  https://quxios.github.io/plugins/QABS
  *
  * RPGMakerWebs:
  *
@@ -1154,6 +1154,7 @@ function QABSManager() {
     if (!item.animationTarget || targets.length === 0) {
       this.startAnimation(item.data.animationId, item.collider.center.x, item.collider.center.y);
     }
+    self._agro.placeInCombat();
     var action = new Game_ABSAction(self.battler(), true);
     action.setSkill(item.data.id);
     for (var i = 0; i < targets.length; i++) {
@@ -2870,6 +2871,92 @@ function Game_ABSAction() {
 })();
 
 //-----------------------------------------------------------------------------
+// Game_CharacterAgro
+
+function Game_CharacterAgro() {
+  this.initialize.apply(this, arguments);
+}
+
+(function() {
+  Game_CharacterAgro.agroTimer = 300;
+
+  Game_CharacterAgro.prototype.initialize = function(charaId) {
+    this._charaId = charaId;
+    this.clear();
+  };
+
+  Game_CharacterAgro.prototype.clear = function() {
+    this._agrod = 0;
+    this._points = {};
+    this._tick = {};
+    this._total = 0;
+    this._highest = null;
+    this._recalcHighest = false;
+  };
+
+  Game_CharacterAgro.prototype.has = function(charaId) {
+    return !!this._points[charaId];
+  };
+
+  Game_CharacterAgro.prototype.inCombat = function() {
+    return this._agrod > 0 || this._total > 0;
+  };
+
+  Game_CharacterAgro.prototype.character = function() {
+    return QPlus.getCharacter(this._charaId) || null;
+  };
+
+  Game_CharacterAgro.prototype.highest = function() {
+    if (this._recalcHighest) {
+      this.calcHighest();
+    }
+    return this._highest;
+  };
+
+  Game_CharacterAgro.prototype.add = function(charaId, amount) {
+    this._points[charaId] = this._points[charaId] ? this._points[charaId] + amount : amount;
+    this._tick[charaId] = Game_CharacterAgro.agroTimer;
+    var points = this._points[charaId];
+    this._total += amount;
+    this._recalcHighest = true;
+  };
+
+  Game_CharacterAgro.prototype.remove = function(charaId) {
+    this._total -= this._points[charaId] || 0;
+    delete this._points[charaId];
+    delete this._tick[charaId];
+    this._recalcHighest = true;
+  };
+
+  Game_CharacterAgro.prototype.placeInCombat = function() {
+    this._agro = Game_CharacterAgro.agroTimer;
+  };
+
+  Game_CharacterAgro.prototype.calcHighest = function() {
+    var highest = 0;
+    var highestId = null;
+    for (var charaId in this._points) {
+      if (this._points[charaId] > highest) {
+        highest = this._points[charaId];
+        highestId = charaId;
+      }
+    }
+    this._highest = highestId ? QPlus.getCharacter(highestId) : null;
+    this._recalcHighest = false;
+  };
+
+  Game_CharacterAgro.prototype.update = function() {
+    for (var charaId in this._tick) {
+      this._tick[charaId] = this._tick[charaId] - 1;
+      if (this._tick[charaId] === 0) {
+        this.remove(charaId);
+      }
+    }
+    if (this._agro > 0) this._agro--;
+  };
+
+})();
+//-----------------------------------------------------------------------------
 // Game_CharacterBase
 
 (function() {
@@ -2881,14 +2968,9 @@ function Game_ABSAction() {
     if (this._activeSkills && this._activeSkills.length > 0) {
       this.clearSkills();
     }
-    if (this._agroList) {
-      this.clearAgro();
-    }
+    this.clearAgro();
     this._activeSkills = [];
     this._skillCooldowns = {};
-    this._agroList = {};
-    this._agrodList = [];
-    this._inCombat = false;
     this._casting = null;
     this._skillLocked = [];
   };
@@ -2967,66 +3049,48 @@ function Game_ABSAction() {
     return value;
   };
 
-  Game_CharacterBase.prototype.addAgro = function(charaId, skill) {
-    var chara = QPlus.getCharacter(charaId);
-    if (!chara || chara === this || this.isFriendly(chara)) return;
-    this._agroList[charaId] = this._agroList[charaId] || 0;
-    this._agroList[charaId] += (skill && skill.agroPoints) ? skill.agroPoints : 1;
-    if (!chara._agrodList.contains(this.charaId())) {
-      chara._agrodList.push(this.charaId());
-    }
-    this._inCombat = true;
-    chara._inCombat = true;
+  Game_CharacterBase.prototype.inCombat = function() {
+    if (!this._agro) return false;
+    return this._agro.inCombat();
   };
 
-  Game_CharacterBase.prototype.removeAgro = function(charaId) {
-    delete this._agroList[charaId];
-    var i = this._agrodList.indexOf(charaId);
-    if (i !== -1) {
-      this._agrodList.splice(i, 1);
-      this._inCombat = (this.totalAgro() + this._agrodList.length) > 0;
-      if (!this._inCombat && typeof this.endCombat === 'function') {
-        this.endCombat();
-      }
+  Game_CharacterBase.prototype.addAgro = function(from, skill) {
+    var chara = QPlus.getCharacter(from);
+    if (!chara || chara === this || !chara._agro) {
+      return;
     }
+    if (this.isFriendly(chara) || !this._agro) {
+      return;
+    }
+    var amt = skill ? skill.agroPoints || 1 : 1;
+    this._agro.add(from, amt);
+  };
+
+  Game_CharacterBase.prototype.removeAgro = function(from) {
+    if (!this._agro) {
+      return;
+    }
+    this._agro.remove(from);
   };
 
   Game_CharacterBase.prototype.clearAgro = function() {
-    for (var charaId in this._agroList) {
-      var chara = QPlus.getCharacter(charaId);
-      if (chara) chara.removeAgro(this.charaId());
+    if (this._agro) {
+      var agrod = this._agro._agrodList;
+      for (var charaId in agrod) {
+        var chara = QPlus.getCharacter(charaId);
+        if (chara) chara.removeAgro(this.charaId());
+      }
+      this._agro.clear();
+    } else {
+      this._agro = new Game_CharacterAgro(this.charaId());
     }
-    for (var i = this._agrodList.length - 1; i >= 0; i--) {
-      var chara = QPlus.getCharacter(this._agrodList[i]);
-      if (chara) chara.removeAgro(this.charaId());
-    }
-    this._agroList = {};
-    this._agrodList = [];
-    this._inCombat = false;
-  };
-
-  Game_CharacterBase.prototype.totalAgro = function() {
-    var total = 0;
-    for (var agro in this._agroList) {
-      total += this._agroList[agro] || 0;
-    }
-    return total;
   };
 
   Game_CharacterBase.prototype.bestTarget = function() {
-    // TODO consider team
-    var mostAgro = 0;
-    var bestChara = null;
-    for (var charaId in this._agroList) {
-      if (this._agroList[charaId] > mostAgro) {
-        mostAgro = this._agroList[charaId];
-        bestChara = charaId;
-      }
+    if (!this._agro) {
+      return null;
     }
-    if (bestChara !== null) {
-      return QPlus.getCharacter(bestChara);
-    }
-    return null;
+    return this._agro.highest();
   };
 
   var Alias_Game_CharacterBase_update = Game_CharacterBase.prototype.update;
@@ -3042,6 +3106,7 @@ function Game_ABSAction() {
       }
       return;
     }
+    this._agro.update();
     this.updateSkills();
     this.battler().updateABS();
   };
@@ -3233,6 +3298,16 @@ function Game_ABSAction() {
 
   Game_Player.prototype.team = function() {
     return 1;
+  };
+
+  var Alias_Game_Player_performTransfer = Game_Player.prototype.performTransfer;
+  Game_Player.prototype.performTransfer = function() {
+    if (this.isTransferring()) {
+      if (this._newMapId !== $gameMap.mapId() || this._needsMapReload) {
+        if (this._agro) this._agro.clear();
+      }
+    }
+    Alias_Game_Player_performTransfer.call(this);
   };
 
   var Alias_Game_Player_canMove = Game_Player.prototype.canMove;
@@ -3546,20 +3621,6 @@ function Game_ABSAction() {
     return best;
   };
 
-  Game_Event.prototype.addAgro = function(charaId, skill) {
-    var isNew = !this._agroList[charaId];
-    Game_CharacterBase.prototype.addAgro.call(this, charaId, skill);
-    if (isNew) {
-      if (this._aiPathfind) {
-        this.clearPathfind();
-      }
-      if (this._endWait) {
-        this.removeWaitListener(this._endWait);
-        this._endWait = null;
-      }
-    }
-  };
-
   Game_Event.prototype.updateABS = function() {
     if ($gameSystem.isDisabled(this._mapId, this._eventId)) return;
     Game_CharacterBase.prototype.updateABS.call(this);
@@ -3593,10 +3654,19 @@ function Game_ABSAction() {
     this.AISimpleAction(bestTarget, this.AISimpleGetAction(bestTarget));
   };
 
+  Game_Event.prototype.removeAgro = function(charaId) {
+    if (!this._agro) return;
+    Game_CharacterBase.prototype.removeAgro.call(this, charaId);
+    if (!this.inCombat() && !this._endWait) {
+      this.endCombat();
+    }
+  };
+
   Game_Event.prototype.AISimpleInRange = function(bestTarget) {
     var targetId = bestTarget.charaId();
     if (this.isTargetInRange(bestTarget)) {
-      if (!this._agroList.hasOwnProperty(targetId)) {
+      this._agro.placeInCombat();
+      if (!this._agro.has(targetId)) {
         this._aiWait = QABS.aiWait;
         this.addAgro(targetId);
         if (this._aiPathfind) {
@@ -3609,8 +3679,7 @@ function Game_ABSAction() {
       }
       return true;
     } else {
-      if (!this._endWait && this.inCombat()) {
-        bestTarget.removeAgro(this.charaId());
+      if (this._agro.has(targetId)) {
         if (this._aiPathfind) {
           this.clearPathfind();
         }
@@ -3618,6 +3687,7 @@ function Game_ABSAction() {
           this._endWait = null;
           this.endCombat();
         }.bind(this));
+        this.removeAgro(targetId);
       }
       if (this._endWait && this.canMove()) {
         this.moveTowardCharacter(bestTarget);
@@ -3641,7 +3711,6 @@ function Game_ABSAction() {
 
   Game_Event.prototype.AISimpleAction = function(bestTarget, bestAction) {
     if (bestAction) {
-
       var skill = this.useSkill(bestAction);
       if (skill) skill._target = bestTarget;
     } else if (this.canMove()) {
@@ -3693,7 +3762,7 @@ function Game_ABSAction() {
     }
     var dx = Math.abs(target.cx() - this.cx());
     var dy = Math.abs(target.cy() - this.cy());
-    var range = this._aiRange + (this._inCombat ? 96 : 0);
+    var range = this._aiRange + (this.inCombat() ? 96 : 0);
     return dx <= range && dy <= range;
   };
 
@@ -3716,7 +3785,6 @@ function Game_ABSAction() {
     if (this._aiPathfind) {
       this.clearPathfind();
     }
-    this._inCombat = false;
     this.clearAgro();
     if (this._aiPathfind || Imported.QPathfind) {
       var x = this.event().x * QMovement.tileSize;
@@ -3781,7 +3849,7 @@ function Game_ABSAction() {
         console.error('Error with `onDeath` meta inside enemy ' + id, e);
       }
     }
-    if (this._agroList[0] > 0) {
+    if (this._agro.has(0)) {
       var exp = this.battler().exp();
       $gamePlayer.battler().gainExp(exp);
       if (exp > 0) {
