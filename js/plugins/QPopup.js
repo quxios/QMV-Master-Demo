@@ -9,14 +9,14 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.2.2')) {
   throw new Error('Error: QPopup requires QPlus 1.2.2 or newer to work.');
 }
 
-Imported.QPopup = '1.1.2';
+Imported.QPopup = '1.1.3';
 
 //=============================================================================
 /*:
  * @plugindesc <QPopup>
  * Lets you create popups in the map or on screen
- * @version 1.1.2
- * @author Quxios  | Version 1.1.2
+ * @version 1.1.3
+ * @author Quxios  | Version 1.1.3
  * @site https://quxios.github.io/
  * @updateurl https://quxios.github.io/data/pluginsMin.json
  *
@@ -153,8 +153,10 @@ Imported.QPopup = '1.1.2';
  *   used
  *   - oxX: Set X to the offset x position of this popup. Can be negative
  *   - oyY: Set X to the offset x position of this popup. Can be negative
- *   - bindToX: Set X to the charaId to bind to. When bind, the popup will follow
- *   that character.
+ *   - bindToCHARAID: where CHARAID is the character for the popup to follow
+ *     * CHARAID - The character identifier.
+ *       - For player: 0, p, or player
+ *       - For events: EVENTID, eEVENTID or this
  *   - durationX: Set X to the duration of the popup
  * ----------------------------------------------------------------------------
  * **configStyle**
@@ -190,7 +192,7 @@ Imported.QPopup = '1.1.2';
  * ============================================================================
  * Formated Help:
  *
- *  https://quxios.github.io/#/plugins/QPopup
+ *  https://quxios.github.io/plugins/QPopup
  *
  * RPGMakerWebs:
  *
@@ -431,6 +433,9 @@ function Window_QPopup() {
         var ox = QPlus.getArg(args, /^ox(-?\d+)/i);
         var oy = QPlus.getArg(args, /^oy(-?\d+)/i);
         var bindTo = QPlus.getArg(args, /^bindTo(.+)/i);
+        if (bindTo && bindTo.toLowerCase() === 'this') {
+          bindTo = this.character(0).charaId();
+        }
         var duration = QPlus.getArg(args, /^duration(\d+)/i);
         if (preset) preset = $gameSystem.qPopupPreset(preset);
         var options = Object.assign({}, preset);
