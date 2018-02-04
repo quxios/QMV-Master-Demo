@@ -12,14 +12,14 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.5')) {
   throw new Error('Error: QMap requires QMovement 1.2.1 or newer to work.');
 }
 
-Imported.QMap = '1.5.1';
+Imported.QMap = '2.0.0';
 
 //=============================================================================
 /*:
  * @plugindesc <QMap>
  * Creates maps made with QMap Editor
- * @version 1.5.1
- * @author Quxios  | Version 1.5.1
+ * @version 2.0.0
+ * @author Quxios  | Version 2.0.0
  * @site https://quxios.github.io/
  * @updateurl https://quxios.github.io/data/pluginsMin.json
  *
@@ -33,16 +33,16 @@ Imported.QMap = '1.5.1';
  * ============================================================================
  * Similar to a parallax plugin. This plugin creates maps you created using
  * QMap Editor.
+ * 
  * ============================================================================
  * ## How to use
  * ============================================================================
  * Create a map using the [QMap Editor](https://github.com/quxios/QMapEditor).
  * And that's it, no setup required.
+ * 
  * ============================================================================
  * ## QMap Editor Notes
  * ============================================================================
- * These are notes you can include in your map objects:
- * ----------------------------------------------------------------------------
  * **Collider**
  * ----------------------------------------------------------------------------
  * Lets you add a collider to your map object for additional features.
@@ -77,11 +77,12 @@ Imported.QMap = '1.5.1';
  *  that collider to be used as a collision. Set to other values if needed
  *  for example, if a certain type is needed for a plugin feature.
  * - SHAPE: Set to box, circle or poly (only box works unless QMovement is installed)
- *   - If poly read next section on poly shape
+ *   * If poly read next section on poly shape
  * - WIDTH: The width of the collider, in pixels
  * - HEIGHT: The height of the collider, in pixels
  * - OX: The X Offset of the collider, in pixels
  * - OY: The Y Offset of the collider, in pixels
+ * 
  * ----------------------------------------------------------------------------
  * **Poly Colliders**
  * ----------------------------------------------------------------------------
@@ -92,6 +93,7 @@ Imported.QMap = '1.5.1';
  *  poly,(24,0),(48,24),(24,48),(0,24)
  * ~~~
  * Would create a diamond shaped polygon.
+ * 
  * ----------------------------------------------------------------------------
  * **OnPlayer**
  * ----------------------------------------------------------------------------
@@ -105,6 +107,7 @@ Imported.QMap = '1.5.1';
  * ~~~
  * Just add that note to the map object to have this feature, then include
  * a collider.
+ * 
  * ----------------------------------------------------------------------------
  * **Breath**
  * ----------------------------------------------------------------------------
@@ -119,6 +122,7 @@ Imported.QMap = '1.5.1';
  * - INITIALTIME: (Optional, Default: 0) Which frame should it start at. Ex;
  *  if DURATION was 60 and this is set at 30, it'll start in the middle of the
  *  cycle.
+ * 
  * ----------------------------------------------------------------------------
  * **Tint**
  * ----------------------------------------------------------------------------
@@ -130,6 +134,7 @@ Imported.QMap = '1.5.1';
  * - GREEN: Red value of tint, set between -255 to 255. Default: 0
  * - BLUE: Red value of tint, set between -255 to 255. Default: 0
  * - GRAY: Red value of tint, set between -255 to 255. Default: 0
+ * 
  * ============================================================================
  * ## Videos
  * ============================================================================
@@ -140,12 +145,13 @@ Imported.QMap = '1.5.1';
  * https://www.youtube.com/watch?v=XMWluxVErKo
  * If you have a video you'd like to have listed here, feel free to send me a
  * link in the RPGMakerWebs thread! (link below)
+ * 
  * ============================================================================
  * ## Links
  * ============================================================================
  * Formated Help:
  *
- *  https://quxios.github.io/#/plugins/QMap
+ *  https://quxios.github.io/plugins/QMap
  *
  * RPGMakerWebs:
  *
@@ -174,6 +180,7 @@ function Sprite_MapObject() {
   this.initialize.apply(this, arguments);
 }
 
+var $dataQMapInfos = null;
 var $dataQMap = null;
 
 //=============================================================================
@@ -183,55 +190,70 @@ var $dataQMap = null;
 
   QPlus.request('data/QMap.json')
     .onSuccess(function(json) {
-      $dataQMap = json;
-      DataManager.onLoad($dataQMap);
+      if (json[0] !== '2') {
+        // convert old json type to new
+        if (Utils.isOptionValid('test')) {
+          var fs = require('fs');
+          var path = require('path');
+          var dataPath = path.join(path.dirname(process.mainModule.filename), 'data/');
+          var qMapPath = path.join(dataPath, 'QMaps/');
+          if (!fs.existsSync(qMapPath)) {
+            fs.mkdirSync(qMapPath);
+          }
+          var newJson = ['2'];
+          for (var i = 1; i < json.length; i++) {
+            var map = json[i];
+            if (map && map.length > 0) {
+              newJson[i] = true;
+              var filename = 'QMap%1.json'.format(i.padZero(3));
+              fs.writeFileSync(path.join(qMapPath, filename), JSON.stringify(map));
+            }
+          }
+          fs.writeFileSync(path.join(dataPath, 'QMap.json'), JSON.stringify(newJson));
+          $dataQMapInfos = newJson;
+        } else {
+          alert('Invalid QMap datatype');
+          window.close();
+        }
+      } else {
+        $dataQMapInfos = json;
+      }
     })
     .onError(function() {
       throw new Error("Failed to load 'data/QMap.json'");
     })
 
   //-----------------------------------------------------------------------------
-  // Game_Interpreter
-
-  var Alias_Game_Interpreter_pluginCommand = Game_Interpreter.prototype.pluginCommand;
-  Game_Interpreter.prototype.pluginCommand = function(command, args) {
-    if (command.toLowerCase() === 'qmap') {
-      this.qMapCommand(args);
-      return;
-    }
-    Alias_Game_Interpreter_pluginCommand.call(this, command, args);
-  };
-
-  Game_Interpreter.prototype.qMapCommand = function(args) {
-    var cmd = args.shift();
-    if (cmd.toLowerCase() === 'free') {
-      // freeing image cache, seems like its  not doing anything
-      // does remove it from image cache, but memory usage doesn't
-      // change
-      if (!args[0]) return;
-      var id = Number(args[0]);
-      var mapObjs = $dataQMap[id];
-      if (mapObjs) {
-        var files = [];
-        for (var i = 0; i < mapObjs.length; i++) {
-          var img = mapObjs[i].filePath;
-          img = encodeURIComponent(img);
-          img = img.replace(/%5C/g, '/');
-          if (files.indexOf(img) === -1) {
-            files.push(img);
-          }
-        }
-        QPlus.freeImgCache(files);
-      }
-    }
-  };
-
-  //-----------------------------------------------------------------------------
   // DataManager
+
+  var Alias_DataManager_isDatabaseLoaded = DataManager.isDatabaseLoaded;
+  DataManager.isDatabaseLoaded = function() {
+    return Alias_DataManager_isDatabaseLoaded.call(this) && $dataQMapInfos;
+  };
 
   var Alias_DataManager_isMapLoaded = DataManager.isMapLoaded;
   DataManager.isMapLoaded = function() {
     return Alias_DataManager_isMapLoaded.call(this) && !!$dataQMap;
+  };
+
+  var Alias_DataManager_loadMapData = DataManager.loadMapData;
+  DataManager.loadMapData = function(mapId) {
+    Alias_DataManager_loadMapData.call(this, mapId);
+    if (mapId > 0) {
+      if ($dataQMapInfos[mapId]) {
+        var filename = 'QMap%1.json'.format(mapId.padZero(3));
+        QPlus.request('data/QMaps/' + filename)
+          .onSuccess(function(json) {
+            $dataQMap = json;
+            DataManager.onLoad($dataQMap);
+          })
+          .onError(function() {
+            throw new Error("Failed to load 'data/QMaps" + filename + "'");
+          })
+      } else {
+        $dataQMap = [];
+      }
+    }
   };
 
   var Alias_DataManager_onLoad = DataManager.onLoad;
@@ -257,6 +279,48 @@ var $dataQMap = null;
   };
 
   //-----------------------------------------------------------------------------
+  // Game_Interpreter
+
+  var Alias_Game_Interpreter_pluginCommand = Game_Interpreter.prototype.pluginCommand;
+  Game_Interpreter.prototype.pluginCommand = function(command, args) {
+    if (command.toLowerCase() === 'qmap') {
+      return this.qMapCommand(QPlus.makeArgs(args));
+    }
+    Alias_Game_Interpreter_pluginCommand.call(this, command, args);
+  };
+
+  Game_Interpreter.prototype.qMapCommand = function(args) {
+    if (!$dataQMap || $dataQMap.length === 0) {
+      return;
+    }
+    var objName = args.shift();
+    var cmd = args.shift();
+    var mapObjs = $gameMap._mapObjs[objName];
+    if (!mapObjs) return;
+    for (var i = 0; i < mapObjs.length; i++) {
+      var mapObj = mapObjs[i];
+      switch (cmd.toLowerCase()) {
+        case 'alpha': {
+          mapObj.alpha = args[0];
+          break;
+        }
+        case 'scale': {
+          mapObj.scale = new Point(args[0], args[1]);
+          break;
+        }
+        case 'rotation': {
+          mapObj.rotation = args[0] * (Math.PI / 180);
+          break;
+        }
+        case 'animate': {
+          mapObj.requestAnimate(args[0] || 'loop', args[1] || 1);
+          break;
+        }
+      }
+    }
+  };
+
+  //-----------------------------------------------------------------------------
   // Game_Map
 
   var Alias_Game_Map_initialize = Game_Map.prototype.initialize;
@@ -275,31 +339,41 @@ var $dataQMap = null;
     var Alias_Game_Map_reloadColliders = Game_Map.prototype.reloadColliders;
     Game_Map.prototype.reloadColliders = function() {
       Alias_Game_Map_reloadColliders.call(this);
-      var i, j;
-      for (i = 0, j = this._mapObjs.length; i < j; i++) {
-        this._mapObjs[i].reloadColliders();
-      }
-    };
+      for (var key in this._mapObjs) {
+        for (var i = 0; i < this._mapObjs[key].length; i++) {
+          if (this._mapObjs[key][i]) {
+            this._mapObjs[key][i].reloadColliders();
+          }
+        }
+      };
+    }
 
     var Alias_Game_Map_clearColliders = Game_Map.prototype.clearColliders;
     Game_Map.prototype.clearColliders = function() {
       Alias_Game_Map_clearColliders.call(this);
-      var i, j;
-      for (i = 0, j = this._mapObjs.length; i < j; i++) {
-        this._mapObjs[i].removeColliders();
+      for (var key in this._mapObjs) {
+        for (var i = 0; i < this._mapObjs[key].length; i++) {
+          if (this._mapObjs[key][i]) {
+            this._mapObjs[key][i].removeColliders();
+          }
+        }
       }
     };
   }
 
   Game_Map.prototype.setupMapObjs = function() {
-    this._mapObjs = [];
+    this._mapObjs = {};
     this._mapObjsWithColliders = [];
-    var data = $dataQMap[this._mapId] || [];
+    var data = $dataQMap || [];
     for (var i = 0; i < data.length; i++) {
       if (data[i]) {
         var objData = JSON.parse(JSON.stringify(data[i]));
         var mapObj = new Game_MapObj(this._mapId, objData);
-        this._mapObjs.push(mapObj);
+        var name = mapObj.name;
+        if (!this._mapObjs[name]) {
+          this._mapObjs[name] = [];
+        }
+        this._mapObjs[name].push(mapObj);
         if (mapObj.collider('collision')) {
           this._mapObjsWithColliders.push(mapObj);
         }
@@ -314,9 +388,12 @@ var $dataQMap = null;
   };
 
   Game_Map.prototype.updateMapObjs = function() {
-    var mapObjs = this._mapObjs;
-    for (var i = 0; i < mapObjs.length; i++) {
-      if (mapObjs[i]) mapObjs[i].update();
+    for (var key in this._mapObjs) {
+      for (var i = 0; i < this._mapObjs[key].length; i++) {
+        if (this._mapObjs[key][i]) {
+          this._mapObjs[key][i].update();
+        }
+      }
     }
   };
 
@@ -466,6 +543,25 @@ var $dataQMap = null;
 
   Game_MapObj.prototype.notes = function() {
     return this.note;
+  };
+
+  Game_MapObj.prototype.requestAnimate = function(mode, speed) {
+    this._requestingAnim = mode;
+    this._oldSpeed = this.speed;
+    this.speed = speed;
+    this._oldType = this.type;
+    this.type = 'animated';
+  };
+
+  Game_MapObj.prototype.clearAnimateRequest = function() {
+    this._requestingAnim = null;
+    this.type = this._oldType;
+    this.speed = this._oldSpeed;
+  };
+
+  Game_MapObj.prototype.playPose = function(pose) {
+    if (!this._qSprite) return;
+    // TODO: change the QSprite stuff
   };
 
   Game_MapObj.prototype.update = function() {
@@ -662,8 +758,17 @@ var $dataQMap = null;
     this.z = 0;
   };
 
+  Sprite_MapObject.prototype.setupAnimation = function(req) {
+    this._tick = 0;
+    this._frameI = 0;
+    this._acceptedReq = req;
+  };
+
   Sprite_MapObject.prototype.update = function() {
     Sprite_Base.prototype.update.call(this);
+    if (this._mapObj._requestingAnim && !this._acceptedReq) {
+      this.setupAnimation(this._mapObj._requestingAnim);
+    }
     if (this._mapObj.type === 'animated') {
       this.updateAnimation();
     }
@@ -678,7 +783,19 @@ var $dataQMap = null;
 
   Sprite_MapObject.prototype.updateAnimation = function() {
     if (this._tick % this._mapObj.speed === 0) {
+      var isFinal = this._frameI === this._maxFrames - 1;
       this._frameI = (this._frameI + 1) % this._maxFrames;
+      if (this._acceptedReq && isFinal) {
+        if (this._acceptedReq === 'once') {
+          this._mapObj.clearAnimateRequest();
+          this._acceptedReq = false;
+        }
+        if (this._acceptedReq === 'once2') {
+          this._mapObj.clearAnimateRequest();
+          this._acceptedReq = false;
+          this._frameI = this._maxFrames - 1;
+        }
+      }
     }
     this._tick = (this._tick + 1) % this._mapObj.speed;
   };
@@ -757,10 +874,11 @@ var $dataQMap = null;
   Spriteset_Map.prototype.createMapObjs = function() {
     this._mapObjs = [];
     var mapObjs = $gameMap._mapObjs;
-    var i;
-    for (i = 0; i < mapObjs.length; i++) {
-      if (!mapObjs[i] || !mapObjs[i].filePath) continue;
-      this._mapObjs.push(new Sprite_MapObject(mapObjs[i]));
+    for (var key in mapObjs) {
+      for (var i = 0; i < mapObjs[key].length; i++) {
+        if (!mapObjs[key][i] || !mapObjs[key][i].filePath) continue;
+        this._mapObjs.push(new Sprite_MapObject(mapObjs[key][i]));
+      }
     }
     for (i = 0; i < this._mapObjs.length; i++) {
       this._tilemap.addChild(this._mapObjs[i]);
