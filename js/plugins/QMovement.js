@@ -9,14 +9,14 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.6.0')) {
   throw new Error('Error: QMovement requires QPlus 1.6.0 or newer to work.');
 }
 
-Imported.QMovement = '1.6.2';
+Imported.QMovement = '1.6.3';
 
 //=============================================================================
 /*:
  * @plugindesc <QMovement>
  * More control over character movement
- * @version 1.6.2
- * @author Quxios  | Version 1.6.2
+ * @version 1.6.3
+ * @author Quxios  | Version 1.6.3
  * @site https://quxios.github.io/
  * @updateurl https://quxios.github.io/data/pluginsMin.json
  *
@@ -515,7 +515,7 @@ Imported.QMovement = '1.6.2';
  * ============================================================================
  * **Pathfind**
  * ----------------------------------------------------------------------------
- * https://quxios.github.io/#/plugins/QPathfind
+ * https://quxios.github.io/plugins/QPathfind
  *
  * QPathfind is an A* pathfinding algorithm. This algorithm can be pretty heavy
  * if you are doing pixel based movements. So avoid having to many pathfinders
@@ -536,7 +536,7 @@ Imported.QMovement = '1.6.2';
  * ----------------------------------------------------------------------------
  * **Collision Map**
  * ----------------------------------------------------------------------------
- * https://quxios.github.io/#/plugins/QM+CollisionMap
+ * https://quxios.github.io/plugins/QM+CollisionMap
  *
  * Collision Map is an addon for this plugin that lets you use images for
  * collisions. Note that collision map checks are a lot heavier then normal
@@ -546,7 +546,7 @@ Imported.QMovement = '1.6.2';
  * ----------------------------------------------------------------------------
  * **Region Colliders**
  * ----------------------------------------------------------------------------
- * https://quxios.github.io/#/plugins/QM+RegionColliders
+ * https://quxios.github.io/plugins/QM+RegionColliders
  *
  * Region Colliders is an addon for this plugin that lets you add colliders
  * to regions by creating a json file.
@@ -567,7 +567,7 @@ Imported.QMovement = '1.6.2';
  * ============================================================================
  * Formated Help:
  *
- *  https://quxios.github.io/#/plugins/QMovement
+ *  https://quxios.github.io/plugins/QMovement
  *
  * RPGMakerWebs:
  *
@@ -2460,11 +2460,11 @@ function ColliderManager() {
   };
 
   Game_CharacterBase.prototype.terrainTag = function() {
-    return $gameMap.terrainTag(this.x, this.y);
+    return $gameMap.terrainTag(Math.floor(this.cx(true)), Math.floor(this.cy(true)));
   };
 
   Game_CharacterBase.prototype.regionId = function() {
-    return $gameMap.regionId(this.x, this.y);
+    return $gameMap.regionId(Math.floor(this.cx(true)), Math.floor(this.cy(true)));
   };
 
   var Alias_Game_CharacterBase_update = Game_CharacterBase.prototype.update;
@@ -2852,9 +2852,17 @@ function ColliderManager() {
     this._colliders = null;
   };
 
-  Game_CharacterBase.prototype.collider = function(type) {
+  // Can pass multiple types into args, ect:
+  // collider('collision', 'interaction', 'default')
+  // will return first one thats found
+  Game_CharacterBase.prototype.collider = function(type, alternative) {
     if (!this._colliders) this.setupColliders();
-    return this._colliders[type] || this._colliders['default'];
+    for (var i = 0; i < arguments.length; i++) {
+      if (this._colliders[arguments[i]]) {
+        return this._colliders[arguments[i]];
+      }
+    }
+    return this._colliders['default'];
   };
 
   Game_CharacterBase.prototype.defaultColliderConfig = function() {
@@ -2936,12 +2944,16 @@ function ColliderManager() {
     ColliderManager.updateGrid(this, prev);
   };
 
-  Game_CharacterBase.prototype.cx = function() {
-    return this.collider('collision').center.x;
+  Game_CharacterBase.prototype.cx = function(grid) {
+    var x = this.collider('collision').center.x;;
+    if (grid) x /= QMovement.tileSize;
+    return x;
   };
 
-  Game_CharacterBase.prototype.cy = function() {
-    return this.collider('collision').center.y;
+  Game_CharacterBase.prototype.cy = function(grid) {
+    var y = this.collider('collision').center.y;
+    if (grid) y /= QMovement.tileSize;
+    return y;
   };
 })();
 
@@ -3637,10 +3649,7 @@ function ColliderManager() {
   };
 
   Game_Event.prototype.updateSelfMovement = function() {
-    if (this.isNearTheScreen() && this.canMove()) {
-      if (this.checkStop(this.stopCountThreshold())) {
-        this._stopCount = 0;
-      }
+    if (!this._locked && this.isNearTheScreen()) {
       if (this._freqCount < this.freqThreshold()) {
         switch (this._moveType) {
           case 1:
@@ -3653,8 +3662,8 @@ function ColliderManager() {
             this.moveTypeCustom();
             break;
         }
-      } else {
-        this._freqCount = -this.frameSpeed();
+      } else if (this.checkStop(this.stopCountThreshold())) {
+        this._freqCount = 0;
       }
     }
   };
