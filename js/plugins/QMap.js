@@ -12,14 +12,14 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.5')) {
   throw new Error('Error: QMap requires QMovement 1.2.1 or newer to work.');
 }
 
-Imported.QMap = '2.0.0';
+Imported.QMap = '2.0.1';
 
 //=============================================================================
 /*:
  * @plugindesc <QMap>
  * Creates maps made with QMap Editor
- * @version 2.0.0
- * @author Quxios  | Version 2.0.0
+ * @version 2.0.1
+ * @author Quxios  | Version 2.0.1
  * @site https://quxios.github.io/
  * @updateurl https://quxios.github.io/data/pluginsMin.json
  *
@@ -260,17 +260,14 @@ var $dataQMap = null;
   DataManager.onLoad = function(object) {
     if (object === $dataQMap) {
       for (var i = 0; i < object.length; i++) {
-        if (!Array.isArray(object[i])) continue;
-        for (var j = 0; j < object[i].length; j++) {
-          var data = object[i][j];
-          if (data.note === undefined && data.notes !== undefined) {
-            // older version the property was name notes, should
-            // have been just note
-            data.note = data.notes;
-          }
-          if (data && data.note !== undefined) {
-            this.extractMetadata(data);
-          }
+        var data = object[i];
+        if (data.note === undefined && data.notes !== undefined) {
+          // older version the property was name notes, should
+          // have been just note
+          data.note = data.notes;
+        }
+        if (data && data.note !== undefined) {
+          this.extractMetadata(data);
         }
       }
     } else {
@@ -468,6 +465,7 @@ var $dataQMap = null;
       this.conditions = [];
     }
     this.meta = this.qmeta || {};
+
     if (Imported.QSprite && this.isQSprite) {
       this.convertQSprite();
     }
