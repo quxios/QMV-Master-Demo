@@ -12,14 +12,14 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.5')) {
   throw new Error('Error: QMap requires QMovement 1.2.1 or newer to work.');
 }
 
-Imported.QMap = '2.0.1';
+Imported.QMap = '2.0.2';
 
 //=============================================================================
 /*:
  * @plugindesc <QMap>
  * Creates maps made with QMap Editor
- * @version 2.0.1
- * @author Quxios  | Version 2.0.1
+ * @version 2.0.2
+ * @author Quxios  | Version 2.0.2
  * @site https://quxios.github.io/
  * @updateurl https://quxios.github.io/data/pluginsMin.json
  *
@@ -241,6 +241,7 @@ var $dataQMap = null;
     Alias_DataManager_loadMapData.call(this, mapId);
     if (mapId > 0) {
       if ($dataQMapInfos[mapId]) {
+        $dataQMap = null;
         var filename = 'QMap%1.json'.format(mapId.padZero(3));
         QPlus.request('data/QMaps/' + filename)
           .onSuccess(function(json) {
