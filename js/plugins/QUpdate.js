@@ -2,8 +2,8 @@
 /*:
  * @plugindesc <QUpdate>
  * Checks QPlugins for updates
- * @version 1.2.0
- * @author Quxios  | Version 1.2.0
+ * @version 1.2.1
+ * @author Quxios  | Version 1.2.1
  * @site https://quxios.github.io/
  * @updateurl https://quxios.github.io/data/pluginsMin.json
  *
@@ -244,17 +244,20 @@ function Window_QUpdate() {
 
   QUpdate.getPlugins();
   QUpdate.getRepoPlugins(function() {
-    if (QUpdate.hasUpdates) {
-      var div = document.createElement('div');
-      div.style.cssText = 'position:absolute; top: 2px; right: 2px; z-index: 10; background-color: #ffffff; border-radius: 3px; padding: 5px;';
-      div.id = 'hasQUpdates';
-      div.innerHTML = 'Updates available for some QPlugins.';
-      div.addEventListener('click', function() {
-        SceneManager.push(Scene_QUpdate);
-        document.body.removeChild(div);
-      })
-      document.body.appendChild(div);
-    }
+    QPlus.wait(1, function() {
+      if (QUpdate.hasUpdates) {
+        var div = document.createElement('div');
+        div.style.cssText = 'position:absolute; top: 2px; right: 2px; z-index: 10; background-color: #ffffff; border-radius: 3px; padding: 5px;';
+        div.id = 'hasQUpdates';
+        div.innerHTML = 'Updates available for some QPlugins.';
+        div.addEventListener('click', function() {
+          SceneManager.push(Scene_QUpdate);
+          document.body.removeChild(div);
+        })
+        document.body.appendChild(div);
+      }
+    })
+
   });
 
 })()
