@@ -12,14 +12,14 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.1.5')) {
   throw new Error('Error: QMap requires QMovement 1.2.1 or newer to work.');
 }
 
-Imported.QMap = '2.0.2';
+Imported.QMap = '2.0.3';
 
 //=============================================================================
 /*:
  * @plugindesc <QMap>
  * Creates maps made with QMap Editor
- * @version 2.0.2
- * @author Quxios  | Version 2.0.2
+ * @version 2.0.3
+ * @author Quxios  | Version 2.0.3
  * @site https://quxios.github.io/
  * @updateurl https://quxios.github.io/data/pluginsMin.json
  *
@@ -545,6 +545,9 @@ var $dataQMap = null;
   };
 
   Game_MapObj.prototype.requestAnimate = function(mode, speed) {
+    if (this._requestingAnim) {
+      clearAnimateRequest();
+    }
     this._requestingAnim = mode;
     this._oldSpeed = this.speed;
     this.speed = speed;
