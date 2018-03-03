@@ -9,14 +9,14 @@ if (!Imported.QPlus || !QPlus.versionCheck(Imported.QPlus, '1.6.0')) {
   throw new Error('Error: QParams requires QPlus 1.6.0 or newer to work.');
 }
 
-Imported.QParams = '1.1.0';
+Imported.QParams = '1.1.1';
 
 //=============================================================================
 /*:
  * @plugindesc <QParams>
  * Custom parameters and improvements
- * @version 1.1.0
- * @author Quxios  | Version 1.1.0
+ * @version 1.1.1
+ * @author Quxios  | Version 1.1.1
  * @site https://quxios.github.io/
  * @updateurl https://quxios.github.io/data/pluginsMin.json
  * 
@@ -358,7 +358,7 @@ function QParams() {
     var lines = string.split('\n');
     var obj = {};
     lines.forEach(function(line) {
-      var match = /^(.*):(.*)/.exec(e);
+      var match = /^(.*):(.*)/.exec(line);
       if (match) {
         var id = QParams.findXSParamIdOf(match[1].toLowerCase());
         if (id !== -1) {
@@ -421,7 +421,7 @@ function QParams() {
       if (object === $dataStates) {
         QParams._states[data.id] = value;
       } else if (object === $dataWeapons) {
-        QParams._equips.wep[data.id] = value;
+        QParams._equips.weps[data.id] = value;
       } else if (object === $dataArmors) {
         QParams._equips.armor[data.id] = value;
       } else if (object === $dataActors) {
@@ -433,6 +433,7 @@ function QParams() {
       }
     }
     if (data.qmeta['rates']) {
+
       var value = QParams.stringToRatesObj(data.qmeta['rates']);
       if (object === $dataActors) {
         QParams._rates.actor[data.id] = value;
@@ -452,8 +453,8 @@ function QParams() {
       } else if (object === $dataEnemies) {
         prop = 'enemy';
       }
-      var curr = QParams._rates[prop] || {};
-      QParams._rates[prop] = Object.assign(curr, value);
+      var curr = QParams._rates[prop][data.id] || {};
+      QParams._rates[prop][data.id] = Object.assign(curr, value);
     }
   };
 
